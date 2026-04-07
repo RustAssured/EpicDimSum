@@ -44,7 +44,8 @@ export default function AdminSyncPage() {
         throw new Error(err.error || `HTTP ${res.status}`)
       }
 
-      const data: Restaurant = await res.json()
+      const json = await res.json()
+      const data: Restaurant = json.restaurant ?? json
       setSyncStates((prev) => ({
         ...prev,
         [restaurantId]: { loading: false, result: data, error: null },

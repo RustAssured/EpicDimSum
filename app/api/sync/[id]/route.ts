@@ -10,75 +10,82 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  // Admin auth check
-  const syncSecret = process.env.SYNC_SECRET
-  const authHeader = request.headers.get('x-sync-secret')
-
-  if (!syncSecret || authHeader !== syncSecret) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  const filePath = path.join(process.cwd(), 'data', 'restaurants.json')
-  const raw = await fs.readFile(filePath, 'utf-8')
-  const restaurants: Restaurant[] = JSON.parse(raw)
-
-  const index = restaurants.findIndex((r) => r.id === params.id)
-  if (index === -1) {
-    return NextResponse.json({ error: 'Restaurant not found' }, { status: 404 })
-  }
-
-  const restaurant = restaurants[index]
-
-  // Step 1: Fetch Google Places data
-  let googleData = { rating: restaurant.sources.googleRating, userRatingCount: restaurant.sources.googleReviewCount, reviews: [] as { text: { text: string }; rating: number }[] }
   try {
-    googleData = await fetchGooglePlacesData(restaurant.googlePlaceId)
-  } catch (err) {
-    console.error(`Google Places fetch failed for ${params.id}:`, err)
-  }
+    const syncSecret = process.env.SYNC_SECRET
+    const authHeader = request.headers.get('x-sync-secret')
+    if (!syncSecret || authHeader !== syncSecret) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-  const googleScore = normalizeGoogleScore(googleData.rating, googleData.userRatingCount)
-  const reviewTexts = googleData.reviews.map((r) => r.text?.text ?? '')
+    const filePath = path.join(process.cwd(), 'data', 'restaurants.json')
+    const raw = await fs.readFile(filePath, 'utf-8')
+    const restaurants: Restaurant[] = JSON.parse(raw)
+    const index = restaurants.findIndex((r) => r.id === params.id)
+    if (index === -1) {
+      return NextResponse.json({ error: 'Restaurant not found' }, { status: 404 })
+    }
 
-  // Step 2: Fetch Iens data
-  const iensData = await fetchIensData(restaurant.name, restaurant.city)
+    const restaurant = restaurants[index]
 
-  // Step 3: Claude Haiku scoring
-  const scores = await computeScoresWithClaude({
-    name: restaurant.name,
-    city: restaurant.city,
-    googleRating: googleData.rating,
-    googleReviewCount: googleData.userRatingCount,
-    googleReviews: reviewTexts,
-    iensText: iensData.rawText.slice(0, 1500),
-  })
+    let googleData = {
+      rating: restaurant.sources.googleRating,
+      userRatingCount: restaurant.sources.googleReviewCount,
+      reviews: [] as { text: { text: string }; rating: number }[]
+    }
+    try {
+      googleData = await fetchGooglePlacesData(restaurant.googlePlaceId)
+    } catch (err) {
+      console.error(`Google Places fetch failed:`, err)
+    }
 
-  // Step 4: Update restaurant data
-  const haGaoScore = Math.round((scores.haGaoIndex / 5) * 100)
+    const googleScore = normalizeGoogleScore(googleData.rating, googleData.userRatingCount)
+    const reviewTexts = googleData.reviews.map((r) => r.text?.text ?? '').filter(Boolean)
 
-  const updated: Restaurant = {
-    ...restaurant,
-    haGaoIndex: scores.haGaoIndex,
-    mustOrder: scores.mustOrder,
-    epicScore: scores.epicScore,
-    summary: scores.summary,
-    reviewSnippets: reviewTexts.slice(0, 3),
-    scores: {
-      google: googleScore,
-      haGao: haGaoScore,
-      buzz: scores.buzzScore,
-      vibe: scores.vibeScore,
-    },
-    sources: {
+    let iensText = ''
+    let iensReviewCount = restaurant.sources.blogMentions
+    try {
+      const iensData = await fetchIensData(restaurant.name, restaurant.city)
+      iensText = iensData.rawText.slice(0, 1500)
+      iensReviewCount = iensData.reviewCount ?? iensReviewCount
+    } catch (err) {
+      console.error(`Iens fetch failed:`, err)
+    }
+
+    const scores = await computeScoresWithClaude({
+      name: restaurant.name,
+      city: restaurant.city,
       googleRating: googleData.rating,
       googleReviewCount: googleData.userRatingCount,
-      blogMentions: iensData.reviewCount ?? restaurant.sources.blogMentions,
-      lastUpdated: new Date().toISOString(),
-    },
+      googleReviews: reviewTexts,
+      iensText,
+    })
+
+    const updated: Restaurant = {
+      ...restaurant,
+      haGaoIndex: scores.haGaoIndex,
+      mustOrder: scores.mustOrder,
+      epicScore: scores.epicScore,
+      summary: scores.summary,
+      reviewSnippets: reviewTexts.slice(0, 3),
+      scores: {
+        google: googleScore,
+        haGao: Math.round((scores.haGaoIndex / 5) * 100),
+        buzz: scores.buzzScore,
+        vibe: scores.vibeScore,
+      },
+      sources: {
+        googleRating: googleData.rating,
+        googleReviewCount: googleData.userRatingCount,
+        blogMentions: iensReviewCount,
+        lastUpdated: new Date().toISOString(),
+      },
+    }
+
+    return NextResponse.json({ success: true, restaurant: updated })
+
+  } catch (err) {
+    console.error('Sync error:', err)
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
-
-  restaurants[index] = updated
-  await fs.writeFile(filePath, JSON.stringify(restaurants, null, 2), 'utf-8')
-
-  return NextResponse.json(updated)
 }
