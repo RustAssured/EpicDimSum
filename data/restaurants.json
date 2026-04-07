@@ -1,0 +1,258 @@
+[
+  {
+    "id": "oriental-city-amsterdam",
+    "name": "Oriental City",
+    "city": "Amsterdam",
+    "address": "Oudezijds Voorburgwal 177, 1012 EW Amsterdam",
+    "googlePlaceId": "ChIJr6sJYxkZxkcRU_Bs-BLU7bY",
+    "cuisine": "Dim Sum / Kantonees",
+    "priceRange": "€€",
+    "coords": { "lat": 52.3736, "lng": 4.8994 },
+    "mustOrder": "De XO garnalendumplings — knapperig, pittig, en absoluut verslavend.",
+    "epicScore": 87,
+    "haGaoIndex": 4.5,
+    "scores": {
+      "google": 84,
+      "haGao": 90,
+      "buzz": 88,
+      "vibe": 82
+    },
+    "status": "open",
+    "summary": "Oriental City is dé dim sum-tempel van Amsterdam: al decennialang een begrip, met dumplings die je nergens anders zo vindt. De drukte is het bewijs — kom vroeg of reserveer.",
+    "reviewSnippets": [
+      "Beste dim sum van Nederland, geen twijfel mogelijk. De ha gao smelt op je tong.",
+      "Altijd een rij, maar het wacht is het altijd waard. Authentiek en heerlijk.",
+      "Geweldige sfeer, bedrijvige bediening, dumplings zijn topkwaliteit."
+    ],
+    "sources": {
+      "googleRating": 4.2,
+      "googleReviewCount": 2847,
+      "blogMentions": 34,
+      "lastUpdated": "2026-04-01T10:00:00Z"
+    }
+  },
+  {
+    "id": "sea-palace-amsterdam",
+    "name": "Sea Palace",
+    "city": "Amsterdam",
+    "address": "Oosterdokskade 8, 1011 AE Amsterdam",
+    "googlePlaceId": "ChIJo7VBqXQJxkcROqbqHAvhCAI",
+    "cuisine": "Dim Sum / Kantonees",
+    "priceRange": "€€",
+    "coords": { "lat": 52.3738, "lng": 4.9074 },
+    "mustOrder": "De draken-phoenixklauw — gelatineus, hartig en een echte test voor dim sum-puristen.",
+    "epicScore": 78,
+    "haGaoIndex": 3.8,
+    "scores": {
+      "google": 76,
+      "haGao": 78,
+      "buzz": 80,
+      "vibe": 74
+    },
+    "status": "open",
+    "summary": "Sea Palace drijft letterlijk op het IJ en is een iconisch Amsterdam landmark. De dim sum is solide maar speelt tweede viool bij de spectaculaire locatie op het water.",
+    "reviewSnippets": [
+      "Het uitzicht is spectaculair, de dim sum is goed maar niet uitzonderlijk.",
+      "Perfect voor toeristen en speciale gelegenheden. Reserveer vooraf!",
+      "Authentieke sfeer, uitgebreid menu, vriendelijke bediening."
+    ],
+    "sources": {
+      "googleRating": 3.8,
+      "googleReviewCount": 1923,
+      "blogMentions": 21,
+      "lastUpdated": "2026-04-01T10:00:00Z"
+    }
+  },
+  {
+    "id": "treasure-amsterdam",
+    "name": "Treasure",
+    "city": "Amsterdam",
+    "address": "Nieuwezijds Voorburgwal 115, 1012 RH Amsterdam",
+    "googlePlaceId": "ChIJQ7Y9bBkZxkcRJI9GpYe6tQM",
+    "cuisine": "Dim Sum / Chinees",
+    "priceRange": "€",
+    "coords": { "lat": 52.3749, "lng": 4.8942 },
+    "mustOrder": "Char siu baozi — de zachte, zoete bbq-varkensvleesbroodjes zijn legendarisch goedkoop.",
+    "epicScore": 82,
+    "haGaoIndex": 4.1,
+    "scores": {
+      "google": 80,
+      "haGao": 85,
+      "buzz": 83,
+      "vibe": 76
+    },
+    "status": "busy",
+    "summary": "Treasure is de hidden gem van de Nieuwezijds — goedkoop, authentiek en druk. De dim sum hier is eerlijk en ongecompliceerd, precies zoals het hoort.",
+    "reviewSnippets": [
+      "Voor deze prijs is de kwaliteit ongelooflijk. Mijn go-to voor dim sum in Amsterdam.",
+      "Klein, druk en heerlijk. De bao buns zijn verslavend.",
+      "Geen poespas, gewoon goede Chinese food. Aanrader!"
+    ],
+    "sources": {
+      "googleRating": 4.0,
+      "googleReviewCount": 1456,
+      "blogMentions": 18,
+      "lastUpdated": "2026-04-01T10:00:00Z"
+    }
+  },
+  {
+    "id": "full-moon-city-den-haag",
+    "name": "Full Moon City",
+    "city": "Den Haag",
+    "address": "Wagenstraat 167, 2512 AZ Den Haag",
+    "googlePlaceId": "ChIJ0Z4lqJJoxUcRGlqZh0F2LfE",
+    "cuisine": "Dim Sum / Kantonees",
+    "priceRange": "€€",
+    "coords": { "lat": 52.0768, "lng": 4.3105 },
+    "mustOrder": "De gefrituurde garnalenballen — knapperige buitenkant, sappig van binnen, eet er vijf.",
+    "epicScore": 84,
+    "haGaoIndex": 4.3,
+    "scores": {
+      "google": 82,
+      "haGao": 88,
+      "buzz": 81,
+      "vibe": 85
+    },
+    "status": "open",
+    "summary": "Full Moon City is de beste dim sum-ervaring in Den Haag: grote porties, verse ingrediënten en een authentieke Kantonese keuken die je doet vergeten dat je niet in Hong Kong zit.",
+    "reviewSnippets": [
+      "De beste dim sum in Den Haag, misschien wel in heel Nederland!",
+      "Verse dumplings, geweldige service, gezellige sfeer. Altijd een feest.",
+      "Kom op zaterdag voor de volle dim sum ervaring. Onvergetelijk."
+    ],
+    "sources": {
+      "googleRating": 4.1,
+      "googleReviewCount": 1102,
+      "blogMentions": 15,
+      "lastUpdated": "2026-04-01T10:00:00Z"
+    }
+  },
+  {
+    "id": "kuan-yin-den-haag",
+    "name": "Kuan Yin",
+    "city": "Den Haag",
+    "address": "Laan van Meerdervoort 195, 2563 AH Den Haag",
+    "googlePlaceId": "ChIJbVp3k5FoxUcRVNXEg0nzwxE",
+    "cuisine": "Dim Sum / Vegeterisch Chinees",
+    "priceRange": "€€",
+    "coords": { "lat": 52.0893, "lng": 4.2891 },
+    "mustOrder": "Vegetarische taro-dumplings — knapperig net, smeltende vulling, compleet uniek in Nederland.",
+    "epicScore": 79,
+    "haGaoIndex": 3.9,
+    "scores": {
+      "google": 78,
+      "haGao": 80,
+      "buzz": 77,
+      "vibe": 83
+    },
+    "status": "open",
+    "summary": "Kuan Yin biedt een zeldzame vegetarische dim sum-ervaring die minstens zo indrukwekkend is als de vleesvarianten. Een verademing voor plantaardige eters in Nederland.",
+    "reviewSnippets": [
+      "Eindelijk een goede vegetarische dim sum! De taro dumplings zijn fenomenaal.",
+      "Rustige sfeer, vriendelijk personeel, creatieve menu. Een aanrader voor vegetariërs.",
+      "Uniek concept, heerlijk eten. Een beetje buiten het centrum maar zeker de rit waard."
+    ],
+    "sources": {
+      "googleRating": 3.9,
+      "googleReviewCount": 687,
+      "blogMentions": 11,
+      "lastUpdated": "2026-04-01T10:00:00Z"
+    }
+  },
+  {
+    "id": "new-china-den-haag",
+    "name": "New China",
+    "city": "Den Haag",
+    "address": "Rabbijn Maarsenplein 1, 2596 BV Den Haag",
+    "googlePlaceId": "ChIJNxHWnKRoxUcRlTgb3lQyCGU",
+    "cuisine": "Dim Sum / Kantonees",
+    "priceRange": "€",
+    "coords": { "lat": 52.0613, "lng": 4.2719 },
+    "mustOrder": "Siu mai met kwalijkgeurtende maar heerlijke garnalen — rauw, fris en ongekend vers.",
+    "epicScore": 74,
+    "haGaoIndex": 3.6,
+    "scores": {
+      "google": 72,
+      "haGao": 74,
+      "buzz": 76,
+      "vibe": 70
+    },
+    "status": "closed",
+    "summary": "New China is een betrouwbare buurtrestaurant in Den Haag-Zuid met solide dim sum voor een eerlijke prijs. Geen verrassingen, maar ook geen teleurstellingen.",
+    "reviewSnippets": [
+      "Goed voor een snelle lunch. Niet het meest spectaculair maar consistent.",
+      "Vriendelijke bediening, redelijke prijzen. Voor Den Haag-Zuid een goede optie.",
+      "De siu mai zijn hier altijd vers. Fijne plek voor een doordeweekse dim sum."
+    ],
+    "sources": {
+      "googleRating": 3.6,
+      "googleReviewCount": 543,
+      "blogMentions": 8,
+      "lastUpdated": "2026-04-01T10:00:00Z"
+    }
+  },
+  {
+    "id": "dim-sum-house-rotterdam",
+    "name": "Dim Sum House",
+    "city": "Rotterdam",
+    "address": "Hang Ah Tea Room, Westblaak 12, 3012 KL Rotterdam",
+    "googlePlaceId": "ChIJ31FVh0xGxUcRTGKHHhvN5eI",
+    "cuisine": "Dim Sum / Modern Kantonees",
+    "priceRange": "€€",
+    "coords": { "lat": 51.9196, "lng": 4.4747 },
+    "mustOrder": "Creatieve truffel ha gao — een moderne twist op het klassieke recept die je niet verwacht in Rotterdam.",
+    "epicScore": 88,
+    "haGaoIndex": 4.6,
+    "scores": {
+      "google": 86,
+      "haGao": 93,
+      "buzz": 87,
+      "vibe": 89
+    },
+    "status": "busy",
+    "summary": "Dim Sum House in Rotterdam is verrassend goed — modern ingericht, creatieve menu en de beste ha gao buiten Hong Kong. Een must-visit voor elke serieuze dim sum-liefhebber.",
+    "reviewSnippets": [
+      "Beste dim sum die ik ooit in Nederland heb gegeten. De truffel ha gao is een openbaring.",
+      "Modern, schoon en met topkwaliteit ingrediënten. Rotterdam heeft een winnaar.",
+      "De chef heeft echt iets bijzonders in handen. Kom vroeg want het is snel vol."
+    ],
+    "sources": {
+      "googleRating": 4.3,
+      "googleReviewCount": 892,
+      "blogMentions": 27,
+      "lastUpdated": "2026-04-01T10:00:00Z"
+    }
+  },
+  {
+    "id": "east-palace-rotterdam",
+    "name": "East Palace",
+    "city": "Rotterdam",
+    "address": "Gouvernestraat 33, 3014 PH Rotterdam",
+    "googlePlaceId": "ChIJXQR7slhGxUcRDTW3eJGjL8A",
+    "cuisine": "Dim Sum / Kantonees",
+    "priceRange": "€€",
+    "coords": { "lat": 51.9123, "lng": 4.4659 },
+    "mustOrder": "Klassieker: cheung fun met garnalen in huisgemaakte sojasaus — zijdezacht en perfect.",
+    "epicScore": 80,
+    "haGaoIndex": 4.0,
+    "scores": {
+      "google": 79,
+      "haGao": 82,
+      "buzz": 78,
+      "vibe": 81
+    },
+    "status": "open",
+    "summary": "East Palace is de betrouwbare veteraan van Rotterdam's dim sum-scene. Classiek, consistent en met een loyale vaste clientèle die er al jaren trouw aan is.",
+    "reviewSnippets": [
+      "Al jaren mijn favoriete plek in Rotterdam. Consistente kwaliteit, vriendelijk personeel.",
+      "De cheung fun hier is hemels. Simpel maar perfect uitgevoerd.",
+      "Traditionele dim sum ervaring in een gezellig restaurant. Zeker aanbevolen."
+    ],
+    "sources": {
+      "googleRating": 4.0,
+      "googleReviewCount": 1234,
+      "blogMentions": 14,
+      "lastUpdated": "2026-04-01T10:00:00Z"
+    }
+  }
+]
