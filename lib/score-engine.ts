@@ -50,9 +50,9 @@ Return this exact JSON structure:
     throw new Error('Unexpected response type from Claude')
   }
 
-  // Extract JSON even if there's any surrounding whitespace
-  const jsonText = content.text.trim()
-  const parsed = JSON.parse(jsonText)
+  const text = content.text.trim()
+  const cleaned = text.replace(/```json\n?|\n?```/g, '').trim()
+  const parsed = JSON.parse(cleaned)
 
   return {
     haGaoIndex: Number(parsed.haGaoIndex),
