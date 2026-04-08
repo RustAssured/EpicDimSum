@@ -86,6 +86,16 @@ export async function upsertRestaurant(restaurant: Restaurant): Promise<void> {
   if (error) throw new Error(`Supabase upsert failed: ${error.message}`)
 }
 
+// Delete restaurant (admin only)
+export async function deleteRestaurant(id: string): Promise<void> {
+  const { error } = await getSupabaseAdmin()
+    .from('restaurants')
+    .delete()
+    .eq('id', id)
+
+  if (error) throw new Error(`Supabase delete failed: ${error.message}`)
+}
+
 // Upsert ALL seed entries to Supabase — ensures new seeds appear without wiping existing data
 export async function syncSeedToSupabase(): Promise<void> {
   const seed = restaurantsSeed as Restaurant[]

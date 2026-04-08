@@ -86,7 +86,13 @@ export async function POST(request: NextRequest) {
 
         const epicScore = scores.epicScore > 0
           ? scores.epicScore
-          : Math.round((googleData.rating / 5) * 70)
+          : Math.max(
+              Math.round(
+                (googleData.rating / 5) * 60 +
+                Math.min(Math.log10(googleData.userRatingCount + 1) / 3 * 20, 20)
+              ),
+              30
+            )
 
         const restaurant: Restaurant = {
           id,

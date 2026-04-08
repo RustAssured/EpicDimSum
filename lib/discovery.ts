@@ -20,6 +20,19 @@ const DISCOVERY_CITIES = [
 
 const DIM_SUM_KEYWORDS = ['dim sum', 'dimsum', 'yum cha', 'kantonees', 'cantonese', 'ha gao', 'har gow', 'siu mai']
 
+export const BLOCKLIST_KEYWORDS = [
+  'reisbureau', 'travel', 'reizen', 'hotel', 'hostel',
+  'supermarkt', 'supermarket', 'toko', 'shop', 'store',
+  'winkel', 'markt', 'market', 'school', 'academy',
+]
+
+export function isActualRestaurant(spot: Pick<NewSpot, 'name' | 'googleReviewCount'>): boolean {
+  const nameLower = spot.name.toLowerCase()
+  if (BLOCKLIST_KEYWORDS.some((kw) => nameLower.includes(kw))) return false
+  if (spot.googleReviewCount < 10) return false
+  return true
+}
+
 interface PlacesNearbyResult {
   id: string
   displayName: { text: string }
@@ -107,12 +120,17 @@ async function searchNearby(city: { name: string; lat: number; lng: number }): P
   }))
 }
 
-async function searchByText(city: { name: string; lat: number; lng: number }): Promise<NewSpot[]> {
+async function searchByText(
+  city: { name: string; lat: number; lng: number },
+  query?: string
+): Promise<NewSpot[]> {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY
   if (!apiKey) throw new Error('GOOGLE_PLACES_API_KEY not set')
 
+  const textQuery = query ?? `dim sum ${city.name} Nederland`
+
   const body = {
-    textQuery: `dim sum ${city.name} Nederland`,
+    textQuery,
     maxResultCount: 20,
     locationBias: {
       circle: {
@@ -135,12 +153,12 @@ async function searchByText(city: { name: string; lat: number; lng: number }): P
   })
 
   if (!res.ok) {
-    console.error(`[Discovery TextSearch] ${city.name}: API error ${res.status} ${await res.text()}`)
+    console.error(`[Discovery TextSearch] "${textQuery}": API error ${res.status} ${await res.text()}`)
     return []
   }
 
   const data = await res.json()
-  console.log(`[Discovery TextSearch] ${city.name}:`, JSON.stringify(data).slice(0, 500))
+  console.log(`[Discovery TextSearch] "${textQuery}":`, JSON.stringify(data).slice(0, 300))
 
   const places: PlacesTextResult[] = data.places ?? []
 
@@ -157,7 +175,7 @@ async function searchByText(city: { name: string; lat: number; lng: number }): P
     return false
   })
 
-  console.log(`[Discovery TextSearch] ${city.name}: ${places.length} raw → ${filtered.length} after filter`)
+  console.log(`[Discovery TextSearch] "${textQuery}": ${places.length} raw → ${filtered.length} after filter`)
 
   return filtered.map((p) => ({
     googlePlaceId: p.id,
@@ -173,11 +191,58 @@ async function searchByText(city: { name: string; lat: number; lng: number }): P
   }))
 }
 
+function getCityQueries(city: { name: string }): string[] {
+  const base = [
+    `dim sum ${city.name}`,
+    `yum cha ${city.name}`,
+    `Chinees restaurant ${city.name} dim sum`,
+    `Kantonees restaurant ${city.name}`,
+    `蒸饺 ${city.name}`,
+  ]
+
+  if (city.name === 'Den Haag') {
+    base.push('dim sum Wagenstraat Den Haag')
+    base.push('Chinees Wagenstraat Den Haag')
+    base.push('dim sum Chinatown Den Haag')
+  }
+
+  if (city.name === 'Rotterdam') {
+    base.push('dim sum Rotterdam Centrum')
+    base.push('Chinees restaurant Rotterdam West Kruiskade')
+    base.push('dim sum West-Kruiskade')
+  }
+
+  return base
+}
+
+async function searchAllQueriesForCity(city: { name: string; lat: number; lng: number }): Promise<NewSpot[]> {
+  const queries = getCityQueries(city)
+
+  const results = await Promise.allSettled(
+    queries.map((q) => searchByText(city, q))
+  )
+
+  const allSpots: NewSpot[] = []
+  const seen = new Set<string>()
+
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      for (const spot of result.value) {
+        if (!seen.has(spot.googlePlaceId)) {
+          seen.add(spot.googlePlaceId)
+          allSpots.push(spot)
+        }
+      }
+    }
+  }
+
+  return allSpots
+}
+
 async function searchCity(city: { name: string; lat: number; lng: number }): Promise<NewSpot[]> {
-  // Run both search strategies and merge results
   const [nearbyResults, textResults] = await Promise.allSettled([
     searchNearby(city),
-    searchByText(city),
+    searchAllQueriesForCity(city),
   ])
 
   const allResults = [
@@ -185,7 +250,6 @@ async function searchCity(city: { name: string; lat: number; lng: number }): Pro
     ...(textResults.status === 'fulfilled' ? textResults.value : []),
   ]
 
-  // Deduplicate by googlePlaceId
   const seen = new Set<string>()
   return allResults.filter((r) => {
     if (seen.has(r.googlePlaceId)) return false
@@ -201,7 +265,9 @@ export async function discoverNewSpots(): Promise<NewSpot[]> {
   const results = await Promise.all(DISCOVERY_CITIES.map(searchCity))
   const allSpots = results.flat()
 
-  const newSpots = allSpots.filter((spot) => !existingPlaceIds.has(spot.googlePlaceId))
+  const newSpots = allSpots
+    .filter((spot) => !existingPlaceIds.has(spot.googlePlaceId))
+    .filter(isActualRestaurant)
 
   const seen = new Set<string>()
   return newSpots.filter((spot) => {

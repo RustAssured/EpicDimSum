@@ -9,6 +9,16 @@ import { computeBuzzScore } from '@/lib/buzz-engine'
 
 const USE_TRIPADVISOR = process.env.ENABLE_TRIPADVISOR === 'true'
 
+function epicScoreFallback(googleRating: number, reviewCount: number): number {
+  return Math.max(
+    Math.round(
+      (googleRating / 5) * 60 +
+      Math.min(Math.log10(reviewCount + 1) / 3 * 20, 20)
+    ),
+    30
+  )
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -76,13 +86,17 @@ export async function POST(
       buzzScore: buzz.totalBuzzScore,
     })
 
+    const epicScore = (!scores.epicScore || scores.epicScore === 0)
+      ? epicScoreFallback(googleData.rating, googleData.userRatingCount)
+      : scores.epicScore
+
     const updated: Restaurant = {
       ...restaurant,
       haGaoIndex: scores.haGaoIndex,
       haGaoDetail: scores.haGaoDetail,
       rankReason: scores.rankReason,
       mustOrder: scores.mustOrder,
-      epicScore: scores.epicScore,
+      epicScore,
       summary: scores.summary,
       reviewSnippets: reviewTexts.slice(0, 3),
       dumplingMentionScore: scores.dumplingMentionScore,

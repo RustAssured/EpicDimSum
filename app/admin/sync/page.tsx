@@ -52,6 +52,13 @@ export default function AdminSyncPage() {
     error: string | null
   }>({ loading: false, result: null, error: null })
 
+  // Cleanup state
+  const [cleanupState, setCleanupState] = useState<{
+    loading: boolean
+    result: { removed: string[]; count: number } | null
+    error: string | null
+  }>({ loading: false, result: null, error: null })
+
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault()
     if (secret.trim()) setAuthed(true)
@@ -150,6 +157,28 @@ export default function AdminSyncPage() {
       setFullScanState({ loading: false, result: data, error: null })
     } catch (err) {
       setFullScanState({
+        loading: false,
+        result: null,
+        error: err instanceof Error ? err.message : 'Onbekende fout',
+      })
+    }
+  }
+
+  const handleCleanup = async () => {
+    setCleanupState({ loading: true, result: null, error: null })
+    try {
+      const res = await fetch('/api/admin/cleanup', {
+        method: 'POST',
+        headers: { 'x-sync-secret': secret },
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(humanizeError(err.error || `HTTP ${res.status}`))
+      }
+      const data = await res.json()
+      setCleanupState({ loading: false, result: data, error: null })
+    } catch (err) {
+      setCleanupState({
         loading: false,
         result: null,
         error: err instanceof Error ? err.message : 'Onbekende fout',
@@ -276,6 +305,32 @@ export default function AdminSyncPage() {
           >
             {fullScanState.loading ? '⏳ Scanning NL...' : '🔍 Grote NL scan'}
           </button>
+
+          {/* Opruimen */}
+          <button
+            onClick={handleCleanup}
+            disabled={cleanupState.loading}
+            className={`px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
+              ${cleanupState.loading
+                ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
+                : 'bg-inkBlack text-cream hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none'
+              }`}
+          >
+            {cleanupState.loading ? '⏳ Opruimen...' : '🧹 Opruimen'}
+          </button>
+
+          {cleanupState.error && (
+            <p className="w-full text-xs text-epicRed font-medium">
+              Cleanup fout: {cleanupState.error}
+            </p>
+          )}
+          {cleanupState.result && (
+            <p className="w-full text-xs text-epicGreen font-bold">
+              {cleanupState.result.count === 0
+                ? '✓ Niets te verwijderen'
+                : `🧹 ${cleanupState.result.count} verwijderd: ${cleanupState.result.removed.join(' · ')}`}
+            </p>
+          )}
 
           {discoverState.error && (
             <p className="w-full text-xs text-epicRed font-medium">
@@ -423,7 +478,14 @@ export default function AdminSyncPage() {
                 >
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div>
-                      <h3 className="font-black text-inkBlack">{restaurant.name}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-black text-inkBlack">{restaurant.name}</h3>
+                        {restaurant.epicScore === 0 && (
+                          <span className="text-[10px] font-black bg-epicGold/20 text-epicGold border border-epicGold/40 rounded-full px-2 py-0.5">
+                            ⚠️ Sync nodig
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-inkBlack/50">{restaurant.city} &middot; EpicScore: {restaurant.epicScore}</p>
                       <p className="text-xs text-inkBlack/30 mt-0.5">Laatste sync: {lastUpdated}</p>
                     </div>
