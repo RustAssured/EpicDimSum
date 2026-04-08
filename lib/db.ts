@@ -30,14 +30,24 @@ export async function getAllRestaurants(): Promise<Restaurant[]> {
       .select('data')
       .order('updated_at', { ascending: false })
 
-    if (error || !data || data.length === 0) {
+    if (error) {
+      console.error('[DB] Supabase error, falling back to seed:', error)
       return (restaurantsSeed as Restaurant[]).map(normalizeRestaurant)
     }
 
-    return data
-      .map((row) => normalizeRestaurant(row.data as Restaurant))
-      .sort((a, b) => b.epicScore - a.epicScore)
-  } catch {
+    // If Supabase returns data (even just 1 row), use it — never fall back
+    if (data && data.length > 0) {
+      return data
+        .map((row) => normalizeRestaurant(row.data as Restaurant))
+        .sort((a, b) => b.epicScore - a.epicScore)
+    }
+
+    // Only fall back if truly empty
+    console.log('[DB] Supabase empty, seeding from JSON')
+    await seedIfEmpty()
+    return (restaurantsSeed as Restaurant[]).map(normalizeRestaurant)
+  } catch (err) {
+    console.error('[DB] Connection failed, falling back to seed:', err)
     return (restaurantsSeed as Restaurant[]).map(normalizeRestaurant)
   }
 }
