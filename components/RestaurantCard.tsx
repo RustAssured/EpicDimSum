@@ -53,20 +53,17 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
           </div>
         </div>
 
-        {/* Score bars — renamed: Hype→Reputatie, Sfeer→Vibe */}
+        {/* Score bars */}
         <div className="px-4 pb-1 space-y-1.5">
-          <ScoreBar label="Reputatie" score={scores.buzz} color="#534AB7" />
-          <ScoreBar label="OG Score" score={scores.google} color="#D85A30" />
+          <ScoreBar label="Reputatie" score={scores.buzz} color="#D85A30" />
+          <ScoreBar label="Buzz" score={scores.google} color="#534AB7" />
           <ScoreBar label="Vibe" score={scores.vibe} color="#1D9E75" />
         </div>
 
         {/* EpicScore formula */}
-        <div className="px-4 pb-3 pt-1.5">
-          <p className="text-[10px] text-inkBlack/30 font-medium">
-            Google&nbsp;<span className="font-black text-inkBlack/40">35%</span>
-            &nbsp;·&nbsp;Ha&nbsp;Gao&nbsp;<span className="font-black text-inkBlack/40">25%</span>
-            &nbsp;·&nbsp;Buzz&nbsp;<span className="font-black text-inkBlack/40">25%</span>
-            &nbsp;·&nbsp;Vibe&nbsp;<span className="font-black text-inkBlack/40">15%</span>
+        <div className="px-4 pb-3 pt-1">
+          <p className="text-[10px] text-inkBlack/40 font-medium text-center py-1">
+            Reputatie 35% · Ha Gao 25% · Buzz 25% · Vibe 15%
           </p>
         </div>
 
