@@ -1,8 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { promises as fs } from 'fs'
-import path from 'path'
-import { Restaurant } from '@/lib/types'
+import { getAllRestaurants, getRestaurantById } from '@/lib/db'
 import StatusBadge from '@/components/StatusBadge'
 import ScoreBar from '@/components/ScoreBar'
 import HaGaoIndex from '@/components/HaGaoIndex'
@@ -14,17 +12,8 @@ interface PageProps {
   params: { id: string }
 }
 
-async function getRestaurant(id: string): Promise<Restaurant | null> {
-  const filePath = path.join(process.cwd(), 'data', 'restaurants.json')
-  const raw = await fs.readFile(filePath, 'utf-8')
-  const restaurants: Restaurant[] = JSON.parse(raw)
-  return restaurants.find((r) => r.id === id) ?? null
-}
-
 export async function generateStaticParams() {
-  const filePath = path.join(process.cwd(), 'data', 'restaurants.json')
-  const raw = await fs.readFile(filePath, 'utf-8')
-  const restaurants: Restaurant[] = JSON.parse(raw)
+  const restaurants = await getAllRestaurants()
   return restaurants.map((r) => ({ id: r.id }))
 }
 
@@ -35,7 +24,7 @@ const priceLabel: Record<string, string> = {
 }
 
 export default async function RestaurantPage({ params }: PageProps) {
-  const restaurant = await getRestaurant(params.id)
+  const restaurant = await getRestaurantById(params.id)
   if (!restaurant) notFound()
 
   const {
@@ -75,7 +64,8 @@ export default async function RestaurantPage({ params }: PageProps) {
               <div>
                 <h1 className="text-2xl font-black text-inkBlack leading-tight">{name}</h1>
                 <p className="text-sm text-inkBlack/50 font-medium mt-0.5">
-                  {city} &middot; {cuisine} &middot; <span className="font-bold">{priceRange} ({priceLabel[priceRange]})</span>
+                  {city} &middot; {cuisine} &middot;{' '}
+                  <span className="font-bold">{priceRange} ({priceLabel[priceRange]})</span>
                 </p>
                 <p className="text-xs text-inkBlack/40 mt-0.5">{address}</p>
               </div>
@@ -90,7 +80,7 @@ export default async function RestaurantPage({ params }: PageProps) {
             )}
 
             {/* Score bars */}
-            <div className="space-y-2 mb-4">
+            <div className="space-y-2 mb-3">
               <h3 className="text-xs font-black uppercase tracking-wide text-inkBlack/40">EpicScore Breakdown</h3>
               <ScoreBar label="Google" score={scores.google} color="#D85A30" />
               <ScoreBar label="Ha Gao" score={scores.haGao} color="#1D9E75" />

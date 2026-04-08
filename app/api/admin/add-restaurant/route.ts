@@ -1,15 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Restaurant } from '@/lib/types'
-import { getRestaurantById, upsertRestaurant } from '@/lib/db'
+import { Restaurant, City, PriceRange } from '@/lib/types'
+import { upsertRestaurant } from '@/lib/db'
 import { fetchGooglePlacesData, normalizeGoogleScore } from '@/lib/google-places'
 import { fetchIensData } from '@/lib/iens-scraper'
 import { computeScoresWithClaude } from '@/lib/score-engine'
 import { computeBuzzScore } from '@/lib/buzz-engine'
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+function slugify(name: string, city: string): string {
+  return [name, city]
+    .join(' ')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+}
+
+export async function POST(request: NextRequest) {
   try {
     const syncSecret = process.env.SYNC_SECRET
     const authHeader = request.headers.get('x-sync-secret')
@@ -17,40 +23,52 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const restaurant = await getRestaurantById(params.id)
-    if (!restaurant) {
-      return NextResponse.json({ error: 'Restaurant not found' }, { status: 404 })
+    const body = await request.json()
+    const { placeId, name, city, priceRange } = body as {
+      placeId: string
+      name: string
+      city: City
+      priceRange: PriceRange
     }
 
+    if (!placeId || !name || !city || !priceRange) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    const id = slugify(name, city)
+
+    // Step 1: Fetch Google Places data
     let googleData = {
-      rating: restaurant.sources.googleRating,
-      userRatingCount: restaurant.sources.googleReviewCount,
+      rating: 0,
+      userRatingCount: 0,
       reviews: [] as { text: { text: string }; rating: number }[],
     }
     try {
-      googleData = await fetchGooglePlacesData(restaurant.googlePlaceId)
+      googleData = await fetchGooglePlacesData(placeId)
     } catch (err) {
-      console.error(`Google Places fetch failed:`, err)
+      console.error('Google Places fetch failed:', err)
     }
 
     const googleScore = normalizeGoogleScore(googleData.rating, googleData.userRatingCount)
     const reviewTexts = googleData.reviews.map((r) => r.text?.text ?? '').filter(Boolean)
 
+    // Step 2: Iens data
     let iensText = ''
-    let iensReviewCount = restaurant.sources.blogMentions
+    let iensReviewCount = 0
     try {
-      const iensData = await fetchIensData(restaurant.name, restaurant.city)
+      const iensData = await fetchIensData(name, city)
       iensText = iensData.rawText.slice(0, 1500)
-      iensReviewCount = iensData.reviewCount ?? iensReviewCount
+      iensReviewCount = iensData.reviewCount ?? 0
     } catch (err) {
-      console.error(`Iens fetch failed:`, err)
+      console.error('Iens fetch failed:', err)
     }
 
+    // Step 3: Run buzz + Claude in parallel
     const [buzz, scores] = await Promise.all([
-      computeBuzzScore(restaurant.name, restaurant.city, iensReviewCount),
+      computeBuzzScore(name, city, iensReviewCount),
       computeScoresWithClaude({
-        name: restaurant.name,
-        city: restaurant.city,
+        name,
+        city,
         googleRating: googleData.rating,
         googleReviewCount: googleData.userRatingCount,
         googleReviews: reviewTexts,
@@ -58,11 +76,19 @@ export async function POST(
       }),
     ])
 
-    const updated: Restaurant = {
-      ...restaurant,
-      haGaoIndex: scores.haGaoIndex,
+    // Step 4: Build full Restaurant object
+    const restaurant: Restaurant = {
+      id,
+      name,
+      city,
+      address: '',
+      googlePlaceId: placeId,
+      cuisine: 'Dim Sum',
+      priceRange,
+      coords: { lat: 0, lng: 0 },
       mustOrder: scores.mustOrder,
       epicScore: scores.epicScore,
+      haGaoIndex: scores.haGaoIndex,
       summary: scores.summary,
       reviewSnippets: reviewTexts.slice(0, 3),
       scores: {
@@ -71,6 +97,7 @@ export async function POST(
         buzz: buzz.totalBuzzScore,
         vibe: scores.vibeScore,
       },
+      status: 'open',
       sources: {
         googleRating: googleData.rating,
         googleReviewCount: googleData.userRatingCount,
@@ -79,11 +106,12 @@ export async function POST(
       },
     }
 
-    await upsertRestaurant(updated)
+    // Step 5: Upsert to Supabase
+    await upsertRestaurant(restaurant)
 
-    return NextResponse.json({ success: true, restaurant: updated })
+    return NextResponse.json(restaurant)
   } catch (err) {
-    console.error('Sync error:', err)
+    console.error('Add restaurant error:', err)
     const message = err instanceof Error ? err.message : 'Unknown error'
     return NextResponse.json({ error: message }, { status: 500 })
   }

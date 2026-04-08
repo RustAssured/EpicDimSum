@@ -1,19 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { promises as fs } from 'fs'
-import path from 'path'
-import { Restaurant } from '@/lib/types'
+import { getAllRestaurants, seedIfEmpty } from '@/lib/db'
+import { City } from '@/lib/types'
 
-export const revalidate = 3600 // 1 hour ISR
+export const revalidate = 3600
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
-  const city = searchParams.get('city')
+  const city = searchParams.get('city') as City | null
 
-  const filePath = path.join(process.cwd(), 'data', 'restaurants.json')
-  const raw = await fs.readFile(filePath, 'utf-8')
-  let restaurants: Restaurant[] = JSON.parse(raw)
+  let restaurants = await getAllRestaurants()
 
-  if (city && city !== 'Alle') {
+  // Seed from JSON if Supabase is empty
+  if (restaurants.length === 0) {
+    await seedIfEmpty()
+    restaurants = await getAllRestaurants()
+  }
+
+  if (city && city !== ('Alle' as City)) {
     restaurants = restaurants.filter((r) => r.city === city)
   }
 
