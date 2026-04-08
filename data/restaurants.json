@@ -270,5 +270,45 @@
       "blogMentions": 14,
       "lastUpdated": "2026-04-01T10:00:00Z"
     }
+  },
+  {
+    "id": "pacifica-utrecht",
+    "name": "Pacifica",
+    "city": "Utrecht",
+    "address": "Vredenburg 19, 3511 BA Utrecht",
+    "googlePlaceId": "ChIJP1E2jqtjxkcRJX3XEJk2MF0",
+    "cuisine": "Dim Sum / Pan-Aziatisch",
+    "priceRange": "€€",
+    "coords": { "lat": 52.0930, "lng": 5.1150 },
+    "mustOrder": "Besteld de gestoomde garnalendumplings — verrassend authentiek voor Utrecht.",
+    "epicScore": 74,
+    "haGaoIndex": 3.6,
+    "rankReason": "Solide Utrecht optie met groeiende buzz, mist nog de diepgang van de Randstad klassiekers.",
+    "haGaoDetail": "Redelijke velletjes, vulling kan consistenter — maar voor Utrecht verrassend goed.",
+    "scores": { "google": 78, "haGao": 72, "buzz": 65, "vibe": 80 },
+    "status": "open",
+    "summary": "Pacifica is de beste dim sum optie in Utrecht, zij het geen topper op nationaal niveau. Voor de regio zeker de moeite waard.",
+    "reviewSnippets": [],
+    "sources": { "googleRating": 4.1, "googleReviewCount": 287, "blogMentions": 3, "lastUpdated": "2026-04-01T12:00:00Z" }
+  },
+  {
+    "id": "china-garden-eindhoven",
+    "name": "China Garden",
+    "city": "Eindhoven",
+    "address": "Rechtestraat 62, 5611 GS Eindhoven",
+    "googlePlaceId": "ChIJl8gLKgBvx0cRkKQNkrU4zGs",
+    "cuisine": "Dim Sum / Kantonees",
+    "priceRange": "€€",
+    "coords": { "lat": 51.4380, "lng": 5.4780 },
+    "mustOrder": "De siu mai hier is opvallend goed voor een stad zonder Chinatown.",
+    "epicScore": 71,
+    "haGaoIndex": 3.4,
+    "rankReason": "Hidden gem buiten de Randstad — lage buzz maar degelijke kwaliteit die verdiend groeit.",
+    "haGaoDetail": "Stevigere vulling dan verwacht, vel iets te dik maar smaak klopt helemaal.",
+    "scores": { "google": 75, "haGao": 68, "buzz": 58, "vibe": 76 },
+    "status": "open",
+    "summary": "Voor Eindhoven is China Garden een verrassende vondst. Geen spektakel maar eerlijke dim sum op consistent niveau.",
+    "reviewSnippets": [],
+    "sources": { "googleRating": 4.0, "googleReviewCount": 143, "blogMentions": 1, "lastUpdated": "2026-04-01T12:00:00Z" }
   }
 ]

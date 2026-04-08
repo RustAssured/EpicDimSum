@@ -58,7 +58,19 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
           </div>
         </div>
 
-        {/* Score bars */}
+        {/* Ha Gao Index — directly below EpicScore, neutral background */}
+        <div className="mx-4 mb-2 px-3 py-2 rounded-xl bg-inkBlack/5 border border-inkBlack/10">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="text-xs font-black text-inkBlack/70 leading-none">Ha Gao Index</p>
+              <p className="text-[9px] text-epicGreen/70 uppercase tracking-wide leading-none mt-0.5">de ultieme dumplingtest</p>
+            </div>
+            <HaGaoIndex index={haGaoIndex} size="sm" />
+          </div>
+          {haGaoDetail && (
+            <p className="text-[11px] text-inkBlack/50 italic mt-1.5 leading-snug">{haGaoDetail}</p>
+          )}
+        </div>
         <div className="px-4 pb-1 pt-2 space-y-1.5">
           <ScoreBar label="Reputatie" score={scores.buzz} color="#D85A30" />
           <ScoreBar label="Buzz" score={scores.google} color="#534AB7" />
@@ -85,20 +97,6 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
         <div className="mx-4 mb-3 px-3 py-2 rounded-xl border-[2px] border-dashed border-epicGold/70 bg-epicGold/5">
           <p className="text-xs font-bold text-epicGold uppercase tracking-wide mb-0.5">Must order</p>
           <p className="text-xs text-inkBlack leading-snug line-clamp-2">{mustOrder}</p>
-        </div>
-
-        {/* Ha Gao Index — mini card */}
-        <div className="mx-4 mb-3 px-3 py-2 rounded-xl bg-epicGreen/5 border border-epicGreen/20">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <p className="text-xs font-black text-inkBlack/70 leading-none">Ha Gao Index</p>
-              <p className="text-[9px] text-epicGreen/60 uppercase tracking-wide leading-none mt-0.5">de ultieme dumplingtest</p>
-            </div>
-            <HaGaoIndex index={haGaoIndex} size="sm" />
-          </div>
-          {haGaoDetail && (
-            <p className="text-[11px] text-inkBlack/50 italic mt-1.5 leading-snug">{haGaoDetail}</p>
-          )}
         </div>
 
         {/* Source pills */}

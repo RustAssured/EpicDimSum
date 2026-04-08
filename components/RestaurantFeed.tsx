@@ -20,6 +20,7 @@ function findHiddenGem(list: Restaurant[]): Restaurant {
 export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
   const [selectedCity, setSelectedCity] = useState<City | 'Alle'>('Alle')
   const [searchQuery, setSearchQuery] = useState('')
+  const [bannerDismissed, setBannerDismissed] = useState(false)
 
   const filtered = useMemo(() => {
     let list = restaurants
@@ -61,6 +62,33 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
 
       {/* City filter */}
       <CityFilter selected={selectedCity} onChange={setSelectedCity} />
+
+      {/* EpicScore + Ha Gao explanation banner */}
+      {!bannerDismissed && (
+        <div className="relative">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="bg-epicRed/10 border-2 border-epicRed/30 rounded-2xl px-4 py-3">
+              <p className="font-black text-sm text-epicRed">EpicScore™</p>
+              <p className="text-xs text-inkBlack/60 mt-0.5 leading-snug">
+                Combineert Google reputatie, Ha Gao kwaliteit, online buzz en vibe tot één eerlijk cijfer
+              </p>
+            </div>
+            <div className="bg-epicGreen/10 border-2 border-epicGreen/30 rounded-2xl px-4 py-3">
+              <p className="font-black text-sm text-epicGreen">Ha Gao Index 🥟</p>
+              <p className="text-xs text-inkBlack/60 mt-0.5 leading-snug">
+                Onze signature test — hoe goed zijn de Ha Gao én Siu Mai? Dít is waar een keuken zich bewijst
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setBannerDismissed(true)}
+            className="absolute top-2 right-2 w-5 h-5 rounded-full bg-inkBlack/10 hover:bg-inkBlack/20 text-inkBlack/40 hover:text-inkBlack/70 text-xs font-black flex items-center justify-center transition-colors"
+            aria-label="Sluiten"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Hidden gem alert */}
       {hiddenGem && <HiddenGemAlert restaurant={hiddenGem} />}

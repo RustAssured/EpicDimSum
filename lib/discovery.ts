@@ -57,42 +57,45 @@ async function searchNearby(city: { name: string; lat: number; lng: number }): P
   })
 
   if (!res.ok) {
-    console.error(`Places searchNearby failed for ${city.name}: ${res.status} ${await res.text()}`)
+    console.error(`[Discovery] ${city.name}: API error ${res.status} ${await res.text()}`)
     return []
   }
 
   const data = await res.json()
   const places: PlacesNearbyResult[] = data.places ?? []
 
-  return places
-    .filter((p) => {
-      const name = p.displayName?.text?.toLowerCase() ?? ''
-      const type = p.primaryTypeDisplayName?.text?.toLowerCase() ?? ''
-      const reviewCount = p.userRatingCount ?? 0
+  console.log(`[Discovery] ${city.name}: API returned ${places.length} raw results`)
+  if (places.length > 0) {
+    console.log(`[Discovery] ${city.name}: Sample result:`, JSON.stringify(places[0], null, 2))
+  }
 
-      // Must have minimum review count
-      if (reviewCount < 30) return false
+  const filtered = places.filter((p) => {
+    const name = p.displayName?.text?.toLowerCase() ?? ''
+    const type = p.primaryTypeDisplayName?.text?.toLowerCase() ?? ''
+    const rating = p.rating ?? 0
 
-      // Include if name or type contains 'dim sum'
-      if (name.includes('dim sum') || type.includes('dim sum')) return true
+    // Accept if ANY of these are true:
+    if (name.includes('dim sum')) return true
+    if (type.includes('dim sum') || type.includes('chinese')) return true
+    if (rating >= 4.0 && (name.includes('china') || name.includes('chinese') || name.includes('asian') || type.includes('asian'))) return true
 
-      // Include high-review Chinese places (likely have dim sum)
-      if (reviewCount >= 50 && (type.includes('chinese') || name.includes('china') || name.includes('chinese'))) return true
+    return false
+  })
 
-      return false
-    })
-    .map((p) => ({
-      googlePlaceId: p.id,
-      name: p.displayName?.text ?? 'Onbekend',
-      city: city.name,
-      address: p.formattedAddress ?? '',
-      coords: {
-        lat: p.location?.latitude ?? city.lat,
-        lng: p.location?.longitude ?? city.lng,
-      },
-      googleRating: p.rating ?? 0,
-      googleReviewCount: p.userRatingCount ?? 0,
-    }))
+  console.log(`[Discovery] ${city.name}: After filter: ${filtered.length} spots`)
+
+  return filtered.map((p) => ({
+    googlePlaceId: p.id,
+    name: p.displayName?.text ?? 'Onbekend',
+    city: city.name,
+    address: p.formattedAddress ?? '',
+    coords: {
+      lat: p.location?.latitude ?? city.lat,
+      lng: p.location?.longitude ?? city.lng,
+    },
+    googleRating: p.rating ?? 0,
+    googleReviewCount: p.userRatingCount ?? 0,
+  }))
 }
 
 export async function discoverNewSpots(): Promise<NewSpot[]> {

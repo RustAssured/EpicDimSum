@@ -31,14 +31,14 @@ export async function getAllRestaurants(): Promise<Restaurant[]> {
       .order('updated_at', { ascending: false })
 
     if (error || !data || data.length === 0) {
-      return restaurantsSeed as Restaurant[]
+      return (restaurantsSeed as Restaurant[]).map(normalizeRestaurant)
     }
 
     return data
       .map((row) => normalizeRestaurant(row.data as Restaurant))
       .sort((a, b) => b.epicScore - a.epicScore)
   } catch {
-    return restaurantsSeed as Restaurant[]
+    return (restaurantsSeed as Restaurant[]).map(normalizeRestaurant)
   }
 }
 
@@ -76,16 +76,29 @@ export async function upsertRestaurant(restaurant: Restaurant): Promise<void> {
   if (error) throw new Error(`Supabase upsert failed: ${error.message}`)
 }
 
-// Seed Supabase from JSON if table is empty
-export async function seedIfEmpty(): Promise<void> {
-  const { count } = await getSupabaseAdmin()
-    .from('restaurants')
-    .select('*', { count: 'exact', head: true })
+// Upsert ALL seed entries to Supabase — ensures new seeds appear without wiping existing data
+export async function syncSeedToSupabase(): Promise<void> {
+  const seed = restaurantsSeed as Restaurant[]
+  for (const r of seed) {
+    try {
+      // Only upsert if not already in Supabase (don't overwrite real synced data)
+      const { data } = await getSupabaseAdmin()
+        .from('restaurants')
+        .select('id')
+        .eq('id', r.id)
+        .single()
 
-  if ((count ?? 0) === 0) {
-    const seed = restaurantsSeed as Restaurant[]
-    for (const r of seed) {
-      await upsertRestaurant(r)
+      if (!data) {
+        await upsertRestaurant(r)
+      }
+    } catch {
+      // Row doesn't exist — insert it
+      await upsertRestaurant(r).catch(console.error)
     }
   }
+}
+
+// Legacy alias kept for any callers
+export async function seedIfEmpty(): Promise<void> {
+  await syncSeedToSupabase()
 }
