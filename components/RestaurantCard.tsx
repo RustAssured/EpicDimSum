@@ -3,6 +3,7 @@ import { Restaurant } from '@/lib/types'
 import ScoreBar from './ScoreBar'
 import StatusBadge from './StatusBadge'
 import HaGaoIndex from './HaGaoIndex'
+import Mascot from './Mascot'
 
 interface RestaurantCardProps {
   restaurant: Restaurant
@@ -43,9 +44,14 @@ export default function RestaurantCard({ restaurant, rank }: RestaurantCardProps
           )}
           <div className="flex items-start justify-between gap-2 mb-2">
             <div className="flex-1 min-w-0">
-              <h2 className="font-black text-inkBlack text-lg leading-tight truncate group-hover:text-epicRed transition-colors">
-                {name}
-              </h2>
+              <div className="flex items-center gap-2">
+                {rank === 1 && (
+                  <Mascot type="top1" size={44} className="-mt-2" alt="#1 beste dim sum" />
+                )}
+                <h2 className="font-black text-inkBlack text-lg leading-tight truncate group-hover:text-epicRed transition-colors">
+                  {name}
+                </h2>
+              </div>
               <p className="text-xs text-inkBlack/50 font-medium">
                 {city} &middot; <span className={`font-bold ${priceColor[priceRange]}`}>{priceRange}</span>
               </p>
@@ -95,7 +101,10 @@ export default function RestaurantCard({ restaurant, rank }: RestaurantCardProps
               </div>
             )}
             {restaurant.confidence !== undefined && restaurant.confidence < 0.6 && (
-              <p className="text-[9px] text-inkBlack/30 italic mt-1">Beperkt aantal reviews — score kan wijzigen</p>
+              <div className="flex items-center gap-1.5 mt-1">
+                <Mascot type="lowconfidence" size={24} alt="Beperkte data" />
+                <p className="text-[9px] text-inkBlack/30 italic">Beperkt aantal reviews — score kan wijzigen</p>
+              </div>
             )}
           </div>
 
@@ -124,7 +133,10 @@ export default function RestaurantCard({ restaurant, rank }: RestaurantCardProps
 
         {/* Must order */}
         <div className="mx-4 mb-3 px-3 py-2 rounded-xl border-[2px] border-dashed border-epicGold/70 bg-epicGold/5">
-          <p className="text-xs font-bold text-epicGold uppercase tracking-wide mb-0.5">Must order</p>
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <Mascot type="mustorder" size={28} alt="Must order" />
+            <p className="text-xs font-bold text-epicGold uppercase tracking-wide">Must order</p>
+          </div>
           <p className="text-xs text-inkBlack leading-snug line-clamp-2">{mustOrder}</p>
         </div>
 

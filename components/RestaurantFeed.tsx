@@ -5,6 +5,7 @@ import { Restaurant, City } from '@/lib/types'
 import RestaurantCard from '@/components/RestaurantCard'
 import CityFilter from '@/components/CityFilter'
 import HiddenGemAlert from '@/components/HiddenGemAlert'
+import Mascot from '@/components/Mascot'
 
 interface RestaurantFeedProps {
   restaurants: Restaurant[]
@@ -103,11 +104,31 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
 
       {/* Restaurant cards */}
       {filtered.length > 0 ? (
-        <div className="space-y-4">
-          {filtered.map((restaurant, index) => (
-            <RestaurantCard key={restaurant.id} restaurant={restaurant} rank={index + 1} />
-          ))}
-        </div>
+        <>
+          <div className="space-y-4">
+            {filtered.map((restaurant, index) => (
+              <RestaurantCard key={restaurant.id} restaurant={restaurant} rank={index + 1} />
+            ))}
+          </div>
+
+          {/* Gao sticker banner */}
+          <div className="mt-8 p-4 rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-[#fff3d6] flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Mascot type="happy" size={48} />
+              <div>
+                <p className="font-black text-sm text-inkBlack">Ontmoet Gao 🥟</p>
+                <p className="text-xs text-inkBlack/60">De officiële EpicDimSum dumpling judge</p>
+              </div>
+            </div>
+            <a
+              href="/mascots/top1.png"
+              download="gao-epicdimsum.png"
+              className="text-xs font-black bg-inkBlack text-cream px-3 py-2 rounded-full border-2 border-inkBlack shadow-brutal-sm hover:bg-epicRed transition-colors whitespace-nowrap"
+            >
+              Download sticker ↓
+            </a>
+          </div>
+        </>
       ) : (
         <div className="text-center py-16">
           <p className="text-4xl mb-3">🥟</p>

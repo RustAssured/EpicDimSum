@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Restaurant, City, PriceRange } from '@/lib/types'
 import restaurantsData from '@/data/restaurants.json'
+import Mascot from '@/components/Mascot'
 
 const restaurants = restaurantsData as Restaurant[]
 
@@ -403,10 +404,11 @@ export default function AdminSyncPage() {
 
         {/* Sync existing restaurants */}
         <div>
-          <h2 className="font-black text-inkBlack mb-3">Bestaande restaurants</h2>
-          <p className="text-sm text-inkBlack/50 mb-4">
-            Sync individuele restaurants. Roept Google Places API, Iens, buzz engine en Claude Haiku aan.
-          </p>
+          <div className="flex items-center gap-2 mb-2">
+            <Mascot type="judge" size={36} alt="Gao de dumpling judge" />
+            <h2 className="font-black text-lg text-inkBlack">Bestaande restaurants</h2>
+            <p className="text-sm text-inkBlack/50">Sync individuele restaurants...</p>
+          </div>
           <div className="space-y-4">
             {restaurants.map((restaurant) => {
               const state = syncStates[restaurant.id]
