@@ -35,10 +35,15 @@ export async function POST(
       return NextResponse.json({ error: 'Restaurant not found' }, { status: 404 })
     }
 
+    // Fix 4: When epicScore is 0, don't seed with stale cached zeros — rely on fresh API data
+    const forceRefresh = restaurant.epicScore === 0
     let googleData = {
-      rating: restaurant.sources.googleRating,
-      userRatingCount: restaurant.sources.googleReviewCount,
+      rating: forceRefresh ? 0 : restaurant.sources.googleRating,
+      userRatingCount: forceRefresh ? 0 : restaurant.sources.googleReviewCount,
       reviews: [] as { text: { text: string }; rating: number }[],
+    }
+    if (forceRefresh) {
+      console.log(`[Sync] Force refresh for zero-score restaurant: ${restaurant.name}`)
     }
     try {
       googleData = await fetchGooglePlacesData(restaurant.googlePlaceId)
@@ -90,8 +95,12 @@ export async function POST(
       ? epicScoreFallback(googleData.rating, googleData.userRatingCount)
       : scores.epicScore
 
+    // Fix 2: Auto-verify when score data is meaningful
+    const verified = epicScore > 20 && scores.haGaoIndex > 0
+
     const updated: Restaurant = {
       ...restaurant,
+      verified,
       haGaoIndex: scores.haGaoIndex,
       haGaoDetail: scores.haGaoDetail,
       rankReason: scores.rankReason,

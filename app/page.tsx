@@ -1,12 +1,12 @@
 import Link from 'next/link'
-import { getAllRestaurants } from '@/lib/db'
+import { getPublicRestaurants } from '@/lib/db'
 import RestaurantFeed from '@/components/RestaurantFeed'
 import Mascot from '@/components/Mascot'
 
 export const revalidate = 3600
 
 export default async function Home() {
-  const restaurants = await getAllRestaurants()
+  const restaurants = await getPublicRestaurants()
 
   return (
     <main className="min-h-screen bg-cream">

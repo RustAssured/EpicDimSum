@@ -52,6 +52,18 @@ export async function getAllRestaurants(): Promise<Restaurant[]> {
   }
 }
 
+// Public feed — filtered for quality (used by home page)
+export async function getPublicRestaurants(): Promise<Restaurant[]> {
+  const all = await getAllRestaurants()
+  return all.filter((r) => {
+    if (r.verified === false) return false
+    if (r.epicScore < 15) return false
+    const mustOrder = r.mustOrder?.toLowerCase() ?? ''
+    if (mustOrder.includes('bepaald') || mustOrder.includes('onvoldoende')) return false
+    return true
+  })
+}
+
 // Read single restaurant
 export async function getRestaurantById(id: string): Promise<Restaurant | null> {
   try {

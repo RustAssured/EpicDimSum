@@ -30,6 +30,7 @@ export interface Restaurant {
     vibe: number
   }
   status: Status
+  verified?: boolean
   summary?: string
   reviewSnippets?: string[]
   sources: {

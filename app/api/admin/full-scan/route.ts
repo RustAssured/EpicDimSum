@@ -124,6 +124,7 @@ export async function POST(request: NextRequest) {
             vibe: scores.vibeScore,
           },
           status: 'open',
+          verified: false,
           sources: {
             googleRating: googleData.rating,
             googleReviewCount: googleData.userRatingCount,

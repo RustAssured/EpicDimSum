@@ -20,6 +20,15 @@ const DISCOVERY_CITIES = [
 
 const DIM_SUM_KEYWORDS = ['dim sum', 'dimsum', 'yum cha', 'kantonees', 'cantonese', 'ha gao', 'har gow', 'siu mai']
 
+// Machine-readable primary types considered valid for dim sum spots
+const VALID_PRIMARY_TYPES = new Set([
+  'chinese_restaurant',
+  'dim_sum_restaurant',
+  'asian_restaurant',
+  'cantonese_restaurant',
+  'restaurant',
+])
+
 export const BLOCKLIST_KEYWORDS = [
   'reisbureau', 'travel', 'reizen', 'hotel', 'hostel',
   'supermarkt', 'supermarket', 'toko', 'shop', 'store',
@@ -40,6 +49,7 @@ interface PlacesNearbyResult {
   location: { latitude: number; longitude: number }
   rating?: number
   userRatingCount?: number
+  primaryType?: string
   primaryTypeDisplayName?: { text: string }
 }
 
@@ -74,7 +84,7 @@ async function searchNearby(city: { name: string; lat: number; lng: number }): P
       'Content-Type': 'application/json',
       'X-Goog-Api-Key': apiKey,
       'X-Goog-FieldMask':
-        'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.primaryTypeDisplayName',
+        'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.primaryType,places.primaryTypeDisplayName',
     },
     body: JSON.stringify(requestBody),
     cache: 'no-store',
@@ -93,11 +103,18 @@ async function searchNearby(city: { name: string; lat: number; lng: number }): P
   const filtered = places.filter((p) => {
     const name = p.displayName?.text?.toLowerCase() ?? ''
     const type = p.primaryTypeDisplayName?.text?.toLowerCase() ?? ''
+    const primaryType = p.primaryType ?? ''
     const rating = p.rating ?? 0
     const reviewCount = p.userRatingCount ?? 0
 
     if (reviewCount < 20) return false
-    if (DIM_SUM_KEYWORDS.some((kw) => name.includes(kw))) return true
+
+    const nameHasDimSum = DIM_SUM_KEYWORDS.some((kw) => name.includes(kw))
+    if (nameHasDimSum) return true
+
+    // Require a valid primary type (skip non-restaurant businesses)
+    if (!VALID_PRIMARY_TYPES.has(primaryType) && !type.includes('dim sum') && !type.includes('chinese')) return false
+
     if (type.includes('dim sum') || type.includes('chinese')) return true
     if (rating >= 4.0 && (name.includes('china') || name.includes('chinese') || name.includes('asian') || name.includes('canton'))) return true
 

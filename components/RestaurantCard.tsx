@@ -156,6 +156,11 @@ export default function RestaurantCard({ restaurant, rank }: RestaurantCardProps
               {sources.blogMentions} buzz
             </span>
           )}
+          {(Date.now() - new Date(sources.lastUpdated).getTime()) > 30 * 24 * 60 * 60 * 1000 && (
+            <span className="text-xs bg-inkBlack/5 border border-inkBlack/15 text-inkBlack/40 rounded-full px-2 py-0.5 font-medium">
+              Score ouder dan 30 dagen
+            </span>
+          )}
         </div>
 
         {/* Footer bar */}

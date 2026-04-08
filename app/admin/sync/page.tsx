@@ -50,6 +50,14 @@ export default function AdminSyncPage() {
   const [cityScanResults, setCityScanResults] = useState<Record<string, string>>({})
 
 
+  // Verify-all state
+  const [verifyAllState, setVerifyAllState] = useState<{ loading: boolean; result: string | null; error: string | null }>({
+    loading: false, result: null, error: null,
+  })
+
+  // Restaurant list filter
+  const [listFilter, setListFilter] = useState<'all' | 'verified' | 'review'>('all')
+
   // Cleanup state
   const [cleanupState, setCleanupState] = useState<{
     loading: boolean
@@ -188,6 +196,24 @@ export default function AdminSyncPage() {
     }
   }
 
+  const handleVerifyAll = async () => {
+    setVerifyAllState({ loading: true, result: null, error: null })
+    try {
+      const res = await fetch('/api/admin/verify-all', {
+        method: 'POST',
+        headers: { 'x-sync-secret': secret },
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(humanizeError(err.error || `HTTP ${res.status}`))
+      }
+      const data = await res.json()
+      setVerifyAllState({ loading: false, result: `✓ ${data.verified} restaurants geverifieerd`, error: null })
+    } catch (err) {
+      setVerifyAllState({ loading: false, result: null, error: err instanceof Error ? err.message : 'Fout' })
+    }
+  }
+
   const handleDiscover = async () => {
     setDiscoverState({ loading: true, result: null, error: null })
     try {
@@ -282,6 +308,19 @@ export default function AdminSyncPage() {
               : '🔄 Sync alle restaurants'}
           </button>
 
+          {/* Verifieer alles */}
+          <button
+            onClick={handleVerifyAll}
+            disabled={verifyAllState.loading}
+            className={`px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
+              ${verifyAllState.loading
+                ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
+                : 'bg-epicGreen text-cream hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none'
+              }`}
+          >
+            {verifyAllState.loading ? '⏳ Bezig...' : '✓ Verifieer alles'}
+          </button>
+
           {/* Discover */}
           <button
             onClick={handleDiscover}
@@ -307,6 +346,13 @@ export default function AdminSyncPage() {
           >
             {cleanupState.loading ? '⏳ Opruimen...' : '🧹 Opruimen'}
           </button>
+
+          {verifyAllState.error && (
+            <p className="w-full text-xs text-epicRed font-medium">Verifieer fout: {verifyAllState.error}</p>
+          )}
+          {verifyAllState.result && (
+            <p className="w-full text-xs text-epicGreen font-bold">{verifyAllState.result}</p>
+          )}
 
           {discoverState.error && (
             <p className="w-full text-xs text-epicRed font-medium">Fout: {discoverState.error}</p>
@@ -450,8 +496,32 @@ export default function AdminSyncPage() {
             <h2 className="font-black text-lg text-inkBlack">Bestaande restaurants</h2>
             <p className="text-sm text-inkBlack/50">Sync individuele restaurants...</p>
           </div>
+
+          {/* Filter toggle */}
+          <div className="flex gap-1 mb-3">
+            {(['all', 'verified', 'review'] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setListFilter(f)}
+                className={`text-xs font-black px-3 py-1 rounded-full border-2 border-inkBlack transition-colors ${
+                  listFilter === f ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack/60 hover:text-inkBlack'
+                }`}
+              >
+                {f === 'all' ? 'Alle' : f === 'verified' ? '✓ Geverifieerd' : '⚠️ Te reviewen'}
+              </button>
+            ))}
+          </div>
+
           <div className="space-y-4">
-            {restaurants.map((restaurant) => {
+            {restaurants
+              .filter((r) => {
+                const synced = syncStates[r.id]?.result
+                const isVerified = synced ? synced.verified === true : r.epicScore > 20 && r.haGaoIndex > 0
+                if (listFilter === 'verified') return isVerified
+                if (listFilter === 'review') return !isVerified
+                return true
+              })
+              .map((restaurant) => {
               const state = syncStates[restaurant.id]
               const lastUpdated = new Date(restaurant.sources.lastUpdated).toLocaleDateString('nl-NL', {
                 day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
@@ -463,29 +533,63 @@ export default function AdminSyncPage() {
                   className="rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white p-4"
                 >
                   <div className="flex items-start justify-between gap-3 mb-3">
-                    <div>
-                      <div className="flex items-center gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-black text-inkBlack">{restaurant.name}</h3>
                         {restaurant.epicScore === 0 && (
                           <span className="text-[10px] font-black bg-epicGold/20 text-epicGold border border-epicGold/40 rounded-full px-2 py-0.5">
                             ⚠️ Sync nodig
                           </span>
                         )}
+                        {state?.result && state.result.verified !== true && (
+                          <span className="text-[10px] font-black bg-epicRed/10 text-epicRed border border-epicRed/30 rounded-full px-2 py-0.5">
+                            ⚠️ Niet geverifieerd
+                          </span>
+                        )}
+                        {state?.result && state.result.verified === true && (
+                          <span className="text-[10px] font-black bg-epicGreen/20 text-epicGreen border border-epicGreen/40 rounded-full px-2 py-0.5">
+                            ✓ Geverifieerd
+                          </span>
+                        )}
                       </div>
-                      <p className="text-xs text-inkBlack/50">{restaurant.city} &middot; EpicScore: {restaurant.epicScore}</p>
+                      <p className="text-xs text-inkBlack/50">{restaurant.city} &middot; EpicScore: {state?.result?.epicScore ?? restaurant.epicScore}</p>
                       <p className="text-xs text-inkBlack/30 mt-0.5">Laatste sync: {lastUpdated}</p>
                     </div>
-                    <button
-                      onClick={() => handleSync(restaurant.id)}
-                      disabled={state?.loading}
-                      className={`shrink-0 px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
-                        ${state?.loading
-                          ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
-                          : 'bg-epicRed text-cream hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none'
-                        }`}
-                    >
-                      {state?.loading ? '⏳ Bezig...' : '🔄 Sync'}
-                    </button>
+                    <div className="flex flex-col gap-1.5 shrink-0">
+                      <button
+                        onClick={() => handleSync(restaurant.id)}
+                        disabled={state?.loading}
+                        className={`px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
+                          ${state?.loading
+                            ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
+                            : 'bg-epicRed text-cream hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none'
+                          }`}
+                      >
+                        {state?.loading ? '⏳ Bezig...' : '🔄 Sync'}
+                      </button>
+                      {state?.result && state.result.verified !== true && (
+                        <button
+                          onClick={async () => {
+                            await fetch(`/api/admin/verify/${restaurant.id}`, {
+                              method: 'POST',
+                              headers: { 'x-sync-secret': secret },
+                            })
+                            setSyncStates((prev) => ({
+                              ...prev,
+                              [restaurant.id]: {
+                                ...prev[restaurant.id],
+                                result: prev[restaurant.id]?.result
+                                  ? { ...prev[restaurant.id].result!, verified: true }
+                                  : null,
+                              },
+                            }))
+                          }}
+                          className="px-3 py-1.5 rounded-full border-2 border-inkBlack font-black text-xs bg-epicGreen text-cream shadow-brutal-sm hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
+                        >
+                          ✓ Verifieer
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {state?.error && (
@@ -503,6 +607,7 @@ export default function AdminSyncPage() {
                             haGaoIndex: state.result.haGaoIndex,
                             scores: state.result.scores,
                             mustOrder: state.result.mustOrder,
+                            verified: state.result.verified,
                           },
                           null,
                           2
