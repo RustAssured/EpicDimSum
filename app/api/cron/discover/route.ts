@@ -20,8 +20,14 @@ function slugify(name: string, city: string): string {
 
 export async function GET(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET
+  const syncSecret = process.env.SYNC_SECRET
   const auth = request.headers.get('authorization')
-  if (!cronSecret || auth !== `Bearer ${cronSecret}`) {
+  const syncHeader = request.headers.get('x-sync-secret')
+
+  const validCron = cronSecret && auth === `Bearer ${cronSecret}`
+  const validSync = syncSecret && (syncHeader === syncSecret || auth === `Bearer ${syncSecret}`)
+
+  if (!validCron && !validSync) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
