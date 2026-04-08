@@ -89,7 +89,7 @@ Return ONLY valid JSON, no markdown, no preamble:
 
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 700,
+    max_tokens: 1024,
     messages: [{ role: 'user', content: prompt }],
   })
 
@@ -100,21 +100,28 @@ Return ONLY valid JSON, no markdown, no preamble:
 
   const text = content.text.trim()
   const cleaned = text.replace(/```json\n?|\n?```/g, '').trim()
-  const parsed = JSON.parse(cleaned)
+
+  let parsed: Record<string, unknown>
+  try {
+    parsed = JSON.parse(cleaned)
+  } catch (parseError) {
+    console.error('[ScoreEngine] JSON parse failed. Raw response:', text.slice(0, 500))
+    throw new Error(`Claude returned invalid JSON: ${(parseError as Error).message}`)
+  }
 
   return {
-    haGaoIndex: Number(parsed.haGaoIndex),
-    haGaoDetail: String(parsed.haGaoDetail ?? ''),
-    rankReason: String(parsed.rankReason ?? ''),
-    mustOrder: String(parsed.mustOrder),
-    vibeScore: Number(parsed.vibeScore),
-    buzzScore: Number(parsed.buzzScore),
-    epicScore: Number(parsed.epicScore),
-    summary: String(parsed.summary),
-    dumplingMentionScore: Number(parsed.dumplingMentionScore ?? 0),
-    dumplingQualityScore: parsed.dumplingQualityScore === null ? null : Number(parsed.dumplingQualityScore ?? 0),
-    dumplingScore: Number(parsed.dumplingScore ?? 0),
-    confidence: Number(parsed.confidence ?? 0.5),
+    haGaoIndex: Number(parsed.haGaoIndex) || 0,
+    mustOrder: String(parsed.mustOrder || ''),
+    vibeScore: Number(parsed.vibeScore) || 50,
+    buzzScore: Number(parsed.buzzScore) || 50,
+    epicScore: Number(parsed.epicScore) || 0,
+    summary: String(parsed.summary || ''),
+    haGaoDetail: String(parsed.haGaoDetail || ''),
+    rankReason: String(parsed.rankReason || ''),
+    dumplingMentionScore: parsed.dumplingMentionScore != null ? Number(parsed.dumplingMentionScore) : undefined,
+    dumplingQualityScore: parsed.dumplingQualityScore === null ? null : parsed.dumplingQualityScore != null ? Number(parsed.dumplingQualityScore) : undefined,
+    dumplingScore: parsed.dumplingScore != null ? Number(parsed.dumplingScore) : undefined,
+    confidence: parsed.confidence != null ? Number(parsed.confidence) : undefined,
   }
 }
 

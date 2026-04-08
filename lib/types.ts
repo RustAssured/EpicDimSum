@@ -42,15 +42,15 @@ export interface Restaurant {
 
 export interface SyncResult {
   haGaoIndex: number
-  haGaoDetail: string
-  rankReason: string
   mustOrder: string
   vibeScore: number
   buzzScore: number
   epicScore: number
   summary: string
-  dumplingMentionScore: number
-  dumplingQualityScore: number | null
-  dumplingScore: number
-  confidence: number
+  haGaoDetail: string
+  rankReason: string
+  dumplingMentionScore?: number
+  dumplingQualityScore?: number | null
+  dumplingScore?: number
+  confidence?: number
 }
