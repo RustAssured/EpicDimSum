@@ -53,30 +53,29 @@ export default function RestaurantCard({ restaurant, rank }: RestaurantCardProps
             <StatusBadge status={status} />
           </div>
 
-          {/* EpicScore — clean, no /100 */}
-          <div className="flex items-center gap-2 mt-2">
-            <div className="flex items-baseline gap-1 bg-epicRed text-cream px-3 py-1.5 rounded-xl border-2 border-inkBlack shadow-brutal-sm">
-              <span className="text-[11px] font-black uppercase tracking-wider opacity-70">Epic</span>
-              <span className="text-3xl font-black leading-none">{epicScore}</span>
-            </div>
-          </div>
         </div>
 
-        {/* Ha Gao Index — HERO block */}
-        <div className="mx-4 mb-3 px-3 py-3 rounded-xl bg-[#fff3d6] border-[3px] border-inkBlack shadow-[3px_3px_0px_#1D1D1D]">
-          <div className="flex items-center justify-between gap-2 mb-1">
-            <div>
-              <p className="text-sm font-black text-inkBlack leading-none">🥟 Ha Gao Index</p>
-              <p className="text-[9px] text-epicGold uppercase tracking-widest leading-none mt-0.5 font-bold">de ultieme dumplingtest</p>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <HaGaoIndex index={haGaoIndex} size="sm" />
-              <span className="text-sm font-black text-inkBlack">{haGaoIndex.toFixed(1)}</span>
-            </div>
+        {/* EpicScore + Ha Gao — side by side */}
+        <div className="px-4 pb-3 grid grid-cols-2 gap-3 mt-2">
+
+          {/* Left: EpicScore */}
+          <div className="flex flex-col justify-center bg-epicRed/10 border-2 border-epicRed/30 rounded-xl px-3 py-3">
+            <p className="text-[10px] font-black text-epicRed uppercase tracking-wide">EpicScore™</p>
+            <p className="text-4xl font-black text-epicRed leading-none mt-0.5">{epicScore}</p>
           </div>
-          {haGaoDetail && (
-            <p className="text-[11px] text-inkBlack/60 italic leading-snug mt-1 border-t border-inkBlack/10 pt-1">{haGaoDetail}</p>
-          )}
+
+          {/* Right: Ha Gao Index */}
+          <div className="flex flex-col justify-center bg-[#fff3d6] border-2 border-inkBlack/20 rounded-xl px-3 py-3">
+            <p className="text-[10px] font-black text-epicGold uppercase tracking-wide">🥟 Ha Gao Index</p>
+            <div className="flex items-center gap-1.5 mt-1">
+              <HaGaoIndex index={haGaoIndex} size="sm" />
+              <span className="text-lg font-black text-inkBlack">{haGaoIndex.toFixed(1)}</span>
+            </div>
+            {haGaoDetail && (
+              <p className="text-[10px] text-inkBlack/50 italic leading-snug mt-1 line-clamp-2">{haGaoDetail}</p>
+            )}
+          </div>
+
         </div>
 
         {/* Score bars — fixed data mapping */}
