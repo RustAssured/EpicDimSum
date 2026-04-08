@@ -154,6 +154,19 @@ export default function AdminSyncPage() {
             </p>
           </div>
           <form onSubmit={handleAddRestaurant} className="p-4 space-y-3">
+            <div>
+              <label className="text-xs font-black uppercase tracking-wide text-inkBlack/50 mb-1 block">
+                Sync Secret
+              </label>
+              <input
+                type="password"
+                value={secret}
+                onChange={(e) => setSecret(e.target.value)}
+                placeholder="SYNC_SECRET"
+                required
+                className="w-full px-3 py-2 rounded-xl border-[2px] border-inkBlack text-sm font-medium bg-cream focus:outline-none shadow-brutal-sm"
+              />
+            </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label className="text-xs font-black uppercase tracking-wide text-inkBlack/50 mb-1 block">
