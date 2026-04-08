@@ -56,23 +56,26 @@ export default function RestaurantCard({ restaurant, rank }: RestaurantCardProps
         </div>
 
         {/* EpicScore + Ha Gao — side by side */}
-        <div className="px-4 pb-3 grid grid-cols-2 gap-3 mt-2">
+        <div className="px-4 pb-3 grid grid-cols-[auto_1fr] gap-3 mt-2">
 
-          {/* Left: EpicScore */}
-          <div className="flex flex-col justify-center bg-epicRed/10 border-2 border-epicRed/30 rounded-xl px-3 py-3">
-            <p className="text-[10px] font-black text-epicRed uppercase tracking-wide">EpicScore™</p>
-            <p className="text-4xl font-black text-epicRed leading-none mt-0.5">{epicScore}</p>
+          {/* Left: EpicScore — compact */}
+          <div className="flex flex-col justify-center items-center bg-epicRed/10 border-2 border-epicRed/30 rounded-xl px-3 py-3 min-w-[80px]">
+            <p className="text-[9px] font-black text-epicRed uppercase tracking-wide leading-none">Epic</p>
+            <p className="text-3xl font-black text-epicRed leading-none mt-1">{epicScore}</p>
+            <p className="text-[9px] text-epicRed/50 font-bold leading-none mt-0.5">/100</p>
           </div>
 
-          {/* Right: Ha Gao Index */}
+          {/* Right: Ha Gao Index — takes remaining space */}
           <div className="flex flex-col justify-center bg-[#fff3d6] border-2 border-inkBlack/20 rounded-xl px-3 py-3">
-            <p className="text-[10px] font-black text-epicGold uppercase tracking-wide">🥟 Ha Gao Index</p>
-            <div className="flex items-center gap-1.5 mt-1">
+            <div className="flex items-center justify-between gap-1">
+              <p className="text-[10px] font-black text-epicGold uppercase tracking-wide leading-none">🥟 Ha Gao Index</p>
+              <span className="text-base font-black text-inkBlack">{haGaoIndex.toFixed(1)}<span className="text-[10px] text-inkBlack/40">/5</span></span>
+            </div>
+            <div className="mt-1.5">
               <HaGaoIndex index={haGaoIndex} size="sm" />
-              <span className="text-lg font-black text-inkBlack">{haGaoIndex.toFixed(1)}</span>
             </div>
             {haGaoDetail && (
-              <p className="text-[10px] text-inkBlack/50 italic leading-snug mt-1 line-clamp-2">{haGaoDetail}</p>
+              <p className="text-[10px] text-inkBlack/50 italic leading-snug mt-1.5 line-clamp-2">{haGaoDetail}</p>
             )}
           </div>
 
