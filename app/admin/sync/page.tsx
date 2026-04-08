@@ -45,12 +45,10 @@ export default function AdminSyncPage() {
     error: string | null
   }>({ loading: false, result: null, error: null })
 
-  // Full scan state
-  const [fullScanState, setFullScanState] = useState<{
-    loading: boolean
-    result: { found: number; added: number; skipped: number; restaurants: string[] } | null
-    error: string | null
-  }>({ loading: false, result: null, error: null })
+  // Per-city scan state
+  const [scanning, setScanning] = useState<string | null>(null)
+  const [cityScanResults, setCityScanResults] = useState<Record<string, string>>({})
+
 
   // Cleanup state
   const [cleanupState, setCleanupState] = useState<{
@@ -142,10 +140,10 @@ export default function AdminSyncPage() {
     }
   }
 
-  const handleFullScan = async () => {
-    setFullScanState({ loading: true, result: null, error: null })
+  const handleCityScan = async (city: string) => {
+    setScanning(city)
     try {
-      const res = await fetch('/api/admin/full-scan', {
+      const res = await fetch(`/api/admin/full-scan?city=${encodeURIComponent(city)}`, {
         method: 'POST',
         headers: { 'x-sync-secret': secret },
       })
@@ -154,13 +152,17 @@ export default function AdminSyncPage() {
         throw new Error(humanizeError(err.error || `HTTP ${res.status}`))
       }
       const data = await res.json()
-      setFullScanState({ loading: false, result: data, error: null })
+      setCityScanResults((prev) => ({
+        ...prev,
+        [city]: `✓ ${data.added} nieuw, ${data.found} gevonden`,
+      }))
     } catch (err) {
-      setFullScanState({
-        loading: false,
-        result: null,
-        error: err instanceof Error ? err.message : 'Onbekende fout',
-      })
+      setCityScanResults((prev) => ({
+        ...prev,
+        [city]: `⚠️ ${err instanceof Error ? err.message : 'Fout'}`,
+      }))
+    } finally {
+      setScanning(null)
     }
   }
 
@@ -293,19 +295,6 @@ export default function AdminSyncPage() {
             {discoverState.loading ? '⏳ Bezig...' : '🔍 Ontdek nieuwe spots'}
           </button>
 
-          {/* Grote NL scan */}
-          <button
-            onClick={handleFullScan}
-            disabled={fullScanState.loading}
-            className={`px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
-              ${fullScanState.loading
-                ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
-                : 'bg-epicRed text-cream hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none'
-              }`}
-          >
-            {fullScanState.loading ? '⏳ Scanning NL...' : '🔍 Grote NL scan'}
-          </button>
-
           {/* Opruimen */}
           <button
             onClick={handleCleanup}
@@ -319,10 +308,16 @@ export default function AdminSyncPage() {
             {cleanupState.loading ? '⏳ Opruimen...' : '🧹 Opruimen'}
           </button>
 
-          {cleanupState.error && (
-            <p className="w-full text-xs text-epicRed font-medium">
-              Cleanup fout: {cleanupState.error}
+          {discoverState.error && (
+            <p className="w-full text-xs text-epicRed font-medium">Fout: {discoverState.error}</p>
+          )}
+          {discoverState.result && (
+            <p className="w-full text-xs text-epicGreen font-bold">
+              ✓ {discoverState.result.discovered} gevonden · {discoverState.result.added} toegevoegd · {discoverState.result.skipped} overgeslagen
             </p>
+          )}
+          {cleanupState.error && (
+            <p className="w-full text-xs text-epicRed font-medium">Cleanup fout: {cleanupState.error}</p>
           )}
           {cleanupState.result && (
             <p className="w-full text-xs text-epicGreen font-bold">
@@ -332,33 +327,24 @@ export default function AdminSyncPage() {
             </p>
           )}
 
-          {discoverState.error && (
-            <p className="w-full text-xs text-epicRed font-medium">
-              Fout: {discoverState.error}
-            </p>
-          )}
-          {discoverState.result && (
-            <p className="w-full text-xs text-epicGreen font-bold">
-              ✓ {discoverState.result.discovered} gevonden · {discoverState.result.added} toegevoegd · {discoverState.result.skipped} overgeslagen
-            </p>
-          )}
-          {fullScanState.error && (
-            <p className="w-full text-xs text-epicRed font-medium">
-              Scan fout: {fullScanState.error}
-            </p>
-          )}
-          {fullScanState.result && (
-            <div className="w-full">
-              <p className="text-xs text-epicGreen font-bold">
-                ✓ {fullScanState.result.added} nieuwe restaurants gevonden en toegevoegd!
-              </p>
-              {fullScanState.result.restaurants.length > 0 && (
-                <p className="text-xs text-inkBlack/50 mt-0.5">
-                  {fullScanState.result.restaurants.join(' · ')}
-                </p>
-              )}
-            </div>
-          )}
+          {/* Per-city scan */}
+          <div className="w-full border-t border-inkBlack/10 pt-3 flex flex-wrap gap-2">
+            <p className="text-xs font-bold text-inkBlack/50 w-full uppercase tracking-wide">Scan per stad:</p>
+            {['Amsterdam', 'Rotterdam', 'Den Haag', 'Utrecht', 'Eindhoven'].map((city) => (
+              <div key={city} className="flex flex-col items-start gap-0.5">
+                <button
+                  onClick={() => handleCityScan(city)}
+                  disabled={!!scanning}
+                  className="text-xs font-black px-3 py-1.5 rounded-full border-2 border-inkBlack shadow-brutal-sm bg-cream hover:bg-epicRed/10 disabled:opacity-50 transition-all"
+                >
+                  {scanning === city ? '⏳ Scanning...' : `🔍 ${city}`}
+                </button>
+                {cityScanResults[city] && (
+                  <span className="text-[10px] text-inkBlack/50 pl-1">{cityScanResults[city]}</span>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Add restaurant form */}

@@ -258,11 +258,15 @@ async function searchCity(city: { name: string; lat: number; lng: number }): Pro
   })
 }
 
-export async function discoverNewSpots(): Promise<NewSpot[]> {
+export async function discoverNewSpots(cityFilter?: string): Promise<NewSpot[]> {
   const existing = await getAllRestaurants()
   const existingPlaceIds = new Set(existing.map((r) => r.googlePlaceId))
 
-  const results = await Promise.all(DISCOVERY_CITIES.map(searchCity))
+  const citiesToScan = cityFilter
+    ? DISCOVERY_CITIES.filter((c) => c.name === cityFilter)
+    : DISCOVERY_CITIES
+
+  const results = await Promise.all(citiesToScan.map(searchCity))
   const allSpots = results.flat()
 
   const newSpots = allSpots

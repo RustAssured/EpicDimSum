@@ -1,6 +1,6 @@
 export type City = 'Amsterdam' | 'Rotterdam' | 'Den Haag' | 'Utrecht' | 'Eindhoven'
 export type PriceRange = '€' | '€€' | '€€€'
-export type Status = 'open' | 'busy' | 'closed'
+export type Status = 'open' | 'busy' | 'closed' | 'pending'
 
 export interface Restaurant {
   id: string

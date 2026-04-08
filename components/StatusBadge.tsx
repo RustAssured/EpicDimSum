@@ -19,6 +19,12 @@ const statusConfig: Record<Status, { label: string; bg: string; text: string; do
     text: 'text-inkBlack/50',
     dot: 'bg-inkBlack/30',
   },
+  pending: {
+    label: 'In beoordeling',
+    bg: 'bg-epicPurple/10',
+    text: 'text-epicPurple',
+    dot: 'bg-epicPurple',
+  },
 }
 
 interface StatusBadgeProps {

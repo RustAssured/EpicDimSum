@@ -30,7 +30,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const newSpots = await discoverNewSpots()
+    const { searchParams } = new URL(request.url)
+    const cityFilter = searchParams.get('city') ?? undefined
+
+    const newSpots = await discoverNewSpots(cityFilter)
 
     // Also deduplicate against existing DB (discoverNewSpots does this, but double-check by slug)
     const existing = await getAllRestaurants()

@@ -22,6 +22,29 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
   const [selectedCity, setSelectedCity] = useState<City | 'Alle'>('Alle')
   const [searchQuery, setSearchQuery] = useState('')
   const [bannerDismissed, setBannerDismissed] = useState(false)
+  const [suggestUrl, setSuggestUrl] = useState('')
+  const [suggestState, setSuggestState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [suggestMessage, setSuggestMessage] = useState('')
+
+  const handleSuggest = async () => {
+    if (!suggestUrl.trim()) return
+    setSuggestState('loading')
+    try {
+      const res = await fetch('/api/suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mapsUrl: suggestUrl }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Fout')
+      setSuggestState('success')
+      setSuggestMessage(data.message)
+      setSuggestUrl('')
+    } catch (err) {
+      setSuggestState('error')
+      setSuggestMessage(err instanceof Error ? err.message : 'Er ging iets mis')
+    }
+  }
 
   const filtered = useMemo(() => {
     let list = restaurants
@@ -127,6 +150,32 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
             >
               Download sticker ↓
             </a>
+          </div>
+          {/* Suggest a restaurant */}
+          <div className="mt-4 p-4 rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white">
+            <p className="font-black text-sm mb-1">🥟 Ken jij een goede plek?</p>
+            <p className="text-xs text-inkBlack/50 mb-3">Plak een Google Maps link — wij doen de rest</p>
+            <div className="flex gap-2">
+              <input
+                type="url"
+                value={suggestUrl}
+                onChange={(e) => { setSuggestUrl(e.target.value); setSuggestState('idle') }}
+                placeholder="https://maps.google.com/..."
+                className="flex-1 text-xs px-3 py-2 rounded-full border-2 border-inkBlack focus:outline-none"
+              />
+              <button
+                onClick={handleSuggest}
+                disabled={suggestState === 'loading' || !suggestUrl.trim()}
+                className="text-xs font-black px-3 py-2 rounded-full bg-epicGreen text-cream border-2 border-inkBlack shadow-brutal-sm disabled:opacity-50 transition-colors"
+              >
+                {suggestState === 'loading' ? '…' : 'Voeg toe →'}
+              </button>
+            </div>
+            {suggestMessage && (
+              <p className={`text-xs mt-2 font-medium ${suggestState === 'error' ? 'text-epicRed' : 'text-epicGreen'}`}>
+                {suggestMessage}
+              </p>
+            )}
           </div>
         </>
       ) : (
