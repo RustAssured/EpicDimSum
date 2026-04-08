@@ -6,6 +6,16 @@ interface HiddenGemAlertProps {
 }
 
 export default function HiddenGemAlert({ restaurant }: HiddenGemAlertProps) {
+  // Don't show hidden gem if score is unreliable
+  if (
+    !restaurant ||
+    restaurant.epicScore < 10 ||
+    !restaurant.mustOrder ||
+    restaurant.mustOrder.includes('bepaald')
+  ) {
+    return null
+  }
+
   return (
     <Link href={`/restaurant/${restaurant.id}`}>
       <div className="rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-epicPurple/10 p-4 flex items-start gap-3 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-brutal-sm transition-all cursor-pointer">
@@ -25,7 +35,7 @@ export default function HiddenGemAlert({ restaurant }: HiddenGemAlertProps) {
             <span className="text-epicPurple">{restaurant.name}</span> klimt snel in de rankings!
           </p>
           <p className="text-xs text-inkBlack/60 mt-0.5 truncate">
-            EpicScore: <span className="font-bold text-epicPurple">{restaurant.epicScore}</span> &middot; {restaurant.mustOrder}
+            {restaurant.epicScore > 10 && `EpicScore: ${restaurant.epicScore} · `}{restaurant.mustOrder}
           </p>
         </div>
         <div className="text-inkBlack/40 text-sm shrink-0">→</div>

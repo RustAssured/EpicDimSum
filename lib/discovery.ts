@@ -18,71 +18,75 @@ const DISCOVERY_CITIES = [
   { name: 'Eindhoven', lat: 51.4416, lng: 5.4697 },
 ]
 
-interface PlacesNearbyResult {
+const DIM_SUM_KEYWORDS = ['dim sum', 'dimsum', 'yum cha', 'kantonees', 'cantonese', 'ha gao', 'har gow', 'siu mai']
+
+interface PlacesTextResult {
   id: string
   displayName: { text: string }
   formattedAddress: string
   location: { latitude: number; longitude: number }
   rating?: number
   userRatingCount?: number
-  primaryTypeDisplayName?: { text: string }
 }
 
-async function searchNearby(city: { name: string; lat: number; lng: number }): Promise<NewSpot[]> {
+async function searchByText(city: { name: string; lat: number; lng: number }): Promise<NewSpot[]> {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY
   if (!apiKey) throw new Error('GOOGLE_PLACES_API_KEY not set')
 
-  const requestBody = {
-    includedTypes: ['restaurant', 'chinese_restaurant'],
+  const body = {
+    textQuery: `dim sum ${city.name} Nederland`,
     maxResultCount: 20,
-    locationRestriction: {
+    locationBias: {
       circle: {
         center: { latitude: city.lat, longitude: city.lng },
-        radius: 8000.0,
+        radius: 10000.0,
       },
     },
-    rankPreference: 'POPULARITY',
   }
 
-  const res = await fetch('https://places.googleapis.com/v1/places:searchNearby', {
+  const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-Goog-Api-Key': apiKey,
       'X-Goog-FieldMask':
-        'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.primaryTypeDisplayName',
+        'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount',
     },
-    body: JSON.stringify(requestBody),
+    body: JSON.stringify(body),
     cache: 'no-store',
   })
 
   if (!res.ok) {
-    console.error(`[Discovery] ${city.name}: API error ${res.status} ${await res.text()}`)
+    console.error(`[Discovery TextSearch] ${city.name}: API error ${res.status} ${await res.text()}`)
     return []
   }
 
   const data = await res.json()
-  const places: PlacesNearbyResult[] = data.places ?? []
+  console.log(`[Discovery TextSearch] ${city.name}:`, JSON.stringify(data).slice(0, 500))
 
-  console.log(`[Discovery] ${city.name}: API returned ${places.length} raw results`)
-  if (places.length > 0) {
-    console.log(`[Discovery] ${city.name}: Sample result:`, JSON.stringify(places[0], null, 2))
-  }
+  const places: PlacesTextResult[] = data.places ?? []
 
   const filtered = places.filter((p) => {
     const name = p.displayName?.text?.toLowerCase() ?? ''
-    const type = p.primaryTypeDisplayName?.text?.toLowerCase() ?? ''
     const rating = p.rating ?? 0
+    const reviewCount = p.userRatingCount ?? 0
 
-    // Accept if ANY of these are true:
-    if (name.includes('dim sum')) return true
-    if (type.includes('dim sum') || type.includes('chinese')) return true
-    if (rating >= 4.0 && (name.includes('china') || name.includes('chinese') || name.includes('asian') || type.includes('asian'))) return true
+    // Must have sufficient reviews
+    if (reviewCount < 20) return false
+
+    // Accept if name contains any dim sum keyword
+    if (DIM_SUM_KEYWORDS.some((kw) => name.includes(kw))) return true
+
+    // Accept well-rated Chinese restaurants
+    if (rating >= 4.0 && (name.includes('china') || name.includes('chinese') || name.includes('asian') || name.includes('canton'))) return true
+
+    // Accept all results from text search (query is already specific)
+    if (rating >= 4.2) return true
 
     return false
   })
 
-  console.log(`[Discovery] ${city.name}: After filter: ${filtered.length} spots`)
+  console.log(`[Discovery TextSearch] ${city.name}: ${places.length} raw → ${filtered.length} after filter`)
 
   return filtered.map((p) => ({
     googlePlaceId: p.id,
@@ -102,7 +106,7 @@ export async function discoverNewSpots(): Promise<NewSpot[]> {
   const existing = await getAllRestaurants()
   const existingPlaceIds = new Set(existing.map((r) => r.googlePlaceId))
 
-  const results = await Promise.all(DISCOVERY_CITIES.map(searchNearby))
+  const results = await Promise.all(DISCOVERY_CITIES.map(searchByText))
   const allSpots = results.flat()
 
   const newSpots = allSpots.filter((spot) => !existingPlaceIds.has(spot.googlePlaceId))

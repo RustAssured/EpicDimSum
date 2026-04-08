@@ -96,17 +96,16 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
       {/* Results count */}
       <div className="flex items-center justify-between">
         <p className="text-sm font-bold text-inkBlack/50">
-          {filtered.length} {filtered.length === 1 ? 'restaurant' : 'restaurants'}
-          {selectedCity !== 'Alle' && ` in ${selectedCity}`}
+          Top {filtered.length} dim sum spots{selectedCity !== 'Alle' && ` in ${selectedCity}`}
         </p>
-        <p className="text-xs text-inkBlack/30">Gesorteerd op EpicScore</p>
+        <p className="text-xs text-inkBlack/30">gesorteerd op EpicScore</p>
       </div>
 
       {/* Restaurant cards */}
       {filtered.length > 0 ? (
         <div className="space-y-4">
-          {filtered.map((restaurant) => (
-            <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+          {filtered.map((restaurant, index) => (
+            <RestaurantCard key={restaurant.id} restaurant={restaurant} rank={index + 1} />
           ))}
         </div>
       ) : (

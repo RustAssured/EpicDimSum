@@ -6,6 +6,7 @@ import HaGaoIndex from './HaGaoIndex'
 
 interface RestaurantCardProps {
   restaurant: Restaurant
+  rank?: number
 }
 
 const priceColor: Record<string, string> = {
@@ -14,7 +15,7 @@ const priceColor: Record<string, string> = {
   '€€€': 'text-epicRed',
 }
 
-export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
+export default function RestaurantCard({ restaurant, rank }: RestaurantCardProps) {
   const {
     id,
     name,
@@ -36,6 +37,10 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
 
         {/* Header */}
         <div className="px-4 pt-4 pb-2">
+          {/* Rank badge */}
+          {rank && (
+            <p className="text-[10px] font-black text-inkBlack/30 mb-0.5">#{rank}</p>
+          )}
           <div className="flex items-start justify-between gap-2 mb-2">
             <div className="flex-1 min-w-0">
               <h2 className="font-black text-inkBlack text-lg leading-tight truncate group-hover:text-epicRed transition-colors">
@@ -48,32 +53,36 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
             <StatusBadge status={status} />
           </div>
 
-          {/* EpicScore — large, center-left */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-baseline gap-1 bg-epicRed text-cream px-3 py-1 rounded-xl border-2 border-inkBlack shadow-brutal-sm">
-              <span className="text-xs font-black uppercase tracking-wide opacity-80">Epic</span>
-              <span className="text-2xl font-black leading-none">{epicScore}</span>
+          {/* EpicScore — clean, no /100 */}
+          <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-baseline gap-1 bg-epicRed text-cream px-3 py-1.5 rounded-xl border-2 border-inkBlack shadow-brutal-sm">
+              <span className="text-[11px] font-black uppercase tracking-wider opacity-70">Epic</span>
+              <span className="text-3xl font-black leading-none">{epicScore}</span>
             </div>
-            <span className="text-[10px] text-inkBlack/30 font-medium">/ 100</span>
           </div>
         </div>
 
-        {/* Ha Gao Index — directly below EpicScore, neutral background */}
-        <div className="mx-4 mb-2 px-3 py-2 rounded-xl bg-inkBlack/5 border border-inkBlack/10">
-          <div className="flex items-start justify-between gap-2">
+        {/* Ha Gao Index — HERO block */}
+        <div className="mx-4 mb-3 px-3 py-3 rounded-xl bg-[#fff3d6] border-[3px] border-inkBlack shadow-[3px_3px_0px_#1D1D1D]">
+          <div className="flex items-center justify-between gap-2 mb-1">
             <div>
-              <p className="text-xs font-black text-inkBlack/70 leading-none">Ha Gao Index</p>
-              <p className="text-[9px] text-epicGreen/70 uppercase tracking-wide leading-none mt-0.5">de ultieme dumplingtest</p>
+              <p className="text-sm font-black text-inkBlack leading-none">🥟 Ha Gao Index</p>
+              <p className="text-[9px] text-epicGold uppercase tracking-widest leading-none mt-0.5 font-bold">de ultieme dumplingtest</p>
             </div>
-            <HaGaoIndex index={haGaoIndex} size="sm" />
+            <div className="flex items-center gap-1.5">
+              <HaGaoIndex index={haGaoIndex} size="sm" />
+              <span className="text-sm font-black text-inkBlack">{haGaoIndex.toFixed(1)}</span>
+            </div>
           </div>
           {haGaoDetail && (
-            <p className="text-[11px] text-inkBlack/50 italic mt-1.5 leading-snug">{haGaoDetail}</p>
+            <p className="text-[11px] text-inkBlack/60 italic leading-snug mt-1 border-t border-inkBlack/10 pt-1">{haGaoDetail}</p>
           )}
         </div>
-        <div className="px-4 pb-1 pt-2 space-y-1.5">
-          <ScoreBar label="Reputatie" score={scores.buzz} color="#D85A30" />
-          <ScoreBar label="Buzz" score={scores.google} color="#534AB7" />
+
+        {/* Score bars — fixed data mapping */}
+        <div className="px-4 pb-1 space-y-1.5">
+          <ScoreBar label="Reputatie" score={scores.google} color="#D85A30" />
+          <ScoreBar label="Buzz" score={scores.buzz} color="#534AB7" />
           <ScoreBar label="Vibe" score={scores.vibe} color="#1D9E75" />
         </div>
 
@@ -84,12 +93,10 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
           </p>
         </div>
 
-        {/* Rank reason */}
+        {/* rankReason — signature insight */}
         {rankReason && (
-          <div className="px-4 pb-2">
-            <p className="text-xs text-inkBlack/60 italic leading-snug">
-              <span className="not-italic text-inkBlack/30 mr-1">→</span>{rankReason}
-            </p>
+          <div className="mx-4 mb-3 pl-3 border-l-[3px] border-inkBlack/30">
+            <p className="text-xs text-inkBlack/60 italic leading-snug">— {rankReason}</p>
           </div>
         )}
 
