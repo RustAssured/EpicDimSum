@@ -31,7 +31,9 @@ Iens data: ${iensText || 'Niet beschikbaar.'}
 
 Return this exact JSON structure:
 {
-  "haGaoIndex": <float 0-5, rating of dumpling quality specifically>,
+  "haGaoIndex": <float 0-5, weighted average of Ha Gao quality (60%) and Siu Mai quality (40%) based on review mentions — the two signature tests of any dim sum kitchen>,
+  "haGaoDetail": "<one line in Dutch explaining what specifically makes their dumplings good or bad — be specific about texture, filling, freshness>",
+  "rankReason": "<one punchy Dutch sentence explaining why this restaurant ranks where it does — e.g. 'Exploderende buzz maar wisselvallige vibe houdt de score laag' or 'Consistente topkwaliteit op alle fronten, verdiende nummer 1'>",
   "mustOrder": "<one punchy sentence in Dutch about the single best dish to order>",
   "vibeScore": <int 0-100, atmosphere and experience quality>,
   "buzzScore": <int 0-100, based on volume and positivity of all sources>,
@@ -41,7 +43,7 @@ Return this exact JSON structure:
 
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 512,
+    max_tokens: 600,
     messages: [{ role: 'user', content: prompt }],
   })
 
@@ -56,6 +58,8 @@ Return this exact JSON structure:
 
   return {
     haGaoIndex: Number(parsed.haGaoIndex),
+    haGaoDetail: String(parsed.haGaoDetail ?? ''),
+    rankReason: String(parsed.rankReason ?? ''),
     mustOrder: String(parsed.mustOrder),
     vibeScore: Number(parsed.vibeScore),
     buzzScore: Number(parsed.buzzScore),
@@ -66,7 +70,7 @@ Return this exact JSON structure:
 
 export function weightedEpicScore(params: {
   googleScore: number
-  haGaoScore: number // 0-100
+  haGaoScore: number
   buzzScore: number
   vibeScore: number
 }): number {

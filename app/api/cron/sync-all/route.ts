@@ -63,6 +63,8 @@ export async function GET(request: NextRequest) {
       const updated: Restaurant = {
         ...restaurant,
         haGaoIndex: scores.haGaoIndex,
+        haGaoDetail: scores.haGaoDetail,
+        rankReason: scores.rankReason,
         mustOrder: scores.mustOrder,
         epicScore: scores.epicScore,
         summary: scores.summary,

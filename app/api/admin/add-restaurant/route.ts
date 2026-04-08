@@ -100,6 +100,8 @@ export async function POST(request: NextRequest) {
       coords: { lat: 0, lng: 0 },
       mustOrder: scores.mustOrder,
       epicScore,
+      haGaoDetail: scores.haGaoDetail,
+      rankReason: scores.rankReason,
       haGaoIndex: scores.haGaoIndex,
       summary: scores.summary,
       reviewSnippets: reviewTexts.slice(0, 3),

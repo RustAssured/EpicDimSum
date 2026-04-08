@@ -17,6 +17,8 @@ export interface Restaurant {
   mustOrder: string
   epicScore: number
   haGaoIndex: number
+  haGaoDetail?: string
+  rankReason?: string
   scores: {
     google: number
     haGao: number
@@ -36,6 +38,8 @@ export interface Restaurant {
 
 export interface SyncResult {
   haGaoIndex: number
+  haGaoDetail: string
+  rankReason: string
   mustOrder: string
   vibeScore: number
   buzzScore: number

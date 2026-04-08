@@ -84,6 +84,8 @@ export async function GET(request: NextRequest) {
         coords: spot.coords,
         mustOrder: scores.mustOrder,
         epicScore,
+        haGaoDetail: scores.haGaoDetail,
+        rankReason: scores.rankReason,
         haGaoIndex: scores.haGaoIndex,
         summary: scores.summary,
         reviewSnippets: reviewTexts.slice(0, 3),

@@ -25,6 +25,7 @@ interface PlacesNearbyResult {
   location: { latitude: number; longitude: number }
   rating?: number
   userRatingCount?: number
+  primaryTypeDisplayName?: { text: string }
 }
 
 async function searchNearby(city: { name: string; lat: number; lng: number }): Promise<NewSpot[]> {
@@ -32,63 +33,77 @@ async function searchNearby(city: { name: string; lat: number; lng: number }): P
   if (!apiKey) throw new Error('GOOGLE_PLACES_API_KEY not set')
 
   const requestBody = {
-    textQuery: `dim sum ${city.name}`,
+    includedTypes: ['restaurant', 'chinese_restaurant'],
     maxResultCount: 20,
-    locationBias: {
+    locationRestriction: {
       circle: {
         center: { latitude: city.lat, longitude: city.lng },
-        radius: 5000,
+        radius: 8000.0,
       },
     },
+    rankPreference: 'POPULARITY',
   }
 
-  const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
+  const res = await fetch('https://places.googleapis.com/v1/places:searchNearby', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-Goog-Api-Key': apiKey,
-      'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount',
+      'X-Goog-FieldMask':
+        'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.primaryTypeDisplayName',
     },
     body: JSON.stringify(requestBody),
     cache: 'no-store',
   })
 
   if (!res.ok) {
-    console.error(`Places search failed for ${city.name}: ${res.status}`)
+    console.error(`Places searchNearby failed for ${city.name}: ${res.status} ${await res.text()}`)
     return []
   }
 
   const data = await res.json()
   const places: PlacesNearbyResult[] = data.places ?? []
 
-  return places.map((p) => ({
-    googlePlaceId: p.id,
-    name: p.displayName?.text ?? 'Onbekend',
-    city: city.name,
-    address: p.formattedAddress ?? '',
-    coords: {
-      lat: p.location?.latitude ?? city.lat,
-      lng: p.location?.longitude ?? city.lng,
-    },
-    googleRating: p.rating ?? 0,
-    googleReviewCount: p.userRatingCount ?? 0,
-  }))
+  return places
+    .filter((p) => {
+      const name = p.displayName?.text?.toLowerCase() ?? ''
+      const type = p.primaryTypeDisplayName?.text?.toLowerCase() ?? ''
+      const reviewCount = p.userRatingCount ?? 0
+
+      // Must have minimum review count
+      if (reviewCount < 30) return false
+
+      // Include if name or type contains 'dim sum'
+      if (name.includes('dim sum') || type.includes('dim sum')) return true
+
+      // Include high-review Chinese places (likely have dim sum)
+      if (reviewCount >= 50 && (type.includes('chinese') || name.includes('china') || name.includes('chinese'))) return true
+
+      return false
+    })
+    .map((p) => ({
+      googlePlaceId: p.id,
+      name: p.displayName?.text ?? 'Onbekend',
+      city: city.name,
+      address: p.formattedAddress ?? '',
+      coords: {
+        lat: p.location?.latitude ?? city.lat,
+        lng: p.location?.longitude ?? city.lng,
+      },
+      googleRating: p.rating ?? 0,
+      googleReviewCount: p.userRatingCount ?? 0,
+    }))
 }
 
 export async function discoverNewSpots(): Promise<NewSpot[]> {
-  // Get existing place IDs to deduplicate
   const existing = await getAllRestaurants()
   const existingPlaceIds = new Set(existing.map((r) => r.googlePlaceId))
 
   const results = await Promise.all(DISCOVERY_CITIES.map(searchNearby))
   const allSpots = results.flat()
 
-  // Filter out already-known restaurants
-  const newSpots = allSpots.filter(
-    (spot) => !existingPlaceIds.has(spot.googlePlaceId)
-  )
+  const newSpots = allSpots.filter((spot) => !existingPlaceIds.has(spot.googlePlaceId))
 
-  // Deduplicate by placeId within results
   const seen = new Set<string>()
   return newSpots.filter((spot) => {
     if (seen.has(spot.googlePlaceId)) return false

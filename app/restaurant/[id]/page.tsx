@@ -24,17 +24,27 @@ const priceLabel: Record<string, string> = {
 }
 
 export default async function RestaurantPage({ params }: PageProps) {
-  const restaurant = await getRestaurantById(params.id)
+  const [restaurant, allRestaurants] = await Promise.all([
+    getRestaurantById(params.id),
+    getAllRestaurants(),
+  ])
   if (!restaurant) notFound()
 
   const {
     name, city, address, cuisine, priceRange, status, epicScore,
-    haGaoIndex, scores, mustOrder, summary, reviewSnippets, sources, coords,
+    haGaoIndex, haGaoDetail, rankReason, scores, mustOrder,
+    summary, reviewSnippets, sources, coords,
   } = restaurant
 
   const lastUpdated = new Date(sources.lastUpdated).toLocaleDateString('nl-NL', {
     day: 'numeric', month: 'long', year: 'numeric',
   })
+
+  // Similar restaurants: up to 2 others from the same city
+  const similar = allRestaurants
+    .filter((r) => r.city === city && r.id !== params.id)
+    .sort((a, b) => b.epicScore - a.epicScore)
+    .slice(0, 2)
 
   return (
     <main className="min-h-screen bg-cream">
@@ -88,29 +98,51 @@ export default async function RestaurantPage({ params }: PageProps) {
               <ScoreBar label="Vibe" score={scores.vibe} color="#BA7517" />
             </div>
 
-            {/* Ha Gao Index */}
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-black uppercase tracking-wide text-inkBlack/40 mb-1">Ha Gao Index</p>
-                <HaGaoIndex index={haGaoIndex} />
-              </div>
-              <div className="text-right">
-                <p className="text-xs font-black uppercase tracking-wide text-inkBlack/40 mb-1">Bronnen</p>
-                <div className="flex gap-1.5 justify-end flex-wrap">
-                  <span className="text-xs bg-cream border border-inkBlack/20 rounded-full px-2 py-0.5 font-medium">
-                    ⭐ {sources.googleRating.toFixed(1)} ({sources.googleReviewCount.toLocaleString('nl-NL')})
-                  </span>
-                  {sources.blogMentions > 0 && (
-                    <span className="text-xs bg-epicPurple/10 border border-epicPurple/30 text-epicPurple rounded-full px-2 py-0.5 font-bold">
-                      {sources.blogMentions} buzz
-                    </span>
-                  )}
-                </div>
-              </div>
+            {/* Sources */}
+            <div className="flex gap-1.5 justify-end flex-wrap">
+              <span className="text-xs bg-cream border border-inkBlack/20 rounded-full px-2 py-0.5 font-medium">
+                ⭐ {sources.googleRating.toFixed(1)} ({sources.googleReviewCount.toLocaleString('nl-NL')})
+              </span>
+              {sources.blogMentions > 0 && (
+                <span className="text-xs bg-epicPurple/10 border border-epicPurple/30 text-epicPurple rounded-full px-2 py-0.5 font-bold">
+                  {sources.blogMentions} buzz
+                </span>
+              )}
             </div>
           </div>
           <div className="h-2 bg-epicGreen" />
         </div>
+
+        {/* Ha Gao Index hero */}
+        <div className="rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-epicGreen/5 overflow-hidden">
+          <div className="p-4">
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div>
+                <p className="text-sm font-black text-inkBlack">Ha Gao Index</p>
+                <p className="text-[10px] text-epicGreen/70 uppercase tracking-wide font-bold">
+                  de ultieme dumplingtest · Ha Gao 60% + Siu Mai 40%
+                </p>
+              </div>
+              <HaGaoIndex index={haGaoIndex} />
+            </div>
+            {haGaoDetail && (
+              <p className="text-sm text-inkBlack/70 italic leading-relaxed border-l-3 border-epicGreen/40 pl-3">
+                {haGaoDetail}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Rank reason callout */}
+        {rankReason && (
+          <div className="rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-epicPurple/5 p-4 flex items-start gap-3">
+            <span className="text-xl shrink-0">→</span>
+            <div>
+              <p className="text-xs font-black uppercase tracking-wide text-epicPurple mb-1">Waarom deze rank</p>
+              <p className="text-sm font-bold text-inkBlack leading-snug">{rankReason}</p>
+            </div>
+          </div>
+        )}
 
         {/* Must order */}
         <div className="rounded-2xl border-[3px] border-dashed border-epicGold shadow-brutal bg-epicGold/5 p-4">
@@ -144,6 +176,27 @@ export default async function RestaurantPage({ params }: PageProps) {
             </div>
           </div>
         </div>
+
+        {/* Vergelijkbaar met */}
+        {similar.length > 0 && (
+          <div>
+            <h3 className="text-xs font-black uppercase tracking-wide text-inkBlack/40 mb-2">
+              Vergelijkbaar met
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {similar.map((r) => (
+                <Link
+                  key={r.id}
+                  href={`/restaurant/${r.id}`}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full border-2 border-inkBlack bg-white shadow-brutal-sm font-bold text-sm hover:bg-epicRed hover:text-cream transition-colors"
+                >
+                  {r.name}
+                  <span className="text-xs opacity-60">Epic {r.epicScore}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Share button */}
         <ShareButton name={name} />

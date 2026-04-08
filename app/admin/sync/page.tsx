@@ -44,6 +44,13 @@ export default function AdminSyncPage() {
     error: string | null
   }>({ loading: false, result: null, error: null })
 
+  // Full scan state
+  const [fullScanState, setFullScanState] = useState<{
+    loading: boolean
+    result: { found: number; added: number; skipped: number; restaurants: string[] } | null
+    error: string | null
+  }>({ loading: false, result: null, error: null })
+
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault()
     if (secret.trim()) setAuthed(true)
@@ -120,6 +127,28 @@ export default function AdminSyncPage() {
       setAddForm({ placeId: '', name: '', city: 'Amsterdam', priceRange: '€€' })
     } catch (err) {
       setAddState({
+        loading: false,
+        result: null,
+        error: err instanceof Error ? err.message : 'Onbekende fout',
+      })
+    }
+  }
+
+  const handleFullScan = async () => {
+    setFullScanState({ loading: true, result: null, error: null })
+    try {
+      const res = await fetch('/api/admin/full-scan', {
+        method: 'POST',
+        headers: { 'x-sync-secret': secret },
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(humanizeError(err.error || `HTTP ${res.status}`))
+      }
+      const data = await res.json()
+      setFullScanState({ loading: false, result: data, error: null })
+    } catch (err) {
+      setFullScanState({
         loading: false,
         result: null,
         error: err instanceof Error ? err.message : 'Onbekende fout',
@@ -234,6 +263,19 @@ export default function AdminSyncPage() {
             {discoverState.loading ? '⏳ Bezig...' : '🔍 Ontdek nieuwe spots'}
           </button>
 
+          {/* Grote NL scan */}
+          <button
+            onClick={handleFullScan}
+            disabled={fullScanState.loading}
+            className={`px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
+              ${fullScanState.loading
+                ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
+                : 'bg-epicRed text-cream hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none'
+              }`}
+          >
+            {fullScanState.loading ? '⏳ Scanning NL...' : '🔍 Grote NL scan'}
+          </button>
+
           {discoverState.error && (
             <p className="w-full text-xs text-epicRed font-medium">
               Fout: {discoverState.error}
@@ -243,6 +285,23 @@ export default function AdminSyncPage() {
             <p className="w-full text-xs text-epicGreen font-bold">
               ✓ {discoverState.result.discovered} gevonden · {discoverState.result.added} toegevoegd · {discoverState.result.skipped} overgeslagen
             </p>
+          )}
+          {fullScanState.error && (
+            <p className="w-full text-xs text-epicRed font-medium">
+              Scan fout: {fullScanState.error}
+            </p>
+          )}
+          {fullScanState.result && (
+            <div className="w-full">
+              <p className="text-xs text-epicGreen font-bold">
+                ✓ {fullScanState.result.added} nieuwe restaurants gevonden en toegevoegd!
+              </p>
+              {fullScanState.result.restaurants.length > 0 && (
+                <p className="text-xs text-inkBlack/50 mt-0.5">
+                  {fullScanState.result.restaurants.join(' · ')}
+                </p>
+              )}
+            </div>
           )}
         </div>
 
