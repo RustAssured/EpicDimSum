@@ -10,6 +10,8 @@ interface ScoreInputs {
   googleReviewCount: number
   googleReviews: string[]
   iensText: string
+  buzzScore?: number
+  tripadvisorText?: string
 }
 
 export async function computeScoresWithClaude(inputs: ScoreInputs): Promise<SyncResult> {
@@ -19,31 +21,75 @@ export async function computeScoresWithClaude(inputs: ScoreInputs): Promise<Sync
     ? googleReviews.join('\n---\n')
     : 'Geen reviews beschikbaar.'
 
-  const prompt = `You are the EpicDimSum scoring engine. Analyze the following data about a Dim Sum restaurant in the Netherlands and return ONLY valid JSON with no preamble.
+  const extraText = [iensText, inputs.tripadvisorText].filter(Boolean).join('\n\n')
+
+  const buzzLine = inputs.buzzScore !== undefined
+    ? `${inputs.buzzScore}`
+    : 'calculated by you based on review sentiment'
+
+  const buzzJsonField = inputs.buzzScore !== undefined
+    ? `${inputs.buzzScore}`
+    : '<int 0-100>'
+
+  const prompt = `You are the EpicDimSum dumpling intelligence engine. Your job is NOT to give a general restaurant score — your job is to evaluate dim sum and dumpling quality specifically, using textual evidence from reviews.
 
 Restaurant: ${name}, ${city}
-
 Google rating: ${googleRating}/5 (${googleReviewCount} reviews)
-Google reviews sample:
+Google reviews:
 ${reviewTexts}
+Iens/other data: ${extraText || 'Not available.'}
+Pre-calculated buzz score: ${buzzLine}/100
 
-Iens data: ${iensText || 'Niet beschikbaar.'}
+STEP 1 — Dumpling mention analysis:
+Count how many reviews explicitly mention: ha gao, har gow, siu mai, cheung fun, char siu bao, dumplings, gestoomde hapjes, garnaalendumplings, velletjes, vulling, juicy, thin skin, vers, fresh.
+Calculate: dumplingMentionRatio = mentions / totalReviews (as percentage 0-100)
 
-Return this exact JSON structure:
+STEP 2 — Quality signal extraction:
+From dumpling-specific mentions only, extract:
+- Positive signals: thin skin, juicy filling, fresh, handmade, authentic, perfectly steamed, delicate
+- Negative signals: dry, thick skin, frozen, bland, tasteless, tough, overcooked
+
+IMPORTANT DISTINCTIONS:
+- "dumplingMentionScore": what % of reviews mention dumplings AT ALL (0-100)
+- "dumplingQualityScore": of those mentions, how POSITIVE are they (0-100)
+  - ignore generic praise like "great food", "nice place", "lekker"
+  - ONLY count dumpling-specific quality signals
+  - positive: "perfect velletjes", "sappige garnalen", "beste ha gao", "thin skin", "juicy", "vers", "handgemaakt"
+  - negative: "droog", "dik vel", "diepvries", "smaakloos", "tough", "disappointing"
+  - If dumplings are not mentioned at all → dumplingQualityScore = null (not scoreable)
+- "dumplingScore": dumplingMentionScore * (dumplingQualityScore / 100) — the COMBINED signal
+  - This is what goes into EpicScore, not mentionScore alone
+
+STEP 3 — Small sample correction:
+confidence = min(log10(${googleReviewCount} + 1) / 2.5, 1.0)
+If confidence < 0.5, be honest about limited data but don't penalize quality signals.
+A restaurant with 50 reviews all mentioning perfect ha gao BEATS a restaurant with 2000 generic reviews.
+
+EpicScore formula:
+  googleNormalized = (${googleRating} / 5) * 100
+  base = (googleNormalized * 0.25) + (haGaoIndex/5*100 * 0.40) + (buzzScore * 0.20) + (vibeScore * 0.10)
+  confidenceModifier = (confidence - 0.5) * 10
+  epicScore = round(base + confidenceModifier)
+
+Return ONLY valid JSON, no markdown, no preamble:
 {
-  "haGaoIndex": <float 0-5, weighted average of Ha Gao quality (60%) and Siu Mai quality (40%) based on review mentions — the two signature tests of any dim sum kitchen>,
-  "haGaoDetail": "<one line in Dutch explaining what specifically makes their dumplings good or bad — be specific about texture, filling, freshness>",
-  "rankReason": "<one punchy Dutch sentence explaining why this restaurant ranks where it does — e.g. 'Exploderende buzz maar wisselvallige vibe houdt de score laag' or 'Consistente topkwaliteit op alle fronten, verdiende nummer 1'>",
-  "mustOrder": "<one punchy sentence in Dutch about the single best dish to order>",
-  "vibeScore": <int 0-100, atmosphere and experience quality>,
-  "buzzScore": <int 0-100, based on volume and positivity of all sources>,
-  "epicScore": <int 0-100, weighted: google 35% + haGao 25% + buzz 25% + vibe 15%>,
-  "summary": "<2 sentence max summary in Dutch of why this place is or isn't worth it>"
+  "haGaoIndex": <float 0-5, based ONLY on dumpling-specific review signals, not general rating>,
+  "dumplingMentionScore": <int 0-100, what % of reviews mention dumplings specifically>,
+  "dumplingQualityScore": <int 0-100 or null if no mentions>,
+  "dumplingScore": <int 0-100, combined: dumplingMentionScore * dumplingQualityScore/100>,
+  "confidence": <float 0-1, min(log10(${googleReviewCount} + 1) / 2.5, 1.0)>,
+  "haGaoDetail": "<one specific Dutch sentence about the dumpling quality — mention actual dishes if reviews do, e.g. 'De ha gao heeft dunne velletjes en sappige garnalen volgens meerdere reviews'>",
+  "mustOrder": "<most mentioned specific dish in Dutch — be concrete, e.g. 'Ha gao met garnalen' not just 'dumplings'>",
+  "vibeScore": <int 0-100, atmosphere based on non-dumpling review signals>,
+  "buzzScore": ${buzzJsonField},
+  "epicScore": <int 0-100, calculated as above>,
+  "rankReason": "<one punchy Dutch sentence max 12 words explaining the rank — focus on dumpling quality, e.g. 'Sterkste ha gao feedback in Amsterdam, zelfs met weinig reviews'>",
+  "summary": "<2 sentences max in Dutch, honest and specific about dumpling quality>"
 }`
 
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 600,
+    max_tokens: 700,
     messages: [{ role: 'user', content: prompt }],
   })
 
@@ -65,6 +111,10 @@ Return this exact JSON structure:
     buzzScore: Number(parsed.buzzScore),
     epicScore: Number(parsed.epicScore),
     summary: String(parsed.summary),
+    dumplingMentionScore: Number(parsed.dumplingMentionScore ?? 0),
+    dumplingQualityScore: parsed.dumplingQualityScore === null ? null : Number(parsed.dumplingQualityScore ?? 0),
+    dumplingScore: Number(parsed.dumplingScore ?? 0),
+    confidence: Number(parsed.confidence ?? 0.5),
   }
 }
 
@@ -73,12 +123,10 @@ export function weightedEpicScore(params: {
   haGaoScore: number
   buzzScore: number
   vibeScore: number
+  confidence?: number
 }): number {
-  const { googleScore, haGaoScore, buzzScore, vibeScore } = params
-  return Math.round(
-    googleScore * 0.35 +
-    haGaoScore * 0.25 +
-    buzzScore * 0.25 +
-    vibeScore * 0.15
-  )
+  const { googleScore, haGaoScore, buzzScore, vibeScore, confidence = 0.5 } = params
+  const base = googleScore * 0.25 + haGaoScore * 0.40 + buzzScore * 0.20 + vibeScore * 0.10
+  const modifier = (confidence - 0.5) * 10
+  return Math.round(base + modifier)
 }

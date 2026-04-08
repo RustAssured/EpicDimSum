@@ -68,17 +68,21 @@ export async function POST(request: NextRequest) {
           iensReviewCount = iensData.reviewCount ?? 0
         } catch { /* non-fatal */ }
 
-        const [buzz, scores] = await Promise.all([
-          computeBuzzScore(spot.name, spot.city, iensReviewCount),
-          computeScoresWithClaude({
-            name: spot.name,
-            city: spot.city,
-            googleRating: googleData.rating,
-            googleReviewCount: googleData.userRatingCount,
-            googleReviews: reviewTexts,
-            iensText,
-          }),
-        ])
+        const buzz = await computeBuzzScore(
+          spot.name,
+          spot.city,
+          iensReviewCount,
+          googleData.userRatingCount
+        )
+        const scores = await computeScoresWithClaude({
+          name: spot.name,
+          city: spot.city,
+          googleRating: googleData.rating,
+          googleReviewCount: googleData.userRatingCount,
+          googleReviews: reviewTexts,
+          iensText,
+          buzzScore: buzz.totalBuzzScore,
+        })
 
         const epicScore = scores.epicScore > 0
           ? scores.epicScore
@@ -100,6 +104,10 @@ export async function POST(request: NextRequest) {
           rankReason: scores.rankReason,
           summary: scores.summary,
           reviewSnippets: reviewTexts.slice(0, 3),
+          dumplingMentionScore: scores.dumplingMentionScore,
+          dumplingQualityScore: scores.dumplingQualityScore,
+          dumplingScore: scores.dumplingScore,
+          confidence: scores.confidence,
           scores: {
             google: googleScore,
             haGao: Math.round((scores.haGaoIndex / 5) * 100),

@@ -3,8 +3,11 @@ import { Restaurant } from '@/lib/types'
 import { getRestaurantById, upsertRestaurant } from '@/lib/db'
 import { fetchGooglePlacesData, normalizeGoogleScore } from '@/lib/google-places'
 import { fetchIensData } from '@/lib/iens-scraper'
+import { fetchTripadvisorData } from '@/lib/tripadvisor-scraper'
 import { computeScoresWithClaude } from '@/lib/score-engine'
 import { computeBuzzScore } from '@/lib/buzz-engine'
+
+const USE_TRIPADVISOR = process.env.ENABLE_TRIPADVISOR === 'true'
 
 export async function POST(
   request: NextRequest,
@@ -46,17 +49,32 @@ export async function POST(
       console.error(`Iens fetch failed:`, err)
     }
 
-    const [buzz, scores] = await Promise.all([
-      computeBuzzScore(restaurant.name, restaurant.city, iensReviewCount),
-      computeScoresWithClaude({
-        name: restaurant.name,
-        city: restaurant.city,
-        googleRating: googleData.rating,
-        googleReviewCount: googleData.userRatingCount,
-        googleReviews: reviewTexts,
-        iensText,
-      }),
-    ])
+    let tripadvisorText = ''
+    if (USE_TRIPADVISOR) {
+      try {
+        const ta = await fetchTripadvisorData(restaurant.name, restaurant.city)
+        tripadvisorText = ta.rawText.slice(0, 1000)
+      } catch { /* silent fail */ }
+    }
+
+    // Compute buzz first so we can pass it to Claude for a consistent epicScore formula
+    const buzz = await computeBuzzScore(
+      restaurant.name,
+      restaurant.city,
+      iensReviewCount,
+      googleData.userRatingCount
+    )
+
+    const scores = await computeScoresWithClaude({
+      name: restaurant.name,
+      city: restaurant.city,
+      googleRating: googleData.rating,
+      googleReviewCount: googleData.userRatingCount,
+      googleReviews: reviewTexts,
+      iensText,
+      tripadvisorText,
+      buzzScore: buzz.totalBuzzScore,
+    })
 
     const updated: Restaurant = {
       ...restaurant,
@@ -67,6 +85,10 @@ export async function POST(
       epicScore: scores.epicScore,
       summary: scores.summary,
       reviewSnippets: reviewTexts.slice(0, 3),
+      dumplingMentionScore: scores.dumplingMentionScore,
+      dumplingQualityScore: scores.dumplingQualityScore,
+      dumplingScore: scores.dumplingScore,
+      confidence: scores.confidence,
       scores: {
         google: googleScore,
         haGao: Math.round((scores.haGaoIndex / 5) * 100),

@@ -70,7 +70,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
             <div className="bg-epicRed/10 border-2 border-epicRed/30 rounded-2xl px-4 py-3">
               <p className="font-black text-sm text-epicRed">EpicScore™</p>
               <p className="text-xs text-inkBlack/60 mt-0.5 leading-snug">
-                Combineert Google reputatie, Ha Gao kwaliteit, online buzz en vibe tot één eerlijk cijfer
+                Gebaseerd op dumplingkwaliteit, niet populariteit — Google toont sterren, wij tonen inhoud
               </p>
             </div>
             <div className="bg-epicGreen/10 border-2 border-epicGreen/30 rounded-2xl px-4 py-3">

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'EpicDimSum — De beste Dim Sum in Nederland',
-    description: 'Jouw realtime dumpling radar 🥟',
+    description: 'Niet de populairste dim sum. De beste dumplings.',
   },
   metadataBase: new URL('https://epicdimsum.nl'),
 }

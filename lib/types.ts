@@ -19,6 +19,10 @@ export interface Restaurant {
   haGaoIndex: number
   haGaoDetail?: string
   rankReason?: string
+  dumplingMentionScore?: number
+  dumplingQualityScore?: number | null
+  dumplingScore?: number
+  confidence?: number
   scores: {
     google: number
     haGao: number
@@ -45,4 +49,8 @@ export interface SyncResult {
   buzzScore: number
   epicScore: number
   summary: string
+  dumplingMentionScore: number
+  dumplingQualityScore: number | null
+  dumplingScore: number
+  confidence: number
 }

@@ -5,6 +5,11 @@ export interface BuzzResult {
   sources: string[]
 }
 
+export interface BuzzData {
+  blogMentions: number
+  tiktokSignal: boolean
+}
+
 // Curated list of Dutch food blog RSS feeds
 const NL_FOOD_BLOG_FEEDS = [
   'https://www.missfoodie.nl/feed/',
@@ -26,7 +31,6 @@ async function fetchRssFeed(url: string, restaurantName: string): Promise<number
     const xml = await res.text()
     const name = restaurantName.toLowerCase()
 
-    // Count items where title or description mentions the restaurant
     const itemRegex = /<item>([\s\S]*?)<\/item>/gi
     let count = 0
     let match: RegExpExecArray | null
@@ -58,11 +62,9 @@ async function fetchTikTokMentions(restaurantName: string, city: string): Promis
 
     const html = await res.text()
 
-    // Look for video count indicators in the response
     const videoCountMatch = html.match(/"videoCount"\s*:\s*(\d+)/i)
     if (videoCountMatch) return Math.min(parseInt(videoCountMatch[1], 10), 999)
 
-    // Fallback: count occurrences of the restaurant name in the response
     const name = restaurantName.toLowerCase()
     const occurrences = (html.toLowerCase().match(new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) ?? []).length
     return Math.min(occurrences, 50)
@@ -71,26 +73,32 @@ async function fetchTikTokMentions(restaurantName: string, city: string): Promis
   }
 }
 
+export function buzzDataToScore(data: BuzzData, googleReviewCount: number): number {
+  const blogScore = Math.min(data.blogMentions * 15, 45)
+  const tiktokScore = data.tiktokSignal ? 20 : 0
+  const volumeScore = Math.min(Math.round(Math.log10(googleReviewCount + 1) * 17), 35)
+  const raw = Math.min(Math.round(blogScore + tiktokScore + volumeScore), 100)
+  // Minimum floor: never show below 15 — 1 looks like a bug
+  return Math.max(raw, 15)
+}
+
 export async function computeBuzzScore(
   restaurantName: string,
   city: string,
-  existingBlogMentions = 0
+  existingBlogMentions = 0,
+  googleReviewCount = 0
 ): Promise<BuzzResult> {
-  // Fetch all RSS feeds in parallel
   const rssResults = await Promise.all(
     NL_FOOD_BLOG_FEEDS.map((feed) => fetchRssFeed(feed, restaurantName))
   )
   const blogMentions = rssResults.reduce((sum, n) => sum + n, 0) + existingBlogMentions
 
-  // Fetch TikTok
   const tiktokMentions = await fetchTikTokMentions(restaurantName, city)
 
-  // Compute normalized buzz score 0-100
-  // Blog mentions: each mention worth up to ~5 points, cap at 20 mentions = 100
-  const blogScore = Math.min((blogMentions / 20) * 60, 60)
-  // TikTok: up to 40 points for 50+ mentions
-  const tiktokScore = Math.min((tiktokMentions / 50) * 40, 40)
-  const totalBuzzScore = Math.round(blogScore + tiktokScore)
+  const totalBuzzScore = buzzDataToScore(
+    { blogMentions, tiktokSignal: tiktokMentions > 0 },
+    googleReviewCount
+  )
 
   const sources = NL_FOOD_BLOG_FEEDS.filter((_, i) => rssResults[i] > 0)
   if (tiktokMentions > 0) sources.push('TikTok')

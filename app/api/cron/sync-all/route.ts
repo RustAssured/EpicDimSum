@@ -48,17 +48,21 @@ export async function GET(request: NextRequest) {
         iensReviewCount = iensData.reviewCount ?? iensReviewCount
       } catch { /* non-fatal */ }
 
-      const [buzz, scores] = await Promise.all([
-        computeBuzzScore(restaurant.name, restaurant.city, iensReviewCount),
-        computeScoresWithClaude({
-          name: restaurant.name,
-          city: restaurant.city,
-          googleRating: googleData.rating,
-          googleReviewCount: googleData.userRatingCount,
-          googleReviews: reviewTexts,
-          iensText,
-        }),
-      ])
+      const buzz = await computeBuzzScore(
+        restaurant.name,
+        restaurant.city,
+        iensReviewCount,
+        googleData.userRatingCount
+      )
+      const scores = await computeScoresWithClaude({
+        name: restaurant.name,
+        city: restaurant.city,
+        googleRating: googleData.rating,
+        googleReviewCount: googleData.userRatingCount,
+        googleReviews: reviewTexts,
+        iensText,
+        buzzScore: buzz.totalBuzzScore,
+      })
 
       const updated: Restaurant = {
         ...restaurant,
@@ -69,6 +73,10 @@ export async function GET(request: NextRequest) {
         epicScore: scores.epicScore,
         summary: scores.summary,
         reviewSnippets: reviewTexts.slice(0, 3),
+        dumplingMentionScore: scores.dumplingMentionScore,
+        dumplingQualityScore: scores.dumplingQualityScore,
+        dumplingScore: scores.dumplingScore,
+        confidence: scores.confidence,
         scores: {
           google: googleScore,
           haGao: Math.round((scores.haGaoIndex / 5) * 100),

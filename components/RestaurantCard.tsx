@@ -77,6 +77,26 @@ export default function RestaurantCard({ restaurant, rank }: RestaurantCardProps
             {haGaoDetail && (
               <p className="text-[10px] text-inkBlack/50 italic leading-snug mt-1.5 line-clamp-2">{haGaoDetail}</p>
             )}
+            {restaurant.dumplingMentionScore !== undefined && (
+              <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-inkBlack/10">
+                <div>
+                  <span className="text-[9px] text-inkBlack/40 uppercase tracking-wide font-bold block">
+                    {restaurant.dumplingMentionScore}% noemt dumplings
+                  </span>
+                  {restaurant.dumplingQualityScore !== null && restaurant.dumplingQualityScore !== undefined && (
+                    <span className="text-[9px] font-black text-epicGold block mt-0.5">
+                      {restaurant.dumplingQualityScore}% positief
+                    </span>
+                  )}
+                </div>
+                {restaurant.dumplingQualityScore === null && (
+                  <span className="text-[9px] text-inkBlack/30 italic">geen dumpling data</span>
+                )}
+              </div>
+            )}
+            {restaurant.confidence !== undefined && restaurant.confidence < 0.6 && (
+              <p className="text-[9px] text-inkBlack/30 italic mt-1">Beperkt aantal reviews — score kan wijzigen</p>
+            )}
           </div>
 
         </div>
@@ -91,7 +111,7 @@ export default function RestaurantCard({ restaurant, rank }: RestaurantCardProps
         {/* Formula */}
         <div className="px-4 pt-0.5 pb-2">
           <p className="text-[10px] text-inkBlack/40 font-medium text-center">
-            Reputatie 35% · Ha Gao 25% · Buzz 25% · Vibe 15%
+            Reputatie 25% · Ha Gao 40% · Buzz 20% · Vibe 10% + vertrouwen
           </p>
         </div>
 
