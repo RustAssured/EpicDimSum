@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Restaurant, City, PriceRange } from '@/lib/types'
-import { upsertRestaurant } from '@/lib/db'
+import { upsertRestaurant, getAllRestaurants } from '@/lib/db'
 import { fetchGooglePlacesData, normalizeGoogleScore } from '@/lib/google-places'
 import { fetchIensData } from '@/lib/iens-scraper'
 import { computeScoresWithClaude } from '@/lib/score-engine'
@@ -36,6 +36,13 @@ export async function POST(request: NextRequest) {
     }
 
     const id = slugify(name, city)
+
+    // Duplicate check — reject if same placeId or same slug already exists
+    const existing = await getAllRestaurants()
+    const duplicate = existing.find((r) => r.googlePlaceId === placeId || r.id === id)
+    if (duplicate) {
+      return NextResponse.json({ error: 'Restaurant bestaat al' }, { status: 409 })
+    }
 
     // Step 1: Fetch Google Places data
     let googleData = {
@@ -77,6 +84,11 @@ export async function POST(request: NextRequest) {
     ])
 
     // Step 4: Build full Restaurant object
+    // Fallback epicScore if Claude returns 0 (e.g. no reviews available)
+    const epicScore = scores.epicScore > 0
+      ? scores.epicScore
+      : Math.round((googleData.rating / 5) * 70)
+
     const restaurant: Restaurant = {
       id,
       name,
@@ -87,7 +99,7 @@ export async function POST(request: NextRequest) {
       priceRange,
       coords: { lat: 0, lng: 0 },
       mustOrder: scores.mustOrder,
-      epicScore: scores.epicScore,
+      epicScore,
       haGaoIndex: scores.haGaoIndex,
       summary: scores.summary,
       reviewSnippets: reviewTexts.slice(0, 3),

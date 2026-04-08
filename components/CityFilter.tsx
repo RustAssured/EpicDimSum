@@ -2,7 +2,7 @@
 
 import { City } from '@/lib/types'
 
-const cities: (City | 'Alle')[] = ['Alle', 'Amsterdam', 'Rotterdam', 'Den Haag']
+const cities: (City | 'Alle')[] = ['Alle', 'Amsterdam', 'Rotterdam', 'Den Haag', 'Utrecht', 'Eindhoven']
 
 interface CityFilterProps {
   selected: City | 'Alle'

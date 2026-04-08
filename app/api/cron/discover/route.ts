@@ -63,6 +63,10 @@ export async function GET(request: NextRequest) {
         }),
       ])
 
+      const epicScore = scores.epicScore > 0
+        ? scores.epicScore
+        : Math.round((googleData.rating / 5) * 70)
+
       const restaurant: Restaurant = {
         id: slugify(spot.name, spot.city),
         name: spot.name,
@@ -73,7 +77,7 @@ export async function GET(request: NextRequest) {
         priceRange: '€€' as PriceRange,
         coords: spot.coords,
         mustOrder: scores.mustOrder,
-        epicScore: scores.epicScore,
+        epicScore,
         haGaoIndex: scores.haGaoIndex,
         summary: scores.summary,
         reviewSnippets: reviewTexts.slice(0, 3),

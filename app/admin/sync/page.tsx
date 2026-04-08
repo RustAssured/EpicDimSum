@@ -13,10 +13,18 @@ interface SyncState {
   error: string | null
 }
 
+function humanizeError(error: string): string {
+  if (error === 'Unauthorized') return 'Verkeerd wachtwoord — check je Sync Secret'
+  return error
+}
+
 export default function AdminSyncPage() {
   const [secret, setSecret] = useState('')
   const [authed, setAuthed] = useState(false)
   const [syncStates, setSyncStates] = useState<Record<string, SyncState>>({})
+
+  // Sync-all state
+  const [syncAllProgress, setSyncAllProgress] = useState<{ current: number; total: number } | null>(null)
 
   // Add restaurant form
   const [addForm, setAddForm] = useState({
@@ -28,6 +36,13 @@ export default function AdminSyncPage() {
   const [addState, setAddState] = useState<{ loading: boolean; result: Restaurant | null; error: string | null }>({
     loading: false, result: null, error: null,
   })
+
+  // Discovery state
+  const [discoverState, setDiscoverState] = useState<{
+    loading: boolean
+    result: { discovered: number; added: number; skipped: number } | null
+    error: string | null
+  }>({ loading: false, result: null, error: null })
 
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault()
@@ -48,7 +63,7 @@ export default function AdminSyncPage() {
 
       if (!res.ok) {
         const err = await res.json()
-        throw new Error(err.error || `HTTP ${res.status}`)
+        throw new Error(humanizeError(err.error || `HTTP ${res.status}`))
       }
 
       const json = await res.json()
@@ -69,6 +84,18 @@ export default function AdminSyncPage() {
     }
   }
 
+  const handleSyncAll = async () => {
+    setSyncAllProgress({ current: 0, total: restaurants.length })
+    for (let i = 0; i < restaurants.length; i++) {
+      setSyncAllProgress({ current: i + 1, total: restaurants.length })
+      await handleSync(restaurants[i].id)
+      if (i < restaurants.length - 1) {
+        await new Promise((r) => setTimeout(r, 1000))
+      }
+    }
+    setSyncAllProgress(null)
+  }
+
   const handleAddRestaurant = async (e: React.FormEvent) => {
     e.preventDefault()
     setAddState({ loading: true, result: null, error: null })
@@ -85,7 +112,7 @@ export default function AdminSyncPage() {
 
       if (!res.ok) {
         const err = await res.json()
-        throw new Error(err.error || `HTTP ${res.status}`)
+        throw new Error(humanizeError(err.error || `HTTP ${res.status}`))
       }
 
       const data: Restaurant = await res.json()
@@ -93,6 +120,29 @@ export default function AdminSyncPage() {
       setAddForm({ placeId: '', name: '', city: 'Amsterdam', priceRange: '€€' })
     } catch (err) {
       setAddState({
+        loading: false,
+        result: null,
+        error: err instanceof Error ? err.message : 'Onbekende fout',
+      })
+    }
+  }
+
+  const handleDiscover = async () => {
+    setDiscoverState({ loading: true, result: null, error: null })
+    try {
+      const res = await fetch('/api/cron/discover', {
+        headers: { Authorization: `Bearer ${secret}` },
+      })
+
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(humanizeError(err.error || `HTTP ${res.status}`))
+      }
+
+      const data = await res.json()
+      setDiscoverState({ loading: false, result: data, error: null })
+    } catch (err) {
+      setDiscoverState({
         loading: false,
         result: null,
         error: err instanceof Error ? err.message : 'Onbekende fout',
@@ -144,6 +194,57 @@ export default function AdminSyncPage() {
       </header>
 
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+
+        {/* Bulk actions */}
+        <div className="rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white p-4 flex flex-wrap gap-3 items-center">
+          <div className="flex-1 min-w-0">
+            <p className="font-black text-inkBlack text-sm">Bulk acties</p>
+            {syncAllProgress && (
+              <p className="text-xs text-epicGold font-bold mt-0.5">
+                Syncing {syncAllProgress.current}/{syncAllProgress.total}...
+              </p>
+            )}
+          </div>
+
+          {/* Sync alle */}
+          <button
+            onClick={handleSyncAll}
+            disabled={syncAllProgress !== null}
+            className={`px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
+              ${syncAllProgress !== null
+                ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
+                : 'bg-epicGold text-cream hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none'
+              }`}
+          >
+            {syncAllProgress
+              ? `⏳ ${syncAllProgress.current}/${syncAllProgress.total}`
+              : '🔄 Sync alle restaurants'}
+          </button>
+
+          {/* Discover */}
+          <button
+            onClick={handleDiscover}
+            disabled={discoverState.loading}
+            className={`px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
+              ${discoverState.loading
+                ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
+                : 'bg-epicPurple text-cream hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none'
+              }`}
+          >
+            {discoverState.loading ? '⏳ Bezig...' : '🔍 Ontdek nieuwe spots'}
+          </button>
+
+          {discoverState.error && (
+            <p className="w-full text-xs text-epicRed font-medium">
+              Fout: {discoverState.error}
+            </p>
+          )}
+          {discoverState.result && (
+            <p className="w-full text-xs text-epicGreen font-bold">
+              ✓ {discoverState.result.discovered} gevonden · {discoverState.result.added} toegevoegd · {discoverState.result.skipped} overgeslagen
+            </p>
+          )}
+        </div>
 
         {/* Add restaurant form */}
         <div className="rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white overflow-hidden">
