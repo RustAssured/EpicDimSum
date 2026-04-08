@@ -95,7 +95,7 @@ export default async function RestaurantPage({ params }: PageProps) {
               <ScoreBar label="Google" score={scores.google} color="#D85A30" />
               <ScoreBar label="Ha Gao" score={scores.haGao} color="#1D9E75" />
               <ScoreBar label="Buzz" score={scores.buzz} color="#534AB7" />
-              <ScoreBar label="Sfeer" score={scores.vibe} color="#BA7517" />
+              <ScoreBar label="Vibe" score={scores.vibe} color="#BA7517" />
             </div>
 
             {/* Ha Gao Index */}

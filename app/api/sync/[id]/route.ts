@@ -5,6 +5,7 @@ import { Restaurant } from '@/lib/types'
 import { fetchGooglePlacesData, normalizeGoogleScore } from '@/lib/google-places'
 import { fetchIensData } from '@/lib/iens-scraper'
 import { computeScoresWithClaude } from '@/lib/score-engine'
+import { computeBuzzScore } from '@/lib/buzz-engine'
 
 export async function POST(
   request: NextRequest,
@@ -51,14 +52,18 @@ export async function POST(
       console.error(`Iens fetch failed:`, err)
     }
 
-    const scores = await computeScoresWithClaude({
-      name: restaurant.name,
-      city: restaurant.city,
-      googleRating: googleData.rating,
-      googleReviewCount: googleData.userRatingCount,
-      googleReviews: reviewTexts,
-      iensText,
-    })
+    // Run buzz engine and Claude scoring in parallel
+    const [buzz, scores] = await Promise.all([
+      computeBuzzScore(restaurant.name, restaurant.city, iensReviewCount),
+      computeScoresWithClaude({
+        name: restaurant.name,
+        city: restaurant.city,
+        googleRating: googleData.rating,
+        googleReviewCount: googleData.userRatingCount,
+        googleReviews: reviewTexts,
+        iensText,
+      }),
+    ])
 
     const updated: Restaurant = {
       ...restaurant,
@@ -70,13 +75,13 @@ export async function POST(
       scores: {
         google: googleScore,
         haGao: Math.round((scores.haGaoIndex / 5) * 100),
-        buzz: scores.buzzScore,
+        buzz: buzz.totalBuzzScore,
         vibe: scores.vibeScore,
       },
       sources: {
         googleRating: googleData.rating,
         googleReviewCount: googleData.userRatingCount,
-        blogMentions: iensReviewCount,
+        blogMentions: buzz.blogMentions + buzz.tiktokMentions,
         lastUpdated: new Date().toISOString(),
       },
     }

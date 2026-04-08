@@ -53,11 +53,21 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
           </div>
         </div>
 
-        {/* Score bars */}
-        <div className="px-4 pb-3 space-y-1.5">
-          <ScoreBar label="Hype" score={scores.buzz} color="#534AB7" />
+        {/* Score bars — renamed: Hype→Reputatie, Sfeer→Vibe */}
+        <div className="px-4 pb-1 space-y-1.5">
+          <ScoreBar label="Reputatie" score={scores.buzz} color="#534AB7" />
           <ScoreBar label="OG Score" score={scores.google} color="#D85A30" />
-          <ScoreBar label="Sfeer" score={scores.vibe} color="#1D9E75" />
+          <ScoreBar label="Vibe" score={scores.vibe} color="#1D9E75" />
+        </div>
+
+        {/* EpicScore formula */}
+        <div className="px-4 pb-3 pt-1.5">
+          <p className="text-[10px] text-inkBlack/30 font-medium">
+            Google&nbsp;<span className="font-black text-inkBlack/40">35%</span>
+            &nbsp;·&nbsp;Ha&nbsp;Gao&nbsp;<span className="font-black text-inkBlack/40">25%</span>
+            &nbsp;·&nbsp;Buzz&nbsp;<span className="font-black text-inkBlack/40">25%</span>
+            &nbsp;·&nbsp;Vibe&nbsp;<span className="font-black text-inkBlack/40">15%</span>
+          </p>
         </div>
 
         {/* Must order */}
@@ -78,6 +88,9 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
             </span>
             <span className="text-xs bg-cream border border-inkBlack/20 rounded-full px-2 py-0.5 font-medium">
               Iens
+            </span>
+            <span className="text-xs bg-epicPurple/10 border border-epicPurple/30 text-epicPurple rounded-full px-2 py-0.5 font-bold">
+              TikTok
             </span>
             {sources.blogMentions > 0 && (
               <span className="text-xs bg-epicPurple/10 border border-epicPurple/30 text-epicPurple rounded-full px-2 py-0.5 font-bold">
