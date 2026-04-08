@@ -130,10 +130,10 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
           </div>
         </>
       ) : (
-        <div className="text-center py-16">
-          <p className="text-4xl mb-3">🥟</p>
-          <p className="font-black text-inkBlack/50">Geen restaurants gevonden</p>
-          <p className="text-sm text-inkBlack/30 mt-1">Probeer een andere zoekopdracht</p>
+        <div className="text-center py-16 flex flex-col items-center gap-3">
+          <Mascot type="sleepy" size={80} alt="Geen resultaten" />
+          <p className="font-black text-inkBlack/50">Geen dumplings gevonden…</p>
+          <p className="text-sm text-inkBlack/30">dat voelt niet goed 😔</p>
         </div>
       )}
     </div>

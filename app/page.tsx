@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getAllRestaurants } from '@/lib/db'
 import RestaurantFeed from '@/components/RestaurantFeed'
+import Mascot from '@/components/Mascot'
 
 export const revalidate = 3600
 
@@ -13,15 +14,7 @@ export default async function Home() {
       <header className="sticky top-0 z-50 bg-cream border-b-[3px] border-inkBlack">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            {/* Logo with steam */}
-            <div className="relative">
-              <div className="absolute -top-5 left-0 right-0 flex justify-around pointer-events-none">
-                <div className="steam-line w-0.5 h-4 bg-inkBlack/30 rounded-full" />
-                <div className="steam-line w-0.5 h-5 bg-inkBlack/30 rounded-full" />
-                <div className="steam-line w-0.5 h-3 bg-inkBlack/30 rounded-full" />
-              </div>
-              <span className="text-2xl">🥟</span>
-            </div>
+            <Mascot type="happy" size={32} className="shrink-0" alt="Gao de dumpling mascot" />
             <div>
               <h1 className="text-xl font-black leading-none tracking-tight">
                 <span className="text-epicRed">Epic</span>
@@ -29,7 +22,7 @@ export default async function Home() {
                 <span className="text-epicGold">Sum</span>
               </h1>
               <p className="text-[10px] text-inkBlack/50 font-medium leading-none mt-0.5 hidden sm:block">
-                Jouw realtime dumpling radar 🥟
+                Niet de populairste dim sum. De beste dumplings.
               </p>
             </div>
           </div>

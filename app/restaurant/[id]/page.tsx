@@ -5,6 +5,7 @@ import StatusBadge from '@/components/StatusBadge'
 import ScoreBar from '@/components/ScoreBar'
 import HaGaoIndex from '@/components/HaGaoIndex'
 import ShareButton from '@/components/ShareButton'
+import Mascot from '@/components/Mascot'
 
 export const revalidate = 3600
 
@@ -40,6 +41,10 @@ export default async function RestaurantPage({ params }: PageProps) {
     day: 'numeric', month: 'long', year: 'numeric',
   })
 
+  const mascotType = restaurant.epicScore >= 80 ? 'happy'
+    : restaurant.confidence !== undefined && restaurant.confidence < 0.6 ? 'judge'
+    : 'happy'
+
   // Similar restaurants: up to 2 others from the same city
   const similar = allRestaurants
     .filter((r) => r.city === city && r.id !== params.id)
@@ -69,6 +74,24 @@ export default async function RestaurantPage({ params }: PageProps) {
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
         {/* Hero card */}
         <div className="rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white overflow-hidden">
+          {/* Gao verdict header */}
+          <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-inkBlack/10">
+            <div>
+              <p className="text-[10px] text-inkBlack/40 uppercase tracking-widest font-bold mb-1">
+                EpicDimSum oordeel
+              </p>
+              <p className="text-sm font-black text-inkBlack/70 italic leading-snug max-w-[200px]">
+                {restaurant.rankReason ?? 'Analyse gebaseerd op dumpling intelligence'}
+              </p>
+            </div>
+            <Mascot
+              type={mascotType}
+              size={72}
+              className="shrink-0 -mt-2"
+              alt="Gao beoordeelt dit restaurant"
+            />
+          </div>
+
           <div className="p-5">
             <div className="flex items-start justify-between gap-3 mb-3">
               <div>
