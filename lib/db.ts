@@ -54,25 +54,40 @@ export async function getAllRestaurants(): Promise<Restaurant[]> {
 
 // Public feed — filtered for quality (used by home page)
 export function isTrustedForPublicFeed(r: Restaurant): boolean {
-  // Hard gates — must pass ALL
-  if (r.verified === false) return false
-  if (r.epicScore < 20) return false
   if ((r.status as string) === 'pending') return false
+  if (r.epicScore < 20) return false
 
-  // Dumpling evidence gate — must pass AT LEAST ONE
-  const hasDumplingMentions = (r.dumplingMentionScore ?? 0) >= 15
-  const hasHaGaoSignal = (r.haGaoIndex ?? 0) >= 2.0
-  const hasDumplingInMustOrder = (r.mustOrder ?? '')
-    .toLowerCase()
-    .match(/ha gao|siu mai|dumpling|har gow|cheung fun|gestoomd|garnaal/)
+  // Hard rule: if system explicitly detected this is NOT dim sum, exclude
+  const summary = (r.summary ?? '').toLowerCase()
+  const mustOrder = (r.mustOrder ?? '').toLowerCase()
+  const notDimSum =
+    summary.includes('geen dim sum') ||
+    summary.includes('niet geschikt') ||
+    summary.includes('pastarestaurant') ||
+    summary.includes('italiaans') ||
+    mustOrder.includes('niet van toepassing') ||
+    mustOrder.includes('geen dumplings')
 
-  if (!hasDumplingMentions && !hasHaGaoSignal && !hasDumplingInMustOrder) {
-    return false
-  }
+  if (notDimSum) return false
+
+  // Hard rule: zero Ha Gao AND zero dumpling mentions = not dim sum
+  const haGao = r.haGaoIndex ?? 0
+  const mentions = r.dumplingMentionScore ?? 0
+  if (haGao === 0 && mentions === 0) return false
 
   // Soft quality floor
-  const badMustOrder = (r.mustOrder ?? '').toLowerCase()
-  if (badMustOrder.includes('bepaald') || badMustOrder.includes('onvoldoende')) return false
+  if (mustOrder.includes('bepaald') || mustOrder.includes('onvoldoende')) return false
+  if (!r.mustOrder || r.mustOrder.trim() === '') return false
+
+  // Must have at least one dumpling signal
+  const hasDumplingInMustOrder = mustOrder
+    .match(/ha gao|siu mai|dumpling|har gow|cheung fun|gestoomd|garnaal|dim sum/)
+  const hasDumplingInSummary = summary
+    .match(/ha gao|siu mai|dumpling|dim sum|gestoomd/)
+
+  if (haGao < 1.5 && mentions < 10 && !hasDumplingInMustOrder && !hasDumplingInSummary) {
+    return false
+  }
 
   return true
 }

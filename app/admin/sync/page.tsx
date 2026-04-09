@@ -75,6 +75,13 @@ export default function AdminSyncPage() {
     error: string | null
   }>({ loading: false, result: null, error: null })
 
+  // Cleanup non-dim-sum state
+  const [cleanupNonDimSumState, setCleanupNonDimSumState] = useState<{
+    loading: boolean
+    result: { removed: string[]; count: number } | null
+    error: string | null
+  }>({ loading: false, result: null, error: null })
+
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault()
     if (secret.trim()) setAuthed(true)
@@ -247,6 +254,25 @@ export default function AdminSyncPage() {
         result: null,
         error: err instanceof Error ? err.message : 'Onbekende fout',
       })
+    }
+  }
+
+  const handleCleanupNonDimSum = async () => {
+    if (!window.confirm('Verwijder alle non-dim-sum restaurants? Dit kan niet ongedaan worden gemaakt.')) return
+    setCleanupNonDimSumState({ loading: true, result: null, error: null })
+    try {
+      const res = await fetch('/api/admin/cleanup?mode=non-dim-sum', {
+        method: 'POST',
+        headers: { 'x-sync-secret': secret },
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(humanizeError(err.error || `HTTP ${res.status}`))
+      }
+      const data = await res.json()
+      setCleanupNonDimSumState({ loading: false, result: data, error: null })
+    } catch (err) {
+      setCleanupNonDimSumState({ loading: false, result: null, error: err instanceof Error ? err.message : 'Fout' })
     }
   }
 
@@ -465,6 +491,29 @@ export default function AdminSyncPage() {
               {cleanupSeedsState.result.count === 0
                 ? '✓ Geen seed data te verwijderen (nog geen echte versies)'
                 : `🧹 ${cleanupSeedsState.result.count} seeds verwijderd: ${cleanupSeedsState.result.removed.join(' · ')}`}
+            </p>
+          )}
+
+          {/* Cleanup non-dim-sum */}
+          <button
+            onClick={handleCleanupNonDimSum}
+            disabled={cleanupNonDimSumState.loading}
+            className={`px-4 py-2 rounded-full border-2 border-epicRed font-black text-sm shadow-brutal-sm transition-all
+              ${cleanupNonDimSumState.loading
+                ? 'bg-epicRed/10 text-epicRed/40 cursor-not-allowed shadow-none'
+                : 'bg-epicRed/10 text-epicRed hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none'
+              }`}
+          >
+            {cleanupNonDimSumState.loading ? '⏳ Bezig...' : '🗑️ Verwijder non-dim-sum'}
+          </button>
+          {cleanupNonDimSumState.error && (
+            <p className="w-full text-xs text-epicRed font-medium">Non-dim-sum cleanup fout: {cleanupNonDimSumState.error}</p>
+          )}
+          {cleanupNonDimSumState.result && (
+            <p className="w-full text-xs text-epicGreen font-bold">
+              {cleanupNonDimSumState.result.count === 0
+                ? '✓ Geen non-dim-sum restaurants gevonden'
+                : `🗑️ ${cleanupNonDimSumState.result.count} non-dim-sum restaurants verwijderd: ${cleanupNonDimSumState.result.removed.join(' · ')}`}
             </p>
           )}
 
