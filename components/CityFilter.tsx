@@ -11,7 +11,10 @@ interface CityFilterProps {
 
 export default function CityFilter({ selected, onChange }: CityFilterProps) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div
+      className="flex gap-2 overflow-x-auto -mx-4 px-4"
+      style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+    >
       {cities.map((city) => {
         const isActive = selected === city
         return (
@@ -19,11 +22,11 @@ export default function CityFilter({ selected, onChange }: CityFilterProps) {
             key={city}
             onClick={() => onChange(city)}
             className={`
-              px-4 py-1.5 rounded-full border-2 border-inkBlack font-black text-sm
-              shadow-brutal-sm transition-all active:translate-x-[3px] active:translate-y-[3px] active:shadow-none
+              shrink-0 px-4 py-1.5 rounded-full border-2 border-inkBlack font-black text-sm
+              shadow-brutal-sm transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
               ${isActive
                 ? 'bg-inkBlack text-cream'
-                : 'bg-cream text-inkBlack hover:bg-epicRed/10'
+                : 'bg-cream text-inkBlack'
               }
             `}
           >
@@ -31,6 +34,8 @@ export default function CityFilter({ selected, onChange }: CityFilterProps) {
           </button>
         )
       })}
+      {/* trailing space so last pill isn't flush to edge */}
+      <span className="shrink-0 w-2" aria-hidden="true" />
     </div>
   )
 }
