@@ -7,8 +7,6 @@ import { isTrustedForPublicFeed } from '@/lib/db'
 import restaurantsData from '@/data/restaurants.json'
 import Mascot from '@/components/Mascot'
 
-const restaurants = restaurantsData as Restaurant[]
-
 interface SyncState {
   loading: boolean
   result: Restaurant | null
@@ -24,6 +22,7 @@ export default function AdminSyncPage() {
   const [secret, setSecret] = useState('')
   const [authed, setAuthed] = useState(false)
   const [syncStates, setSyncStates] = useState<Record<string, SyncState>>({})
+  const [adminRestaurants, setAdminRestaurants] = useState<Restaurant[]>(restaurantsData as Restaurant[])
 
   // Sync-all state
   const [syncAllProgress, setSyncAllProgress] = useState<{ current: number; total: number } | null>(null)
@@ -37,6 +36,9 @@ export default function AdminSyncPage() {
   })
   const [addState, setAddState] = useState<{ loading: boolean; result: Restaurant | null; error: string | null }>({
     loading: false, result: null, error: null,
+  })
+  const [lookupState, setLookupState] = useState<{ loading: boolean; error: string | null }>({
+    loading: false, error: null,
   })
 
   // Discovery state
@@ -61,6 +63,13 @@ export default function AdminSyncPage() {
 
   // Cleanup state
   const [cleanupState, setCleanupState] = useState<{
+    loading: boolean
+    result: { removed: string[]; count: number } | null
+    error: string | null
+  }>({ loading: false, result: null, error: null })
+
+  // Cleanup seeds state
+  const [cleanupSeedsState, setCleanupSeedsState] = useState<{
     loading: boolean
     result: { removed: string[]; count: number } | null
     error: string | null
@@ -107,19 +116,63 @@ export default function AdminSyncPage() {
   }
 
   const handleSyncAll = async () => {
-    setSyncAllProgress({ current: 0, total: restaurants.length })
-    for (let i = 0; i < restaurants.length; i++) {
-      setSyncAllProgress({ current: i + 1, total: restaurants.length })
-      await handleSync(restaurants[i].id)
-      if (i < restaurants.length - 1) {
+    setSyncAllProgress({ current: 0, total: adminRestaurants.length })
+    for (let i = 0; i < adminRestaurants.length; i++) {
+      setSyncAllProgress({ current: i + 1, total: adminRestaurants.length })
+      await handleSync(adminRestaurants[i].id)
+      if (i < adminRestaurants.length - 1) {
         await new Promise((r) => setTimeout(r, 1000))
       }
     }
     setSyncAllProgress(null)
   }
 
+  const handleDelete = async (restaurantId: string) => {
+    if (!window.confirm('Weet je het zeker? Dit verwijdert het restaurant permanent.')) return
+    try {
+      const res = await fetch(`/api/admin/delete/${restaurantId}`, {
+        method: 'DELETE',
+        headers: { 'x-sync-secret': secret },
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(humanizeError(err.error || `HTTP ${res.status}`))
+      }
+      setAdminRestaurants((prev) => prev.filter((r) => r.id !== restaurantId))
+      setSyncStates((prev) => {
+        const next = { ...prev }
+        delete next[restaurantId]
+        return next
+      })
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Verwijderen mislukt')
+    }
+  }
+
+  const handleLookupByName = async () => {
+    if (!addForm.name || !addForm.city) return
+    setLookupState({ loading: true, error: null })
+    try {
+      const res = await fetch('/api/admin/lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-sync-secret': secret },
+        body: JSON.stringify({ name: addForm.name, city: addForm.city }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(humanizeError(data.error || `HTTP ${res.status}`))
+      setAddForm((f) => ({ ...f, placeId: data.placeId, name: data.name }))
+      setLookupState({ loading: false, error: null })
+    } catch (err) {
+      setLookupState({ loading: false, error: err instanceof Error ? err.message : 'Lookup mislukt' })
+    }
+  }
+
   const handleAddRestaurant = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!addForm.placeId) {
+      setAddState({ loading: false, result: null, error: 'Zoek eerst een Place ID op via de knop' })
+      return
+    }
     setAddState({ loading: true, result: null, error: null })
 
     try {
@@ -194,6 +247,24 @@ export default function AdminSyncPage() {
         result: null,
         error: err instanceof Error ? err.message : 'Onbekende fout',
       })
+    }
+  }
+
+  const handleCleanupSeeds = async () => {
+    setCleanupSeedsState({ loading: true, result: null, error: null })
+    try {
+      const res = await fetch('/api/admin/cleanup-seeds', {
+        method: 'POST',
+        headers: { 'x-sync-secret': secret },
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(humanizeError(err.error || `HTTP ${res.status}`))
+      }
+      const data = await res.json()
+      setCleanupSeedsState({ loading: false, result: data, error: null })
+    } catch (err) {
+      setCleanupSeedsState({ loading: false, result: null, error: err instanceof Error ? err.message : 'Fout' })
     }
   }
 
@@ -374,6 +445,29 @@ export default function AdminSyncPage() {
             </p>
           )}
 
+          {/* Cleanup seeds */}
+          <button
+            onClick={handleCleanupSeeds}
+            disabled={cleanupSeedsState.loading}
+            className={`px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
+              ${cleanupSeedsState.loading
+                ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
+                : 'bg-inkBlack/80 text-cream hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none'
+              }`}
+          >
+            {cleanupSeedsState.loading ? '⏳ Bezig...' : '🧹 Verwijder seed data'}
+          </button>
+          {cleanupSeedsState.error && (
+            <p className="w-full text-xs text-epicRed font-medium">Seed cleanup fout: {cleanupSeedsState.error}</p>
+          )}
+          {cleanupSeedsState.result && (
+            <p className="w-full text-xs text-epicGreen font-bold">
+              {cleanupSeedsState.result.count === 0
+                ? '✓ Geen seed data te verwijderen (nog geen echte versies)'
+                : `🧹 ${cleanupSeedsState.result.count} seeds verwijderd: ${cleanupSeedsState.result.removed.join(' · ')}`}
+            </p>
+          )}
+
           {/* Per-city scan */}
           <div className="w-full border-t border-inkBlack/10 pt-3 flex flex-wrap gap-2">
             <p className="text-xs font-bold text-inkBlack/50 w-full uppercase tracking-wide">Scan per stad:</p>
@@ -406,19 +500,6 @@ export default function AdminSyncPage() {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label className="text-xs font-black uppercase tracking-wide text-inkBlack/50 mb-1 block">
-                  Google Place ID
-                </label>
-                <input
-                  type="text"
-                  value={addForm.placeId}
-                  onChange={(e) => setAddForm((f) => ({ ...f, placeId: e.target.value }))}
-                  placeholder="ChIJ..."
-                  required
-                  className="w-full px-3 py-2 rounded-xl border-[2px] border-inkBlack text-sm font-medium bg-cream focus:outline-none shadow-brutal-sm"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-black uppercase tracking-wide text-inkBlack/50 mb-1 block">
                   Restaurant naam
                 </label>
                 <input
@@ -429,6 +510,34 @@ export default function AdminSyncPage() {
                   required
                   className="w-full px-3 py-2 rounded-xl border-[2px] border-inkBlack text-sm font-medium bg-cream focus:outline-none shadow-brutal-sm"
                 />
+              </div>
+              <div>
+                <label className="text-xs font-black uppercase tracking-wide text-inkBlack/50 mb-1 block">
+                  Google Place ID <span className="text-inkBlack/30 normal-case font-medium">(optioneel)</span>
+                </label>
+                <input
+                  type="text"
+                  value={addForm.placeId}
+                  onChange={(e) => setAddForm((f) => ({ ...f, placeId: e.target.value }))}
+                  placeholder="ChIJ... of gebruik opzoeken ↓"
+                  className="w-full px-3 py-2 rounded-xl border-[2px] border-inkBlack text-sm font-medium bg-cream focus:outline-none shadow-brutal-sm"
+                />
+                {!addForm.placeId && addForm.name && (
+                  <button
+                    type="button"
+                    onClick={handleLookupByName}
+                    disabled={lookupState.loading}
+                    className="mt-1.5 text-xs font-black px-3 py-1.5 rounded-full border-2 border-epicGold text-epicGold hover:bg-epicGold/10 disabled:opacity-50 transition-colors"
+                  >
+                    {lookupState.loading ? '⏳ Zoeken...' : '🔍 Zoek Place ID op naam'}
+                  </button>
+                )}
+                {lookupState.error && (
+                  <p className="text-[10px] text-epicRed mt-1">{lookupState.error}</p>
+                )}
+                {addForm.placeId && (
+                  <p className="text-[10px] text-epicGreen mt-1 font-medium">✓ Place ID gevonden</p>
+                )}
               </div>
               <div>
                 <label className="text-xs font-black uppercase tracking-wide text-inkBlack/50 mb-1 block">
@@ -514,7 +623,7 @@ export default function AdminSyncPage() {
           </div>
 
           <div className="space-y-4">
-            {restaurants
+            {adminRestaurants
               .filter((r) => {
                 const synced = syncStates[r.id]?.result
                 const isVerified = synced ? synced.verified === true : r.epicScore > 20 && r.haGaoIndex > 0
@@ -569,17 +678,25 @@ export default function AdminSyncPage() {
                       <p className="text-xs text-inkBlack/30 mt-0.5">Laatste sync: {lastUpdated}</p>
                     </div>
                     <div className="flex flex-col gap-1.5 shrink-0">
-                      <button
-                        onClick={() => handleSync(restaurant.id)}
-                        disabled={state?.loading}
-                        className={`px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
-                          ${state?.loading
-                            ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
-                            : 'bg-epicRed text-cream hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none'
-                          }`}
-                      >
-                        {state?.loading ? '⏳ Bezig...' : '🔄 Sync'}
-                      </button>
+                      <div className="flex gap-1.5">
+                        <button
+                          onClick={() => handleSync(restaurant.id)}
+                          disabled={state?.loading}
+                          className={`px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
+                            ${state?.loading
+                              ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
+                              : 'bg-epicRed text-cream hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none'
+                            }`}
+                        >
+                          {state?.loading ? '⏳' : '🔄 Sync'}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(restaurant.id)}
+                          className="text-xs font-black px-2 py-1 rounded-lg border-2 border-red-300 text-red-400 hover:bg-red-50 transition-colors"
+                        >
+                          ✕
+                        </button>
+                      </div>
                       {state?.result && state.result.verified !== true && (
                         <button
                           onClick={async () => {

@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { getPublicRestaurants } from '@/lib/db'
 import RestaurantFeed from '@/components/RestaurantFeed'
@@ -22,7 +23,7 @@ export default async function Home() {
                 <span className="text-epicGold">Sum</span>
               </h1>
               <p className="text-[10px] text-inkBlack/50 font-medium leading-none mt-0.5 hidden sm:block">
-                Top 25 per stad · Alleen wat ertoe doet
+                Top 15 per stad · Alleen wat ertoe doet
               </p>
             </div>
           </div>
@@ -36,7 +37,9 @@ export default async function Home() {
       </header>
 
       <div className="max-w-2xl mx-auto px-4 py-6">
-        <RestaurantFeed restaurants={restaurants} />
+        <Suspense fallback={null}>
+          <RestaurantFeed restaurants={restaurants} />
+        </Suspense>
       </div>
 
       {/* Footer */}

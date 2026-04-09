@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Restaurant, City } from '@/lib/types'
 import RestaurantCard from '@/components/RestaurantCard'
 import CityFilter from '@/components/CityFilter'
@@ -10,10 +11,23 @@ interface RestaurantFeedProps {
   restaurants: Restaurant[]
 }
 
-const MAX_PER_CITY = 25
+const MAX_PER_CITY = 15
 
 export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
-  const [selectedCity, setSelectedCity] = useState<City | 'Alle'>('Alle')
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const selectedCity = (searchParams.get('city') as City | 'Alle') ?? 'Alle'
+
+  const setSelectedCity = (city: City | 'Alle') => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (city === 'Alle') {
+      params.delete('city')
+    } else {
+      params.set('city', city)
+    }
+    router.push(`/?${params.toString()}`, { scroll: false })
+  }
+
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState<'epic' | 'hagao'>('epic')
   const [suggestUrl, setSuggestUrl] = useState('')
@@ -78,8 +92,8 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
 
   const cityLabel = selectedCity === 'Alle' ? 'Nederland' : selectedCity
   const countText =
-    filtered.length >= 25
-      ? `Top 25 dim sum spots in ${cityLabel}`
+    filtered.length >= 15
+      ? `Top 15 dim sum spots in ${cityLabel}`
       : `${filtered.length} geselecteerde spots in ${cityLabel}`
 
   return (
@@ -105,7 +119,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
 
       {/* Product promise */}
       <p className="text-xs text-inkBlack/40 font-medium text-center -mt-1">
-        Curated top 25 — alleen geverifieerde dim sum spots
+        Curated top 15 — alleen geverifieerde dim sum spots
       </p>
 
       {/* Sort control */}
@@ -132,14 +146,20 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
       {/* Permanent explainer */}
       <div className="grid grid-cols-2 gap-2">
         <div className="bg-epicRed/8 border border-epicRed/20 rounded-xl px-3 py-2">
-          <p className="text-[10px] font-black text-epicRed uppercase tracking-wide">EpicScore™</p>
-          <p className="text-[11px] text-inkBlack/60 mt-0.5 leading-snug">
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <span className="text-base">🔥</span>
+            <p className="text-[10px] font-black text-epicRed uppercase tracking-wide">EpicScore™</p>
+          </div>
+          <p className="text-[11px] text-inkBlack/60 leading-snug">
             Gebaseerd op dumplingkwaliteit, niet populariteit
           </p>
         </div>
         <div className="bg-epicGreen/8 border border-epicGreen/20 rounded-xl px-3 py-2">
-          <p className="text-[10px] font-black text-epicGreen uppercase tracking-wide">🥟 Ha Gao Index</p>
-          <p className="text-[11px] text-inkBlack/60 mt-0.5 leading-snug">
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <Mascot type="judge" size={18} className="shrink-0" />
+            <p className="text-[10px] font-black text-epicGreen uppercase tracking-wide">Ha Gao Index</p>
+          </div>
+          <p className="text-[11px] text-inkBlack/60 leading-snug">
             De ultieme dumplingtest — hier bewijst een keuken zich
           </p>
         </div>
