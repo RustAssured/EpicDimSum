@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Restaurant, City, PriceRange } from '@/lib/types'
+import { isTrustedForPublicFeed } from '@/lib/db'
 import restaurantsData from '@/data/restaurants.json'
 import Mascot from '@/components/Mascot'
 
@@ -553,6 +554,18 @@ export default function AdminSyncPage() {
                         )}
                       </div>
                       <p className="text-xs text-inkBlack/50">{restaurant.city} &middot; EpicScore: {state?.result?.epicScore ?? restaurant.epicScore}</p>
+                      {(() => {
+                        const r = state?.result ?? restaurant
+                        if (isTrustedForPublicFeed(r)) return null
+                        const gates: string[] = []
+                        if ((r.dumplingMentionScore ?? 0) < 15) gates.push('geen dumpling mentions')
+                        if ((r.haGaoIndex ?? 0) < 2.0) gates.push('Ha Gao te laag')
+                        if (r.epicScore < 20) gates.push('score te laag')
+                        if (gates.length === 0) return null
+                        return (
+                          <p className="text-[10px] text-inkBlack/30 mt-0.5">{gates.join(' · ')}</p>
+                        )
+                      })()}
                       <p className="text-xs text-inkBlack/30 mt-0.5">Laatste sync: {lastUpdated}</p>
                     </div>
                     <div className="flex flex-col gap-1.5 shrink-0">

@@ -22,7 +22,7 @@ export default async function Home() {
                 <span className="text-epicGold">Sum</span>
               </h1>
               <p className="text-[10px] text-inkBlack/50 font-medium leading-none mt-0.5 hidden sm:block">
-                Niet de populairste dim sum. De beste dumplings.
+                Top 25 per stad · Alleen wat ertoe doet
               </p>
             </div>
           </div>

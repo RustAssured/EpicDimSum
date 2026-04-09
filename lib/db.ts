@@ -53,15 +53,33 @@ export async function getAllRestaurants(): Promise<Restaurant[]> {
 }
 
 // Public feed — filtered for quality (used by home page)
+export function isTrustedForPublicFeed(r: Restaurant): boolean {
+  // Hard gates — must pass ALL
+  if (r.verified === false) return false
+  if (r.epicScore < 20) return false
+  if ((r.status as string) === 'pending') return false
+
+  // Dumpling evidence gate — must pass AT LEAST ONE
+  const hasDumplingMentions = (r.dumplingMentionScore ?? 0) >= 15
+  const hasHaGaoSignal = (r.haGaoIndex ?? 0) >= 2.0
+  const hasDumplingInMustOrder = (r.mustOrder ?? '')
+    .toLowerCase()
+    .match(/ha gao|siu mai|dumpling|har gow|cheung fun|gestoomd|garnaal/)
+
+  if (!hasDumplingMentions && !hasHaGaoSignal && !hasDumplingInMustOrder) {
+    return false
+  }
+
+  // Soft quality floor
+  const badMustOrder = (r.mustOrder ?? '').toLowerCase()
+  if (badMustOrder.includes('bepaald') || badMustOrder.includes('onvoldoende')) return false
+
+  return true
+}
+
 export async function getPublicRestaurants(): Promise<Restaurant[]> {
   const all = await getAllRestaurants()
-  return all.filter((r) => {
-    if (r.verified === false) return false
-    if (r.epicScore < 15) return false
-    const mustOrder = r.mustOrder?.toLowerCase() ?? ''
-    if (mustOrder.includes('bepaald') || mustOrder.includes('onvoldoende')) return false
-    return true
-  })
+  return all.filter(isTrustedForPublicFeed)
 }
 
 // Read single restaurant

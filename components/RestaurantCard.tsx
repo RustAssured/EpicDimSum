@@ -62,7 +62,7 @@ export default function RestaurantCard({ restaurant, rank }: RestaurantCardProps
         </div>
 
         {/* EpicScore + Ha Gao — side by side */}
-        <div className="px-4 pb-3 grid grid-cols-[auto_1fr] gap-3 mt-2">
+        <div className="px-4 pb-2 grid grid-cols-[auto_1fr] gap-3 mt-2">
 
           {/* Left: EpicScore — compact */}
           <div className="flex flex-col justify-center items-center bg-epicRed/10 border-2 border-epicRed/30 rounded-xl px-3 py-3 min-w-[80px]">
@@ -110,8 +110,8 @@ export default function RestaurantCard({ restaurant, rank }: RestaurantCardProps
 
         </div>
 
-        {/* Score bars — fixed data mapping */}
-        <div className="px-4 pb-1 space-y-1.5">
+        {/* Score bars */}
+        <div className="px-4 space-y-1.5">
           <ScoreBar label="Reputatie" score={scores.google} color="#D85A30" />
           <ScoreBar label="Buzz" score={scores.buzz} color="#534AB7" />
           <ScoreBar label="Vibe" score={scores.vibe} color="#1D9E75" />
@@ -124,15 +124,8 @@ export default function RestaurantCard({ restaurant, rank }: RestaurantCardProps
           </p>
         </div>
 
-        {/* rankReason — signature insight */}
-        {rankReason && (
-          <div className="mx-4 mb-3 pl-3 border-l-[3px] border-inkBlack/30">
-            <p className="text-xs text-inkBlack/60 italic leading-snug">— {rankReason}</p>
-          </div>
-        )}
-
         {/* Must order */}
-        <div className="mx-4 mb-3 px-3 py-2 rounded-xl border-[2px] border-dashed border-epicGold/70 bg-epicGold/5">
+        <div className="mx-4 mb-2 px-3 py-2 rounded-xl border-[2px] border-dashed border-epicGold/70 bg-epicGold/5">
           <div className="flex items-center gap-1.5 mb-0.5">
             <Mascot type="mustorder" size={28} alt="Must order" />
             <p className="text-xs font-bold text-epicGold uppercase tracking-wide">Must order</p>
@@ -141,7 +134,7 @@ export default function RestaurantCard({ restaurant, rank }: RestaurantCardProps
         </div>
 
         {/* Source pills */}
-        <div className="px-4 pb-3 flex items-center gap-1.5 flex-wrap">
+        <div className="px-4 pb-2 flex items-center gap-1.5 flex-wrap">
           <span className="text-xs bg-cream border border-inkBlack/20 rounded-full px-2 py-0.5 font-medium">
             ⭐ {sources.googleRating.toFixed(1)}
           </span>
@@ -161,6 +154,15 @@ export default function RestaurantCard({ restaurant, rank }: RestaurantCardProps
               Score ouder dan 30 dagen
             </span>
           )}
+          <a
+            href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(restaurant.address)}&destination_place_id=${restaurant.googlePlaceId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-[10px] font-black px-2.5 py-1 rounded-full border-2 border-inkBlack/30 text-inkBlack/50 hover:border-epicGreen hover:text-epicGreen transition-colors whitespace-nowrap"
+          >
+            Route →
+          </a>
         </div>
 
         {/* Footer bar */}

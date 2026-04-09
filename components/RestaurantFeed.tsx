@@ -4,24 +4,18 @@ import { useState, useMemo } from 'react'
 import { Restaurant, City } from '@/lib/types'
 import RestaurantCard from '@/components/RestaurantCard'
 import CityFilter from '@/components/CityFilter'
-import HiddenGemAlert from '@/components/HiddenGemAlert'
 import Mascot from '@/components/Mascot'
 
 interface RestaurantFeedProps {
   restaurants: Restaurant[]
 }
 
-function findHiddenGem(list: Restaurant[]): Restaurant {
-  return list.reduce(
-    (best, r) => (r.sources.blogMentions > best.sources.blogMentions ? r : best),
-    list[0]
-  )
-}
+const MAX_PER_CITY = 25
 
 export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
   const [selectedCity, setSelectedCity] = useState<City | 'Alle'>('Alle')
   const [searchQuery, setSearchQuery] = useState('')
-  const [bannerDismissed, setBannerDismissed] = useState(false)
+  const [sortBy, setSortBy] = useState<'epic' | 'hagao'>('epic')
   const [suggestUrl, setSuggestUrl] = useState('')
   const [suggestState, setSuggestState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [suggestMessage, setSuggestMessage] = useState('')
@@ -57,14 +51,36 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
         (r) =>
           r.name.toLowerCase().includes(q) ||
           r.city.toLowerCase().includes(q) ||
-          r.cuisine.toLowerCase().includes(q) ||
-          r.mustOrder.toLowerCase().includes(q)
+          (r.mustOrder?.toLowerCase().includes(q) ?? false)
       )
     }
-    return [...list].sort((a, b) => b.epicScore - a.epicScore)
-  }, [restaurants, selectedCity, searchQuery])
 
-  const hiddenGem = useMemo(() => (restaurants.length > 0 ? findHiddenGem(restaurants) : null), [restaurants])
+    const sorted = [...list].sort((a, b) =>
+      sortBy === 'hagao'
+        ? b.haGaoIndex - a.haGaoIndex
+        : b.epicScore - a.epicScore
+    )
+
+    if (selectedCity !== 'Alle') {
+      return sorted.slice(0, MAX_PER_CITY)
+    }
+
+    // For "Alle": top 25 per city, then re-sort globally
+    const byCityMap: Record<string, Restaurant[]> = {}
+    for (const r of sorted) {
+      if (!byCityMap[r.city]) byCityMap[r.city] = []
+      if (byCityMap[r.city].length < MAX_PER_CITY) byCityMap[r.city].push(r)
+    }
+    return Object.values(byCityMap).flat().sort((a, b) =>
+      sortBy === 'hagao' ? b.haGaoIndex - a.haGaoIndex : b.epicScore - a.epicScore
+    )
+  }, [restaurants, selectedCity, searchQuery, sortBy])
+
+  const cityLabel = selectedCity === 'Alle' ? 'Nederland' : selectedCity
+  const countText =
+    filtered.length >= 25
+      ? `Top 25 dim sum spots in ${cityLabel}`
+      : `${filtered.length} geselecteerde spots in ${cityLabel}`
 
   return (
     <div className="space-y-5">
@@ -87,48 +103,60 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
       {/* City filter */}
       <CityFilter selected={selectedCity} onChange={setSelectedCity} />
 
-      {/* EpicScore + Ha Gao explanation banner */}
-      {!bannerDismissed && (
-        <div className="relative">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="bg-epicRed/10 border-2 border-epicRed/30 rounded-2xl px-4 py-3">
-              <p className="font-black text-sm text-epicRed">EpicScore™</p>
-              <p className="text-xs text-inkBlack/60 mt-0.5 leading-snug">
-                Gebaseerd op dumplingkwaliteit, niet populariteit — Google toont sterren, wij tonen inhoud
-              </p>
-            </div>
-            <div className="bg-epicGreen/10 border-2 border-epicGreen/30 rounded-2xl px-4 py-3">
-              <p className="font-black text-sm text-epicGreen">Ha Gao Index 🥟</p>
-              <p className="text-xs text-inkBlack/60 mt-0.5 leading-snug">
-                Onze signature test — hoe goed zijn de Ha Gao én Siu Mai? Dít is waar een keuken zich bewijst
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => setBannerDismissed(true)}
-            className="absolute top-2 right-2 w-5 h-5 rounded-full bg-inkBlack/10 hover:bg-inkBlack/20 text-inkBlack/40 hover:text-inkBlack/70 text-xs font-black flex items-center justify-center transition-colors"
-            aria-label="Sluiten"
-          >
-            ×
-          </button>
-        </div>
-      )}
+      {/* Product promise */}
+      <p className="text-xs text-inkBlack/40 font-medium text-center -mt-1">
+        Curated top 25 — alleen geverifieerde dim sum spots
+      </p>
 
-      {/* Hidden gem alert */}
-      {hiddenGem && <HiddenGemAlert restaurant={hiddenGem} />}
+      {/* Sort control */}
+      <div className="flex items-center gap-2">
+        <span className="text-[10px] text-inkBlack/40 font-bold uppercase tracking-wide">Sorteren:</span>
+        {[
+          { value: 'epic', label: 'Beste overall' },
+          { value: 'hagao', label: '🥟 Ha Gao' },
+        ].map((opt) => (
+          <button
+            key={opt.value}
+            onClick={() => setSortBy(opt.value as 'epic' | 'hagao')}
+            className={`text-xs font-black px-3 py-1 rounded-full border-2 border-inkBlack transition-all ${
+              sortBy === opt.value
+                ? 'bg-inkBlack text-cream'
+                : 'bg-cream text-inkBlack hover:bg-inkBlack/10'
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Permanent explainer */}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="bg-epicRed/8 border border-epicRed/20 rounded-xl px-3 py-2">
+          <p className="text-[10px] font-black text-epicRed uppercase tracking-wide">EpicScore™</p>
+          <p className="text-[11px] text-inkBlack/60 mt-0.5 leading-snug">
+            Gebaseerd op dumplingkwaliteit, niet populariteit
+          </p>
+        </div>
+        <div className="bg-epicGreen/8 border border-epicGreen/20 rounded-xl px-3 py-2">
+          <p className="text-[10px] font-black text-epicGreen uppercase tracking-wide">🥟 Ha Gao Index</p>
+          <p className="text-[11px] text-inkBlack/60 mt-0.5 leading-snug">
+            De ultieme dumplingtest — hier bewijst een keuken zich
+          </p>
+        </div>
+      </div>
 
       {/* Results count */}
       <div className="flex items-center justify-between">
-        <p className="text-sm font-bold text-inkBlack/50">
-          Top {filtered.length} dim sum spots{selectedCity !== 'Alle' && ` in ${selectedCity}`}
+        <p className="text-sm font-bold text-inkBlack/50">{countText}</p>
+        <p className="text-xs text-inkBlack/30">
+          {sortBy === 'hagao' ? 'Ha Gao Index' : 'EpicScore'}
         </p>
-        <p className="text-xs text-inkBlack/30">gesorteerd op EpicScore</p>
       </div>
 
       {/* Restaurant cards */}
       {filtered.length > 0 ? (
         <>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {filtered.map((restaurant, index) => (
               <RestaurantCard key={restaurant.id} restaurant={restaurant} rank={index + 1} />
             ))}
@@ -151,6 +179,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
               Download sticker ↓
             </a>
           </div>
+
           {/* Suggest a restaurant */}
           <div className="mt-4 p-4 rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white">
             <p className="font-black text-sm mb-1">🥟 Ken jij een goede plek?</p>
