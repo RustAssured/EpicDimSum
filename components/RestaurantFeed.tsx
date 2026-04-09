@@ -6,6 +6,7 @@ import { Restaurant, City } from '@/lib/types'
 import RestaurantCard from '@/components/RestaurantCard'
 import CityFilter from '@/components/CityFilter'
 import Mascot from '@/components/Mascot'
+import WhySheet from '@/components/WhySheet'
 
 interface RestaurantFeedProps {
   restaurants: Restaurant[]
@@ -30,6 +31,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState<'epic' | 'hagao'>('epic')
+  const [showWhySheet, setShowWhySheet] = useState(false)
   const [suggestUrl, setSuggestUrl] = useState('')
   const [suggestState, setSuggestState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [suggestMessage, setSuggestMessage] = useState('')
@@ -91,13 +93,23 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
   }, [restaurants, selectedCity, searchQuery, sortBy])
 
   const cityLabel = selectedCity === 'Alle' ? 'Nederland' : selectedCity
-  const countText =
-    filtered.length >= 15
-      ? `Top 15 dim sum spots in ${cityLabel}`
-      : `${filtered.length} geselecteerde spots in ${cityLabel}`
+  const countText = filtered.length >= MAX_PER_CITY
+    ? `Top 15 dim sum spots in ${cityLabel}`
+    : `${filtered.length} geselecteerde spots in ${cityLabel}`
 
   return (
-    <div className="space-y-5">
+    <>
+    <WhySheet isOpen={showWhySheet} onClose={() => setShowWhySheet(false)} />
+
+    <div className="space-y-4">
+      {/* Fix D: WHY statement */}
+      <div className="text-center pb-1">
+        <p className="text-xs font-black text-inkBlack/60 tracking-wide">
+          Niet de populairste dim sum —{' '}
+          <span className="text-epicRed">de beste dumplings</span>
+        </p>
+      </div>
+
       {/* Search */}
       <div className="relative">
         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-inkBlack/40 pointer-events-none">
@@ -135,7 +147,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
             className={`text-xs font-black px-3 py-1 rounded-full border-2 border-inkBlack transition-all ${
               sortBy === opt.value
                 ? 'bg-inkBlack text-cream'
-                : 'bg-cream text-inkBlack hover:bg-inkBlack/10'
+                : 'bg-cream text-inkBlack active:bg-inkBlack/10'
             }`}
           >
             {opt.label}
@@ -178,7 +190,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
         <>
           <div className="space-y-3">
             {filtered.map((restaurant, index) => (
-              <RestaurantCard key={restaurant.id} restaurant={restaurant} rank={index + 1} />
+              <RestaurantCard key={restaurant.id} restaurant={restaurant} rank={index + 1} currentCity={selectedCity} />
             ))}
           </div>
 
@@ -234,6 +246,21 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
           <p className="text-sm text-inkBlack/30">dat voelt niet goed 😔</p>
         </div>
       )}
+
+      {/* Fix E: bottom padding so last card isn't hidden behind floating button */}
+      <div className="h-20" />
     </div>
+
+    {/* Fix E: floating WHY button */}
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
+      <button
+        onClick={() => setShowWhySheet(true)}
+        className="pointer-events-auto flex items-center gap-2 bg-inkBlack/90 text-cream px-4 py-2.5 rounded-full text-xs font-black border border-inkBlack/20 shadow-lg active:scale-95 transition-transform"
+      >
+        <Mascot type="judge" size={18} className="shrink-0" />
+        Waarom anders dan Google?
+      </button>
+    </div>
+    </>
   )
 }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Restaurant } from '@/lib/types'
+import { Restaurant, City } from '@/lib/types'
 import ScoreBar from './ScoreBar'
 import StatusBadge from './StatusBadge'
 import HaGaoIndex from './HaGaoIndex'
@@ -11,6 +11,7 @@ import Mascot from './Mascot'
 interface RestaurantCardProps {
   restaurant: Restaurant
   rank?: number
+  currentCity?: City | 'Alle'
 }
 
 const priceColor: Record<string, string> = {
@@ -19,20 +20,21 @@ const priceColor: Record<string, string> = {
   '€€€': 'text-epicRed',
 }
 
-// Change 1: dynamic score color scale
-function epicScoreColor(score: number) {
-  if (score >= 75) return { wrap: 'bg-epicGreen border-epicGreen/40', num: 'text-cream', sub: 'text-cream/60' }
-  if (score >= 55) return { wrap: 'bg-epicGold border-epicGold/40', num: 'text-inkBlack', sub: 'text-inkBlack/50' }
-  return { wrap: 'bg-epicRed border-epicRed/40', num: 'text-cream', sub: 'text-cream/60' }
+// Fix F: subtle color palette — tinted bg, colored border and text, not a solid fill
+function epicScoreStyle(score: number) {
+  if (score >= 75) return { border: 'border-epicGreen', text: 'text-epicGreen', bg: 'bg-epicGreen/8' }
+  if (score >= 55) return { border: 'border-epicGold', text: 'text-epicGold', bg: 'bg-epicGold/8' }
+  return { border: 'border-epicRed', text: 'text-epicRed', bg: 'bg-epicRed/8' }
 }
 
-function epicScoreMascot(score: number): 'happy' | 'sleepy' | 'lowconfidence' {
+// Fix G: Gao as score signal
+function epicScoreGao(score: number): 'happy' | 'sleepy' | 'lowconfidence' {
   if (score >= 75) return 'happy'
   if (score >= 55) return 'sleepy'
   return 'lowconfidence'
 }
 
-export default function RestaurantCard({ restaurant, rank }: RestaurantCardProps) {
+export default function RestaurantCard({ restaurant, rank, currentCity }: RestaurantCardProps) {
   const [showScoreDetail, setShowScoreDetail] = useState(false)
 
   const {
@@ -50,12 +52,15 @@ export default function RestaurantCard({ restaurant, rank }: RestaurantCardProps
     sources,
   } = restaurant
 
-  const scoreStyle = epicScoreColor(epicScore)
-  const scoreMascot = epicScoreMascot(epicScore)
+  const style = epicScoreStyle(epicScore)
+  const gaoType = epicScoreGao(epicScore)
+
+  // Fix A: carry city param so back-nav restores city filter
+  const cityParam = currentCity && currentCity !== 'Alle' ? `?city=${encodeURIComponent(currentCity)}` : ''
 
   return (
-    <Link href={`/restaurant/${id}`}>
-      <article className="rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white overflow-hidden active:translate-x-[3px] active:translate-y-[3px] active:shadow-brutal-sm transition-all cursor-pointer group">
+    <Link href={`/restaurant/${id}${cityParam}`}>
+      <article className="rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white overflow-hidden active:translate-x-[3px] active:translate-y-[3px] active:shadow-brutal-sm transition-all cursor-pointer">
 
         {/* Header */}
         <div className="px-4 pt-4 pb-2">
@@ -80,24 +85,23 @@ export default function RestaurantCard({ restaurant, rank }: RestaurantCardProps
           </div>
         </div>
 
-        {/* EpicScore + Ha Gao — side by side */}
+        {/* Fix G: Gao (32px) next to EpicScore badge + Ha Gao — side by side */}
         <div className="px-4 pb-2 grid grid-cols-[auto_1fr] gap-3">
 
-          {/* Left: EpicScore — dynamic color + mascot */}
-          <div className={`flex flex-col justify-center items-center border-2 rounded-xl px-3 py-2.5 min-w-[76px] ${scoreStyle.wrap}`}>
-            <Mascot type={scoreMascot} size={22} alt="" className="mb-0.5" />
-            <p className={`text-[9px] font-black uppercase tracking-wide leading-none ${scoreStyle.sub}`}>
-              Epic{' '}
+          {/* Left: Gao + EpicScore badge */}
+          <div className="flex items-center gap-2">
+            <Mascot type={gaoType} size={32} alt="" />
+            <div className={`flex flex-col items-center border-2 rounded-xl px-3 py-2 min-w-[56px] ${style.bg} ${style.border}`}>
               <button
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowScoreDetail((v) => !v) }}
-                className={`${scoreStyle.sub} font-black underline decoration-dotted`}
+                className={`text-[9px] font-black uppercase tracking-wider ${style.text} opacity-70`}
                 aria-label="Uitleg EpicScore"
               >
-                ⓘ
+                Epic ⓘ
               </button>
-            </p>
-            <p className={`text-3xl font-black leading-none mt-0.5 ${scoreStyle.num}`}>{epicScore}</p>
-            <p className={`text-[9px] font-bold leading-none mt-0.5 ${scoreStyle.sub}`}>/100</p>
+              <span className={`text-3xl font-black leading-none ${style.text}`}>{epicScore}</span>
+              <span className={`text-[9px] font-bold ${style.text} opacity-40`}>/100</span>
+            </div>
           </div>
 
           {/* Right: Ha Gao Index */}
@@ -131,7 +135,7 @@ export default function RestaurantCard({ restaurant, rank }: RestaurantCardProps
           </div>
         </div>
 
-        {/* Change 3: tap-to-explain, max 3 lines */}
+        {/* Tap-to-explain, max 3 lines */}
         {showScoreDetail && (
           <div className="mx-4 mb-2 px-3 py-2 rounded-xl bg-inkBlack/5 border border-inkBlack/10">
             <p className="text-[10px] text-inkBlack/60 leading-snug">
@@ -142,12 +146,12 @@ export default function RestaurantCard({ restaurant, rank }: RestaurantCardProps
           </div>
         )}
 
-        {/* Change 4: compact rankReason — one subtle line */}
+        {/* Compact rankReason — one subtle line */}
         {rankReason && (
           <p className="px-4 pb-1 text-[10px] text-inkBlack/40 italic leading-snug line-clamp-1">— {rankReason}</p>
         )}
 
-        {/* Score bars — Change 2: Buzz → Online aandacht */}
+        {/* Score bars */}
         <div className="px-4 pb-1 space-y-1.5">
           <ScoreBar label="Reputatie" score={scores.google} color="#D85A30" />
           <ScoreBar label="Online aandacht" score={scores.buzz} color="#534AB7" />
@@ -163,7 +167,7 @@ export default function RestaurantCard({ restaurant, rank }: RestaurantCardProps
           <p className="text-xs text-inkBlack leading-snug line-clamp-2">{mustOrder}</p>
         </div>
 
-        {/* Change 5: simplified source pills */}
+        {/* Source pills */}
         <div className="px-4 pb-2 flex items-center gap-1.5 flex-wrap">
           <span className="text-xs bg-cream border border-inkBlack/20 rounded-full px-2 py-0.5 font-medium">
             ⭐ {sources.googleRating.toFixed(1)}
@@ -173,7 +177,7 @@ export default function RestaurantCard({ restaurant, rank }: RestaurantCardProps
           </span>
           {scores.buzz >= 40 && (
             <span className="text-xs bg-epicPurple/10 border border-epicPurple/30 text-epicPurple rounded-full px-2 py-0.5 font-bold">
-              📱 Trending
+              📡 Online aandacht
             </span>
           )}
           {sources.blogMentions > 0 && (
@@ -186,7 +190,6 @@ export default function RestaurantCard({ restaurant, rank }: RestaurantCardProps
               ↻ ouder dan 30 dgn
             </span>
           )}
-          {/* Change 6: accurate CTA */}
           <a
             href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${restaurant.googlePlaceId}`}
             target="_blank"

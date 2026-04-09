@@ -45,6 +45,10 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Scrollbar hide utility */
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
 /* Focus ring */
 *:focus-visible {
   outline: 3px solid #D85A30;

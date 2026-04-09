@@ -12,8 +12,8 @@ interface CityFilterProps {
 export default function CityFilter({ selected, onChange }: CityFilterProps) {
   return (
     <div
-      className="flex gap-2 overflow-x-auto -mx-4 px-4"
-      style={{ scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
+      className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide -mx-4 px-4"
+      style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
     >
       {cities.map((city) => {
         const isActive = selected === city

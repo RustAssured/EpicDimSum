@@ -117,7 +117,7 @@ export default async function RestaurantPage({ params }: PageProps) {
               <h3 className="text-xs font-black uppercase tracking-wide text-inkBlack/40">EpicScore Breakdown</h3>
               <ScoreBar label="Google" score={scores.google} color="#D85A30" />
               <ScoreBar label="Ha Gao" score={scores.haGao} color="#1D9E75" />
-              <ScoreBar label="Buzz" score={scores.buzz} color="#534AB7" />
+              <ScoreBar label="Online aandacht" score={scores.buzz} color="#534AB7" />
               <ScoreBar label="Vibe" score={scores.vibe} color="#BA7517" />
             </div>
 
@@ -128,7 +128,7 @@ export default async function RestaurantPage({ params }: PageProps) {
               </span>
               {sources.blogMentions > 0 && (
                 <span className="text-xs bg-epicPurple/10 border border-epicPurple/30 text-epicPurple rounded-full px-2 py-0.5 font-bold">
-                  {sources.blogMentions} buzz
+                  {sources.blogMentions} vermeldingen
                 </span>
               )}
             </div>
