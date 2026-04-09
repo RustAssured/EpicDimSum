@@ -1,6 +1,10 @@
 import Image from 'next/image'
 
-type MascotType = 'happy' | 'judge' | 'lowconfidence' | 'mustorder' | 'sleepy' | 'top1'
+type MascotType =
+  | 'happy' | 'judge' | 'lowconfidence' | 'mustorder'
+  | 'sleepy' | 'top1'
+  | 'hilarischgao' | 'angrygao' | 'upsetsteaminggao'
+  | 'saddenedgao' | 'cryinggao' | 'sickgao'
 
 interface MascotProps {
   type: MascotType

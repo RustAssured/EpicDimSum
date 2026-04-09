@@ -80,8 +80,9 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
 
         <button
           onClick={onClose}
-          className="w-full py-3 bg-epicRed text-cream font-black rounded-2xl border-2 border-inkBlack shadow-brutal-sm text-sm active:translate-y-[2px] active:shadow-none transition-all"
+          className="w-full py-3 bg-epicRed text-cream font-black rounded-2xl border-2 border-inkBlack shadow-brutal-sm text-sm flex items-center justify-center gap-2 active:translate-y-[2px] active:shadow-none transition-all"
         >
+          <Mascot type="hilarischgao" size={24} />
           Duidelijk — laat de lijst zien
         </button>
       </div>

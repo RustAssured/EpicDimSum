@@ -723,8 +723,9 @@ export default function AdminSyncPage() {
                   </div>
 
                   {state?.error && (
-                    <div className="mt-2 p-3 rounded-xl bg-epicRed/10 border border-epicRed/30 text-xs text-epicRed font-medium">
-                      Fout: {state.error}
+                    <div className="flex items-center gap-2 mt-2 p-2 bg-red-50 rounded-lg">
+                      <Mascot type="angrygao" size={28} />
+                      <p className="text-xs text-red-600 font-bold">{state.error}</p>
                     </div>
                   )}
                   {state?.result && (

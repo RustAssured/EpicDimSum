@@ -232,9 +232,9 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
         </>
       ) : (
         <div className="text-center py-16 flex flex-col items-center gap-3">
-          <Mascot type="sleepy" size={80} alt="Geen resultaten" />
-          <p className="font-black text-inkBlack/50">Geen dumplings gevonden…</p>
-          <p className="text-sm text-inkBlack/30">dat voelt niet goed 😔</p>
+          <Mascot type="saddenedgao" size={80} alt="Geen resultaten" />
+          <p className="font-black text-inkBlack/50">Geen dim sum gevonden…</p>
+          <p className="text-sm text-inkBlack/30">probeer een andere stad of zoekterm</p>
         </div>
       )}
 

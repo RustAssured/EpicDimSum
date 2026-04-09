@@ -27,11 +27,15 @@ function epicScoreStyle(score: number) {
   return { border: 'border-epicRed', text: 'text-epicRed', bg: 'bg-epicRed/8' }
 }
 
-// Fix G: Gao as score signal
-function epicScoreGao(score: number): 'happy' | 'sleepy' | 'lowconfidence' {
+type MascotType = 'happy' | 'judge' | 'lowconfidence' | 'mustorder' | 'sleepy' | 'top1'
+  | 'hilarischgao' | 'angrygao' | 'upsetsteaminggao' | 'saddenedgao' | 'cryinggao' | 'sickgao'
+
+function gaoForScore(score: number): MascotType {
+  if (score >= 90) return 'hilarischgao'
   if (score >= 75) return 'happy'
   if (score >= 55) return 'sleepy'
-  return 'lowconfidence'
+  if (score >= 35) return 'upsetsteaminggao'
+  return 'cryinggao'
 }
 
 export default function RestaurantCard({ restaurant, rank, currentCity }: RestaurantCardProps) {
@@ -53,7 +57,7 @@ export default function RestaurantCard({ restaurant, rank, currentCity }: Restau
   } = restaurant
 
   const style = epicScoreStyle(epicScore)
-  const gaoType = epicScoreGao(epicScore)
+  const gaoType = gaoForScore(epicScore)
 
   // Fix A: carry city param so back-nav restores city filter
   const cityParam = currentCity && currentCity !== 'Alle' ? `?city=${encodeURIComponent(currentCity)}` : ''
