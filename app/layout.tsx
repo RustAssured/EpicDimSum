@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'EpicDimSum — De beste Dim Sum in Nederland',
     description:
-      'Realtime dim sum rankings voor heel Nederland. Ha Gao Index, buzzscore en meer.',
+      'Realtime dim sum rankings voor heel Nederland. Ha Gao Index, EpicScore en meer.',
     type: 'website',
     locale: 'nl_NL',
     siteName: 'EpicDimSum',

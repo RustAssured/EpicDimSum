@@ -77,25 +77,16 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
         : b.epicScore - a.epicScore
     )
 
-    if (selectedCity !== 'Alle') {
-      return sorted.slice(0, MAX_PER_CITY)
-    }
-
-    // For "Alle": top 25 per city, then re-sort globally
-    const byCityMap: Record<string, Restaurant[]> = {}
-    for (const r of sorted) {
-      if (!byCityMap[r.city]) byCityMap[r.city] = []
-      if (byCityMap[r.city].length < MAX_PER_CITY) byCityMap[r.city].push(r)
-    }
-    return Object.values(byCityMap).flat().sort((a, b) =>
-      sortBy === 'hagao' ? b.haGaoIndex - a.haGaoIndex : b.epicScore - a.epicScore
-    )
+    // Global top 15 across all cities — best overall
+    return sorted.slice(0, MAX_PER_CITY)
   }, [restaurants, selectedCity, searchQuery, sortBy])
 
   const cityLabel = selectedCity === 'Alle' ? 'Nederland' : selectedCity
-  const countText = filtered.length >= MAX_PER_CITY
-    ? `Top 15 dim sum spots in ${cityLabel}`
-    : `${filtered.length} geselecteerde spots in ${cityLabel}`
+  const countText = selectedCity === 'Alle'
+    ? `Top 15 beste dim sum spots in Nederland`
+    : filtered.length >= MAX_PER_CITY
+      ? `Top 15 dim sum spots in ${cityLabel}`
+      : `${filtered.length} geselecteerde spots in ${cityLabel}`
 
   return (
     <>
