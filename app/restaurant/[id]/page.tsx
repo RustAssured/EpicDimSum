@@ -6,6 +6,7 @@ import ScoreBar from '@/components/ScoreBar'
 import HaGaoIndex from '@/components/HaGaoIndex'
 import ShareButton from '@/components/ShareButton'
 import Mascot from '@/components/Mascot'
+import CheckIn from '@/components/CheckIn'
 
 export const revalidate = 3600
 
@@ -172,6 +173,9 @@ export default async function RestaurantPage({ params }: PageProps) {
           <p className="text-xs font-black uppercase tracking-wide text-epicGold mb-2">🍽️ Must Order</p>
           <p className="text-sm font-bold text-inkBlack leading-snug">{mustOrder}</p>
         </div>
+
+        {/* Check-in */}
+        <CheckIn restaurantId={restaurant.id} restaurantName={name} />
 
         {/* Review snippets */}
         {reviewSnippets && reviewSnippets.length > 0 && (
