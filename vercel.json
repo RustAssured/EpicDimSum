@@ -1,13 +1,8 @@
 {
   "framework": "nextjs",
   "crons": [
-    {
-      "path": "/api/cron/discover",
-      "schedule": "0 6 * * 1"
-    },
-    {
-      "path": "/api/cron/sync-all",
-      "schedule": "0 5 * * 1"
-    }
+    { "path": "/api/cron/discover", "schedule": "0 6 * * 1" },
+    { "path": "/api/cron/sync-all", "schedule": "0 5 * * 1" },
+    { "path": "/api/agent/audit", "schedule": "0 3 * * *" }
   ]
 }

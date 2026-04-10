@@ -82,6 +82,10 @@ export default function AdminSyncPage() {
     error: string | null
   }>({ loading: false, result: null, error: null })
 
+  // Agent state
+  const [agentRunning, setAgentRunning] = useState(false)
+  const [agentResult, setAgentResult] = useState<any>(null)
+
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault()
     if (secret.trim()) setAuthed(true)
@@ -276,6 +280,21 @@ export default function AdminSyncPage() {
     }
   }
 
+  const handleRunAgent = async () => {
+    if (!secret) return
+    setAgentRunning(true)
+    try {
+      const res = await fetch('/api/agent/audit', {
+        method: 'POST',
+        headers: { 'x-sync-secret': secret },
+      })
+      const data = await res.json()
+      setAgentResult(data)
+    } finally {
+      setAgentRunning(false)
+    }
+  }
+
   const handleCleanupSeeds = async () => {
     setCleanupSeedsState({ loading: true, result: null, error: null })
     try {
@@ -379,6 +398,57 @@ export default function AdminSyncPage() {
       </header>
 
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+
+        {/* Agent Status */}
+        <div className="p-4 rounded-2xl border-[3px] border-epicPurple/40 bg-epicPurple/5 shadow-[4px_4px_0px_rgba(83,74,183,0.3)]">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Mascot type="judge" size={32} />
+              <div>
+                <p className="font-black text-sm">Kwaliteitsagent</p>
+                <p className="text-[10px] text-inkBlack/40">
+                  {agentResult?.mode
+                    ? `Mode: ${agentResult.mode}`
+                    : 'Dagelijkse dim sum verificatie'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleRunAgent}
+              disabled={agentRunning}
+              className="text-xs font-black px-3 py-2 rounded-full bg-epicPurple text-cream border-2 border-inkBlack shadow-brutal-sm disabled:opacity-50"
+            >
+              {agentRunning ? '🔍 Bezig...' : '▶ Run nu'}
+            </button>
+          </div>
+
+          {agentResult && !agentResult.skipped && (
+            <div className="mt-2 space-y-1">
+              <p className="text-xs font-bold">
+                Mode: <span className="text-epicPurple">{agentResult.mode}</span>
+                {' · '}Gecheckt: {agentResult.checked}
+                {' · '}Geflagged: {agentResult.flagged}
+                {agentResult.removed > 0 && ` · Verwijderd: ${agentResult.removed}`}
+              </p>
+              <div className="max-h-32 overflow-y-auto space-y-1 mt-2">
+                {agentResult.results?.map((r: { name: string; verdict: string; confidence: number; reasoning: string }, i: number) => (
+                  <div key={i} className={`text-[10px] px-2 py-1 rounded-lg ${
+                    r.verdict === 'remove' ? 'bg-red-50 text-red-600' :
+                    r.verdict === 'flag' ? 'bg-yellow-50 text-yellow-700' :
+                    'bg-green-50 text-green-700'
+                  }`}>
+                    <span className="font-black">{r.name}</span>
+                    {' '}({r.confidence}%)
+                    {' — '}{r.reasoning}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {agentResult?.skipped && (
+            <p className="text-xs text-inkBlack/40 mt-1">{agentResult.reason}</p>
+          )}
+        </div>
 
         {/* Bulk actions */}
         <div className="rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white p-4 flex flex-wrap gap-3 items-center">
