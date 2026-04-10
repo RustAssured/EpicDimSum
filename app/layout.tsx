@@ -5,6 +5,11 @@ export const metadata: Metadata = {
   title: 'EpicDimSum — De beste Dim Sum in Nederland',
   description:
     'Jouw realtime dumpling radar voor de beste dim sum restaurants in Amsterdam, Rotterdam en Den Haag. Powered by de EpicScore.',
+  icons: {
+    icon: '/favicon.png',
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  },
   openGraph: {
     title: 'EpicDimSum — De beste Dim Sum in Nederland',
     description:
