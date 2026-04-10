@@ -179,18 +179,11 @@ async function searchByText(
 
   const places: PlacesTextResult[] = data.places ?? []
 
-  const filtered = places.filter((p) => {
-    const name = p.displayName?.text?.toLowerCase() ?? ''
-    const rating = p.rating ?? 0
-    const reviewCount = p.userRatingCount ?? 0
-
-    if (reviewCount < 20) return false
-    if (DIM_SUM_KEYWORDS.some((kw) => name.includes(kw))) return true
-    if (rating >= 4.0 && (name.includes('china') || name.includes('chinese') || name.includes('asian') || name.includes('canton'))) return true
-    if (rating >= 4.2) return true
-
-    return false
-  })
+  // Trust Google's text search relevance — only apply basic restaurant gate
+  const filtered = places.filter((p) => isActualRestaurant({
+    name: p.displayName?.text ?? '',
+    googleReviewCount: p.userRatingCount ?? 0,
+  }))
 
   console.log(`[Discovery TextSearch] "${textQuery}": ${places.length} raw → ${filtered.length} after filter`)
 
@@ -220,6 +213,9 @@ function getCityQueries(city: { name: string }): string[] {
   if (city.name === 'Den Haag') {
     base.push('dim sum Wagenstraat Den Haag')
     base.push('Chinees Wagenstraat Den Haag')
+    base.push('Kantonees restaurant Wagenstraat Den Haag')
+    base.push('Kaa Lun Palace Den Haag')
+    base.push('Chinese restaurant Chinatown Den Haag')
     base.push('dim sum Chinatown Den Haag')
   }
 
@@ -234,25 +230,26 @@ function getCityQueries(city: { name: string }): string[] {
 
 async function searchAllQueriesForCity(city: { name: string; lat: number; lng: number }): Promise<NewSpot[]> {
   const queries = getCityQueries(city)
-
-  const results = await Promise.allSettled(
-    queries.map((q) => searchByText(city, q))
-  )
-
   const allSpots: NewSpot[] = []
   const seen = new Set<string>()
 
-  for (const result of results) {
-    if (result.status === 'fulfilled') {
-      for (const spot of result.value) {
+  for (const query of queries) {
+    try {
+      const results = await searchByText(city, query)
+      console.log(`[Discovery] "${query}" → ${results.length} results: ${results.map(r => r.name).join(', ')}`)
+
+      for (const spot of results) {
         if (!seen.has(spot.googlePlaceId)) {
           seen.add(spot.googlePlaceId)
           allSpots.push(spot)
         }
       }
+    } catch (err) {
+      console.error(`[Discovery] Query failed: "${query}"`, err)
     }
   }
 
+  console.log(`[Discovery] ${city.name} total unique: ${allSpots.length} → ${allSpots.map(r => r.name).join(', ')}`)
   return allSpots
 }
 
