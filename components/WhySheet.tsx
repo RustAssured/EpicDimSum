@@ -39,7 +39,7 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
             Wij laten zien wat <em>goed</em> is.
           </p>
           <p className="text-xs text-cream/60 mt-2 leading-snug">
-            EpicScore = Ha Gao kwaliteit (40%) + Reputatie (25%) + Online aandacht (20%) + Vibe (15%). Een kleine plek met perfecte dumplings kan hoger scoren dan een grote naam met slechte ha gao.
+            EpicScore is altijd betrouwbaar — gebaseerd op reputatie, online aandacht en sfeer. De Ha Gao Index is de bonus: als die er staat, weten we écht hoe de dumplings zijn.
           </p>
         </div>
 
@@ -48,15 +48,16 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
           <div className="flex items-start gap-3 p-3 bg-white rounded-xl border-2 border-inkBlack/10">
             <span className="text-xl shrink-0">🥟</span>
             <div>
-              <p className="font-black text-sm">Ha Gao Index — 40%</p>
-              <p className="text-xs text-inkBlack/50 leading-snug mt-0.5">
-                Ha gao is de moeilijkste dim sum. Als die goed is, klopt de keuken.
-              </p>
-              <div className="mt-2 space-y-1">
-                <p className="text-[10px] text-inkBlack/40 leading-snug">
-                  📊 <span className="font-bold">Hoe berekend:</span> we combineren reviews van meerdere platforms en tellen hoeveel % expliciet dumplings noemt (mention score) × hoe positief die mentions zijn (quality score). Een kleine plek met 50 reviews die allemaal over perfecte ha gao gaan wint van een grote naam met 2000 generieke reviews.
-                </p>
+              <div className="flex items-center gap-2">
+                <p className="font-black text-sm">Ha Gao Index</p>
+                <span className="text-[9px] bg-epicGold/20 text-epicGold font-black px-2 py-0.5 rounded-full">BONUS</span>
               </div>
+              <p className="text-xs text-inkBlack/50 leading-snug mt-0.5">
+                Als er voldoende dumpling reviews zijn, berekenen we een Ha Gao Index — hoe goed zijn de dumplings écht? Dit is de icing on the cake bovenop de EpicScore.
+              </p>
+              <p className="text-[10px] text-inkBlack/30 leading-snug mt-1">
+                Niet elk restaurant heeft een Ha Gao Index — maar als je hem ziet, zegt hij iets echts.
+              </p>
             </div>
           </div>
 

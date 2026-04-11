@@ -121,13 +121,15 @@ export default function RestaurantCard({ restaurant, rank, currentCity }: Restau
               {haGaoDetail && (
                 <p className="text-[10px] text-inkBlack/50 italic leading-snug mt-1 line-clamp-2">{haGaoDetail}</p>
               )}
-              {restaurant.dumplingMentionScore !== undefined && (
-                <div className="flex items-center gap-1 mt-1.5 pt-1.5 border-t border-inkBlack/10">
-                  <span className="text-[9px] text-inkBlack/40 uppercase tracking-wide font-bold">
+              {restaurant.dumplingMentionScore !== undefined && restaurant.dumplingMentionScore > 0 && (
+                <div className="flex items-center gap-2 mt-1.5 pt-1.5 border-t border-inkBlack/10">
+                  <span className="text-[9px] text-inkBlack/40 font-bold uppercase tracking-wide">
                     {restaurant.dumplingMentionScore}% noemt dumplings
                   </span>
-                  {restaurant.dumplingQualityScore !== null && restaurant.dumplingQualityScore !== undefined && (
-                    <span className="text-[9px] font-black text-epicGold">· {restaurant.dumplingQualityScore}% positief</span>
+                  {restaurant.dumplingQualityScore !== undefined && restaurant.dumplingQualityScore !== null && (
+                    <span className="text-[9px] font-black text-epicGold">
+                      · {restaurant.dumplingQualityScore}% positief
+                    </span>
                   )}
                 </div>
               )}
