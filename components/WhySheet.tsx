@@ -39,8 +39,7 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
             Wij laten zien wat <em>goed</em> is.
           </p>
           <p className="text-xs text-cream/60 mt-2 leading-snug">
-            Een kleine plek met perfecte dumplings kan hoger scoren
-            dan een grote naam met middelmatige ha gao.
+            EpicScore = Ha Gao kwaliteit (40%) + Reputatie (25%) + Online aandacht (20%) + Vibe (15%). Een kleine plek met perfecte dumplings kan hoger scoren dan een grote naam met slechte ha gao.
           </p>
         </div>
 
@@ -52,8 +51,12 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
               <p className="font-black text-sm">Ha Gao Index — 40%</p>
               <p className="text-xs text-inkBlack/50 leading-snug mt-0.5">
                 Ha gao is de moeilijkste dim sum. Als die goed is, klopt de keuken.
-                We analyseren reviews specifiek op dumplingkwaliteit.
               </p>
+              <div className="mt-2 space-y-1">
+                <p className="text-[10px] text-inkBlack/40 leading-snug">
+                  📊 <span className="font-bold">Hoe berekend:</span> we tellen hoeveel % van reviews dumplings noemt (mention score) × hoe positief die mentions zijn (quality score). Een kleine plek met 50 reviews die allemaal over perfecte ha gao gaan wint van een grote naam met 2000 generieke reviews.
+                </p>
+              </div>
             </div>
           </div>
 

@@ -7,6 +7,7 @@ import RestaurantCard from '@/components/RestaurantCard'
 import CityFilter from '@/components/CityFilter'
 import Mascot from '@/components/Mascot'
 import WhySheet from '@/components/WhySheet'
+import DumplingMandje from '@/components/DumplingMandje'
 
 interface RestaurantFeedProps {
   restaurants: Restaurant[]
@@ -82,11 +83,14 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
   }, [restaurants, selectedCity, searchQuery, sortBy])
 
   const cityLabel = selectedCity === 'Alle' ? 'Nederland' : selectedCity
+
   const countText = selectedCity === 'Alle'
-    ? `Top 15 beste dim sum spots in Nederland`
-    : filtered.length >= MAX_PER_CITY
-      ? `Top 15 dim sum spots in ${cityLabel}`
-      : `${filtered.length} geselecteerde spots in ${cityLabel}`
+    ? `De beste dim sum spots in Nederland`
+    : filtered.length === 0
+      ? `Nog geen geverifieerde spots in ${cityLabel}`
+      : filtered.length === 1
+        ? `1 geverifieerde dim sum spot in ${cityLabel}`
+        : `${filtered.length} geverifieerde dim sum spots in ${cityLabel}`
 
   return (
     <>
@@ -122,7 +126,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
 
       {/* Product promise */}
       <p className="text-xs text-inkBlack/40 font-medium text-center -mt-1">
-        Curated top 15 — alleen geverifieerde dim sum spots
+        Alleen geverifieerde dim sum spots — kwaliteit boven kwantiteit
       </p>
 
       {/* Sort control */}
@@ -167,6 +171,9 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
           </p>
         </div>
       </div>
+
+      {/* Dumpling Mandje */}
+      <DumplingMandje />
 
       {/* Results count */}
       <div className="flex items-center justify-between">

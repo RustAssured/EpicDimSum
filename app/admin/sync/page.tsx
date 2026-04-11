@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Restaurant, City, PriceRange } from '@/lib/types'
 import { isTrustedForPublicFeed } from '@/lib/db'
@@ -41,39 +41,13 @@ export default function AdminSyncPage() {
     loading: false, error: null,
   })
 
-  // Discovery state
-  const [discoverState, setDiscoverState] = useState<{
-    loading: boolean
-    result: { discovered: number; added: number; skipped: number } | null
-    error: string | null
-  }>({ loading: false, result: null, error: null })
-
   // Per-city scan state
   const [scanning, setScanning] = useState<string | null>(null)
   const [cityScanResults, setCityScanResults] = useState<Record<string, string>>({})
 
 
-  // Verify-all state
-  const [verifyAllState, setVerifyAllState] = useState<{ loading: boolean; result: string | null; error: string | null }>({
-    loading: false, result: null, error: null,
-  })
-
   // Restaurant list filter
   const [listFilter, setListFilter] = useState<'all' | 'verified' | 'review'>('all')
-
-  // Cleanup state
-  const [cleanupState, setCleanupState] = useState<{
-    loading: boolean
-    result: { removed: string[]; count: number } | null
-    error: string | null
-  }>({ loading: false, result: null, error: null })
-
-  // Cleanup seeds state
-  const [cleanupSeedsState, setCleanupSeedsState] = useState<{
-    loading: boolean
-    result: { removed: string[]; count: number } | null
-    error: string | null
-  }>({ loading: false, result: null, error: null })
 
   // Cleanup non-dim-sum state
   const [cleanupNonDimSumState, setCleanupNonDimSumState] = useState<{
@@ -85,6 +59,15 @@ export default function AdminSyncPage() {
   // Agent state
   const [agentRunning, setAgentRunning] = useState(false)
   const [agentResult, setAgentResult] = useState<any>(null)
+
+  // Silent seed cleanup on mount
+  useEffect(() => {
+    if (!secret) return
+    fetch('/api/admin/cleanup-seeds', {
+      method: 'POST',
+      headers: { 'x-sync-secret': secret },
+    }).catch(() => {})
+  }, [secret])
 
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault()
@@ -239,28 +222,6 @@ export default function AdminSyncPage() {
     }
   }
 
-  const handleCleanup = async () => {
-    setCleanupState({ loading: true, result: null, error: null })
-    try {
-      const res = await fetch('/api/admin/cleanup', {
-        method: 'POST',
-        headers: { 'x-sync-secret': secret },
-      })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(humanizeError(err.error || `HTTP ${res.status}`))
-      }
-      const data = await res.json()
-      setCleanupState({ loading: false, result: data, error: null })
-    } catch (err) {
-      setCleanupState({
-        loading: false,
-        result: null,
-        error: err instanceof Error ? err.message : 'Onbekende fout',
-      })
-    }
-  }
-
   const handleCleanupNonDimSum = async () => {
     if (!window.confirm('Verwijder alle non-dim-sum restaurants? Dit kan niet ongedaan worden gemaakt.')) return
     setCleanupNonDimSumState({ loading: true, result: null, error: null })
@@ -292,65 +253,6 @@ export default function AdminSyncPage() {
       setAgentResult(data)
     } finally {
       setAgentRunning(false)
-    }
-  }
-
-  const handleCleanupSeeds = async () => {
-    setCleanupSeedsState({ loading: true, result: null, error: null })
-    try {
-      const res = await fetch('/api/admin/cleanup-seeds', {
-        method: 'POST',
-        headers: { 'x-sync-secret': secret },
-      })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(humanizeError(err.error || `HTTP ${res.status}`))
-      }
-      const data = await res.json()
-      setCleanupSeedsState({ loading: false, result: data, error: null })
-    } catch (err) {
-      setCleanupSeedsState({ loading: false, result: null, error: err instanceof Error ? err.message : 'Fout' })
-    }
-  }
-
-  const handleVerifyAll = async () => {
-    setVerifyAllState({ loading: true, result: null, error: null })
-    try {
-      const res = await fetch('/api/admin/verify-all', {
-        method: 'POST',
-        headers: { 'x-sync-secret': secret },
-      })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(humanizeError(err.error || `HTTP ${res.status}`))
-      }
-      const data = await res.json()
-      setVerifyAllState({ loading: false, result: `✓ ${data.verified} restaurants geverifieerd`, error: null })
-    } catch (err) {
-      setVerifyAllState({ loading: false, result: null, error: err instanceof Error ? err.message : 'Fout' })
-    }
-  }
-
-  const handleDiscover = async () => {
-    setDiscoverState({ loading: true, result: null, error: null })
-    try {
-      const res = await fetch('/api/cron/discover', {
-        headers: { Authorization: `Bearer ${secret}` },
-      })
-
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(humanizeError(err.error || `HTTP ${res.status}`))
-      }
-
-      const data = await res.json()
-      setDiscoverState({ loading: false, result: data, error: null })
-    } catch (err) {
-      setDiscoverState({
-        loading: false,
-        result: null,
-        error: err instanceof Error ? err.message : 'Onbekende fout',
-      })
     }
   }
 
@@ -450,152 +352,39 @@ export default function AdminSyncPage() {
           )}
         </div>
 
-        {/* Bulk actions */}
-        <div className="rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white p-4 flex flex-wrap gap-3 items-center">
-          <div className="flex-1 min-w-0">
-            <p className="font-black text-inkBlack text-sm">Bulk acties</p>
-            {syncAllProgress && (
-              <p className="text-xs text-epicGold font-bold mt-0.5">
-                Syncing {syncAllProgress.current}/{syncAllProgress.total}...
-              </p>
-            )}
+        {/* Sync */}
+        <div className="rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-black text-inkBlack text-sm">Sync</p>
+              {syncAllProgress && (
+                <p className="text-xs text-epicGold font-bold mt-0.5">
+                  Syncing {syncAllProgress.current}/{syncAllProgress.total}...
+                </p>
+              )}
+            </div>
+            <button
+              onClick={handleSyncAll}
+              disabled={syncAllProgress !== null}
+              className={`px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
+                ${syncAllProgress !== null
+                  ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
+                  : 'bg-epicGold text-cream active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
+                }`}
+            >
+              {syncAllProgress ? `⏳ ${syncAllProgress.current}/${syncAllProgress.total}` : '🔄 Sync alle restaurants'}
+            </button>
           </div>
 
-          {/* Sync alle */}
-          <button
-            onClick={handleSyncAll}
-            disabled={syncAllProgress !== null}
-            className={`px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
-              ${syncAllProgress !== null
-                ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
-                : 'bg-epicGold text-cream hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none'
-              }`}
-          >
-            {syncAllProgress
-              ? `⏳ ${syncAllProgress.current}/${syncAllProgress.total}`
-              : '🔄 Sync alle restaurants'}
-          </button>
-
-          {/* Verifieer alles */}
-          <button
-            onClick={handleVerifyAll}
-            disabled={verifyAllState.loading}
-            className={`px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
-              ${verifyAllState.loading
-                ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
-                : 'bg-epicGreen text-cream hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none'
-              }`}
-          >
-            {verifyAllState.loading ? '⏳ Bezig...' : '✓ Verifieer alles'}
-          </button>
-
-          {/* Discover */}
-          <button
-            onClick={handleDiscover}
-            disabled={discoverState.loading}
-            className={`px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
-              ${discoverState.loading
-                ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
-                : 'bg-epicPurple text-cream hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none'
-              }`}
-          >
-            {discoverState.loading ? '⏳ Bezig...' : '🔍 Ontdek nieuwe spots'}
-          </button>
-
-          {/* Opruimen */}
-          <button
-            onClick={handleCleanup}
-            disabled={cleanupState.loading}
-            className={`px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
-              ${cleanupState.loading
-                ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
-                : 'bg-inkBlack text-cream hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none'
-              }`}
-          >
-            {cleanupState.loading ? '⏳ Opruimen...' : '🧹 Opruimen'}
-          </button>
-
-          {verifyAllState.error && (
-            <p className="w-full text-xs text-epicRed font-medium">Verifieer fout: {verifyAllState.error}</p>
-          )}
-          {verifyAllState.result && (
-            <p className="w-full text-xs text-epicGreen font-bold">{verifyAllState.result}</p>
-          )}
-
-          {discoverState.error && (
-            <p className="w-full text-xs text-epicRed font-medium">Fout: {discoverState.error}</p>
-          )}
-          {discoverState.result && (
-            <p className="w-full text-xs text-epicGreen font-bold">
-              ✓ {discoverState.result.discovered} gevonden · {discoverState.result.added} toegevoegd · {discoverState.result.skipped} overgeslagen
-            </p>
-          )}
-          {cleanupState.error && (
-            <p className="w-full text-xs text-epicRed font-medium">Cleanup fout: {cleanupState.error}</p>
-          )}
-          {cleanupState.result && (
-            <p className="w-full text-xs text-epicGreen font-bold">
-              {cleanupState.result.count === 0
-                ? '✓ Niets te verwijderen'
-                : `🧹 ${cleanupState.result.count} verwijderd: ${cleanupState.result.removed.join(' · ')}`}
-            </p>
-          )}
-
-          {/* Cleanup seeds */}
-          <button
-            onClick={handleCleanupSeeds}
-            disabled={cleanupSeedsState.loading}
-            className={`px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
-              ${cleanupSeedsState.loading
-                ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
-                : 'bg-inkBlack/80 text-cream hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none'
-              }`}
-          >
-            {cleanupSeedsState.loading ? '⏳ Bezig...' : '🧹 Verwijder seed data'}
-          </button>
-          {cleanupSeedsState.error && (
-            <p className="w-full text-xs text-epicRed font-medium">Seed cleanup fout: {cleanupSeedsState.error}</p>
-          )}
-          {cleanupSeedsState.result && (
-            <p className="w-full text-xs text-epicGreen font-bold">
-              {cleanupSeedsState.result.count === 0
-                ? '✓ Geen seed data te verwijderen (nog geen echte versies)'
-                : `🧹 ${cleanupSeedsState.result.count} seeds verwijderd: ${cleanupSeedsState.result.removed.join(' · ')}`}
-            </p>
-          )}
-
-          {/* Cleanup non-dim-sum */}
-          <button
-            onClick={handleCleanupNonDimSum}
-            disabled={cleanupNonDimSumState.loading}
-            className={`px-4 py-2 rounded-full border-2 border-epicRed font-black text-sm shadow-brutal-sm transition-all
-              ${cleanupNonDimSumState.loading
-                ? 'bg-epicRed/10 text-epicRed/40 cursor-not-allowed shadow-none'
-                : 'bg-epicRed/10 text-epicRed hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none'
-              }`}
-          >
-            {cleanupNonDimSumState.loading ? '⏳ Bezig...' : '🗑️ Verwijder non-dim-sum'}
-          </button>
-          {cleanupNonDimSumState.error && (
-            <p className="w-full text-xs text-epicRed font-medium">Non-dim-sum cleanup fout: {cleanupNonDimSumState.error}</p>
-          )}
-          {cleanupNonDimSumState.result && (
-            <p className="w-full text-xs text-epicGreen font-bold">
-              {cleanupNonDimSumState.result.count === 0
-                ? '✓ Geen non-dim-sum restaurants gevonden'
-                : `🗑️ ${cleanupNonDimSumState.result.count} non-dim-sum restaurants verwijderd: ${cleanupNonDimSumState.result.removed.join(' · ')}`}
-            </p>
-          )}
-
           {/* Per-city scan */}
-          <div className="w-full border-t border-inkBlack/10 pt-3 flex flex-wrap gap-2">
+          <div className="border-t border-inkBlack/10 pt-3 flex flex-wrap gap-2">
             <p className="text-xs font-bold text-inkBlack/50 w-full uppercase tracking-wide">Scan per stad:</p>
             {['Amsterdam', 'Rotterdam', 'Den Haag', 'Utrecht', 'Eindhoven'].map((city) => (
               <div key={city} className="flex flex-col items-start gap-0.5">
                 <button
                   onClick={() => handleCityScan(city)}
                   disabled={!!scanning}
-                  className="text-xs font-black px-3 py-1.5 rounded-full border-2 border-inkBlack shadow-brutal-sm bg-cream hover:bg-epicRed/10 disabled:opacity-50 transition-all"
+                  className="text-xs font-black px-3 py-1.5 rounded-full border-2 border-inkBlack shadow-brutal-sm bg-cream active:bg-epicRed/10 disabled:opacity-50 transition-all"
                 >
                   {scanning === city ? '⏳ Scanning...' : `🔍 ${city}`}
                 </button>
@@ -605,6 +394,32 @@ export default function AdminSyncPage() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Opruimen */}
+        <div className="rounded-2xl border-[3px] border-epicRed/40 bg-epicRed/5 shadow-brutal p-4">
+          <p className="font-black text-sm text-epicRed mb-3">Opruimen</p>
+          <button
+            onClick={handleCleanupNonDimSum}
+            disabled={cleanupNonDimSumState.loading}
+            className={`px-4 py-2 rounded-full border-2 border-epicRed font-black text-sm shadow-brutal-sm transition-all
+              ${cleanupNonDimSumState.loading
+                ? 'bg-epicRed/10 text-epicRed/40 cursor-not-allowed shadow-none'
+                : 'bg-epicRed text-cream active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
+              }`}
+          >
+            {cleanupNonDimSumState.loading ? '⏳ Bezig...' : '🗑️ Verwijder non-dim-sum'}
+          </button>
+          {cleanupNonDimSumState.error && (
+            <p className="text-xs text-epicRed font-medium mt-2">{cleanupNonDimSumState.error}</p>
+          )}
+          {cleanupNonDimSumState.result && (
+            <p className="text-xs text-epicGreen font-bold mt-2">
+              {cleanupNonDimSumState.result.count === 0
+                ? '✓ Geen non-dim-sum restaurants gevonden'
+                : `🗑️ ${cleanupNonDimSumState.result.count} verwijderd: ${cleanupNonDimSumState.result.removed.join(' · ')}`}
+            </p>
+          )}
         </div>
 
         {/* Add restaurant form */}

@@ -23,7 +23,7 @@ export default async function Home() {
                 <span className="text-epicGold">Sum</span>
               </h1>
               <p className="text-[10px] text-inkBlack/50 font-medium leading-none mt-0.5">
-                Top 15 per stad · Alleen wat ertoe doet
+                Alleen de beste · Streng gecureerd
               </p>
             </div>
           </div>

@@ -175,7 +175,7 @@ export default async function RestaurantPage({ params }: PageProps) {
         </div>
 
         {/* Check-in */}
-        <CheckIn restaurantId={restaurant.id} restaurantName={name} />
+        <CheckIn restaurantId={restaurant.id} restaurantName={name} restaurantCity={city} />
 
         {/* Review snippets */}
         {reviewSnippets && reviewSnippets.length > 0 && (

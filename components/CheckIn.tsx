@@ -6,6 +6,7 @@ import Image from 'next/image'
 interface CheckInProps {
   restaurantId: string
   restaurantName: string
+  restaurantCity: string
 }
 
 type Rating = 'fire' | 'solid' | 'meh'
@@ -30,7 +31,7 @@ const options: {
   { value: 'meh', label: 'Mwah...', emoji: '😐', gao: 'upsetsteaminggao', bg: 'bg-inkBlack/5', border: 'border-inkBlack/20' },
 ]
 
-export default function CheckIn({ restaurantId, restaurantName }: CheckInProps) {
+export default function CheckIn({ restaurantId, restaurantName, restaurantCity }: CheckInProps) {
   const [submitted, setSubmitted] = useState<Rating | null>(null)
   const [alreadyCheckedIn, setAlreadyCheckedIn] = useState(false)
   const [summary, setSummary] = useState<Summary | null>(null)
@@ -43,7 +44,14 @@ export default function CheckIn({ restaurantId, restaurantName }: CheckInProps) 
       .catch(() => {})
 
     const stored = localStorage.getItem(`checkin_${restaurantId}`)
-    if (stored) setSubmitted(stored as Rating)
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        setSubmitted(parsed.rating ?? stored as Rating)
+      } catch {
+        setSubmitted(stored as Rating) // backwards compat
+      }
+    }
   }, [restaurantId])
 
   const handleCheckIn = async (rating: Rating) => {
@@ -66,7 +74,13 @@ export default function CheckIn({ restaurantId, restaurantName }: CheckInProps) 
       if (data.success) {
         setSubmitted(rating)
         setSummary(data.summary)
-        localStorage.setItem(`checkin_${restaurantId}`, rating)
+        localStorage.setItem(`checkin_${restaurantId}`, JSON.stringify({
+          restaurantId,
+          restaurantName,
+          city: restaurantCity,
+          rating,
+          date: new Date().toISOString(),
+        }))
       }
     } finally {
       setLoading(false)
