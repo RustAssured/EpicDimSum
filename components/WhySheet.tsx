@@ -54,7 +54,7 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
               </p>
               <div className="mt-2 space-y-1">
                 <p className="text-[10px] text-inkBlack/40 leading-snug">
-                  📊 <span className="font-bold">Hoe berekend:</span> we tellen hoeveel % van reviews dumplings noemt (mention score) × hoe positief die mentions zijn (quality score). Een kleine plek met 50 reviews die allemaal over perfecte ha gao gaan wint van een grote naam met 2000 generieke reviews.
+                  📊 <span className="font-bold">Hoe berekend:</span> we combineren reviews van meerdere platforms en tellen hoeveel % expliciet dumplings noemt (mention score) × hoe positief die mentions zijn (quality score). Een kleine plek met 50 reviews die allemaal over perfecte ha gao gaan wint van een grote naam met 2000 generieke reviews.
                 </p>
               </div>
             </div>

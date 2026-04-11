@@ -4,10 +4,9 @@ import { getRestaurantById, upsertRestaurant } from '@/lib/db'
 import { fetchGooglePlacesData, normalizeGoogleScore } from '@/lib/google-places'
 import { fetchIensData } from '@/lib/iens-scraper'
 import { fetchTripadvisorData } from '@/lib/tripadvisor-scraper'
+import { searchWebMentions } from '@/lib/web-search'
 import { computeScoresWithClaude } from '@/lib/score-engine'
 import { computeBuzzScore } from '@/lib/buzz-engine'
-
-const USE_TRIPADVISOR = process.env.ENABLE_TRIPADVISOR === 'true'
 
 function epicScoreFallback(googleRating: number, reviewCount: number): number {
   return Math.max(
@@ -35,7 +34,6 @@ export async function POST(
       return NextResponse.json({ error: 'Restaurant not found' }, { status: 404 })
     }
 
-    // Fix 4: When epicScore is 0, don't seed with stale cached zeros — rely on fresh API data
     const forceRefresh = restaurant.epicScore === 0
     let googleData = {
       rating: forceRefresh ? 0 : restaurant.sources.googleRating,
@@ -52,25 +50,29 @@ export async function POST(
     }
 
     const googleScore = normalizeGoogleScore(googleData.rating, googleData.userRatingCount)
-    const reviewTexts = googleData.reviews.map((r) => r.text?.text ?? '').filter(Boolean)
+    const googleReviews = googleData.reviews.map((r) => r.text?.text ?? '').filter(Boolean)
 
-    let iensText = ''
+    let iensReviews: string[] = []
     let iensReviewCount = restaurant.sources.blogMentions
     try {
       const iensData = await fetchIensData(restaurant.name, restaurant.city)
-      iensText = iensData.rawText.slice(0, 1500)
+      iensReviews = iensData.reviewTexts
       iensReviewCount = iensData.reviewCount ?? iensReviewCount
     } catch (err) {
       console.error(`Iens fetch failed:`, err)
     }
 
-    let tripadvisorText = ''
-    if (USE_TRIPADVISOR) {
-      try {
-        const ta = await fetchTripadvisorData(restaurant.name, restaurant.city)
-        tripadvisorText = ta.rawText.slice(0, 1000)
-      } catch { /* silent fail */ }
-    }
+    let tripadvisorReviews: string[] = []
+    try {
+      const ta = await fetchTripadvisorData(restaurant.name, restaurant.city)
+      tripadvisorReviews = ta.reviewTexts
+    } catch { /* silent fail */ }
+
+    let webMentions: string[] = []
+    try {
+      const web = await searchWebMentions(restaurant.name, restaurant.city)
+      webMentions = web.mentions
+    } catch { /* silent fail */ }
 
     // Compute buzz first so we can pass it to Claude for a consistent epicScore formula
     const buzz = await computeBuzzScore(
@@ -85,9 +87,10 @@ export async function POST(
       city: restaurant.city,
       googleRating: googleData.rating,
       googleReviewCount: googleData.userRatingCount,
-      googleReviews: reviewTexts,
-      iensText,
-      tripadvisorText,
+      googleReviews,
+      iensReviews,
+      tripadvisorReviews,
+      webMentions,
       buzzScore: buzz.totalBuzzScore,
     })
 
@@ -95,7 +98,6 @@ export async function POST(
       ? epicScoreFallback(googleData.rating, googleData.userRatingCount)
       : scores.epicScore
 
-    // Fix 2: Auto-verify when score data is meaningful
     const verified = epicScore > 20 && scores.haGaoIndex > 0
 
     const updated: Restaurant = {
@@ -107,7 +109,7 @@ export async function POST(
       mustOrder: scores.mustOrder,
       epicScore,
       summary: scores.summary,
-      reviewSnippets: reviewTexts.slice(0, 3),
+      reviewSnippets: googleReviews.slice(0, 3),
       dumplingMentionScore: scores.dumplingMentionScore,
       dumplingQualityScore: scores.dumplingQualityScore,
       dumplingScore: scores.dumplingScore,

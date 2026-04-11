@@ -9,35 +9,63 @@ interface ScoreInputs {
   googleRating: number
   googleReviewCount: number
   googleReviews: string[]
-  iensText: string
+  iensReviews: string[]
+  tripadvisorReviews: string[]
+  webMentions: string[]
   buzzScore?: number
-  tripadvisorText?: string
+}
+
+function buildReviewBlock(reviews: string[], label: string, limit: number): string {
+  if (reviews.length === 0) return ''
+  return `\n${label}:\n${reviews.slice(0, limit).join('\n---\n')}`
+}
+
+function combineReviews(inputs: ScoreInputs): string {
+  const parts: string[] = []
+
+  if (inputs.googleReviews.length > 0) {
+    parts.push(buildReviewBlock(inputs.googleReviews, 'Google reviews', 5))
+  }
+  if (inputs.iensReviews.length > 0) {
+    parts.push(buildReviewBlock(inputs.iensReviews, 'Iens reviews', 5))
+  }
+  if (inputs.tripadvisorReviews.length > 0) {
+    parts.push(buildReviewBlock(inputs.tripadvisorReviews, 'Tripadvisor reviews', 5))
+  }
+  if (inputs.webMentions.length > 0) {
+    parts.push(buildReviewBlock(inputs.webMentions, 'Web mentions', 6))
+  }
+
+  const combined = parts.join('\n\n').trim()
+  return combined.slice(0, 4000) || 'Geen reviews beschikbaar.'
 }
 
 export async function computeScoresWithClaude(inputs: ScoreInputs): Promise<SyncResult> {
-  const { name, city, googleRating, googleReviewCount, googleReviews, iensText } = inputs
+  const { name, city, googleRating, googleReviewCount } = inputs
 
-  const reviewTexts = googleReviews.length > 0
-    ? googleReviews.join('\n---\n')
-    : 'Geen reviews beschikbaar.'
+  const totalReviews =
+    googleReviewCount +
+    inputs.iensReviews.length +
+    inputs.tripadvisorReviews.length +
+    inputs.webMentions.length
 
-  const extraText = [iensText, inputs.tripadvisorText].filter(Boolean).join('\n\n')
+  const reviewBlock = combineReviews(inputs)
 
-  const buzzLine = inputs.buzzScore !== undefined
-    ? `${inputs.buzzScore}`
-    : 'calculated by you based on review sentiment'
+  const buzzLine =
+    inputs.buzzScore !== undefined
+      ? `${inputs.buzzScore}`
+      : 'calculated by you based on review sentiment'
 
-  const buzzJsonField = inputs.buzzScore !== undefined
-    ? `${inputs.buzzScore}`
-    : '<int 0-100>'
+  const buzzJsonField =
+    inputs.buzzScore !== undefined ? `${inputs.buzzScore}` : '<int 0-100>'
 
   const prompt = `You are the EpicDimSum dumpling intelligence engine. Your job is NOT to give a general restaurant score — your job is to evaluate dim sum and dumpling quality specifically, using textual evidence from reviews.
 
 Restaurant: ${name}, ${city}
 Google rating: ${googleRating}/5 (${googleReviewCount} reviews)
-Google reviews:
-${reviewTexts}
-Iens/other data: ${extraText || 'Not available.'}
+Review sources (${totalReviews} total across all platforms):
+${reviewBlock}
+
 Pre-calculated buzz score: ${buzzLine}/100
 
 STEP 1 — Dumpling mention analysis:
@@ -58,7 +86,6 @@ IMPORTANT DISTINCTIONS:
   - negative: "droog", "dik vel", "diepvries", "smaakloos", "tough", "disappointing"
   - If dumplings are not mentioned at all → dumplingQualityScore = null (not scoreable)
 - "dumplingScore": dumplingMentionScore * (dumplingQualityScore / 100) — the COMBINED signal
-  - This is what goes into EpicScore, not mentionScore alone
 
 STEP 3 — Small sample correction:
 confidence = min(log10(${googleReviewCount} + 1) / 2.5, 1.0)
@@ -78,12 +105,12 @@ Return ONLY valid JSON, no markdown, no preamble:
   "dumplingQualityScore": <int 0-100 or null if no mentions>,
   "dumplingScore": <int 0-100, combined: dumplingMentionScore * dumplingQualityScore/100>,
   "confidence": <float 0-1, min(log10(${googleReviewCount} + 1) / 2.5, 1.0)>,
-  "haGaoDetail": "<one specific Dutch sentence about the dumpling quality — mention actual dishes if reviews do, e.g. 'De ha gao heeft dunne velletjes en sappige garnalen volgens meerdere reviews'>",
+  "haGaoDetail": "<one specific Dutch sentence about the dumpling quality — mention actual dishes if reviews do>",
   "mustOrder": "<most mentioned specific dish in Dutch — be concrete, e.g. 'Ha gao met garnalen' not just 'dumplings'>",
   "vibeScore": <int 0-100, atmosphere based on non-dumpling review signals>,
   "buzzScore": ${buzzJsonField},
   "epicScore": <int 0-100, calculated as above>,
-  "rankReason": "<one punchy Dutch sentence max 12 words explaining the rank — focus on dumpling quality, e.g. 'Sterkste ha gao feedback in Amsterdam, zelfs met weinig reviews'>",
+  "rankReason": "<one punchy Dutch sentence max 12 words explaining the rank — focus on dumpling quality>",
   "summary": "<2 sentences max in Dutch, honest and specific about dumpling quality>"
 }`
 
@@ -118,8 +145,14 @@ Return ONLY valid JSON, no markdown, no preamble:
     summary: String(parsed.summary || ''),
     haGaoDetail: String(parsed.haGaoDetail || ''),
     rankReason: String(parsed.rankReason || ''),
-    dumplingMentionScore: parsed.dumplingMentionScore != null ? Number(parsed.dumplingMentionScore) : undefined,
-    dumplingQualityScore: parsed.dumplingQualityScore === null ? null : parsed.dumplingQualityScore != null ? Number(parsed.dumplingQualityScore) : undefined,
+    dumplingMentionScore:
+      parsed.dumplingMentionScore != null ? Number(parsed.dumplingMentionScore) : undefined,
+    dumplingQualityScore:
+      parsed.dumplingQualityScore === null
+        ? null
+        : parsed.dumplingQualityScore != null
+        ? Number(parsed.dumplingQualityScore)
+        : undefined,
     dumplingScore: parsed.dumplingScore != null ? Number(parsed.dumplingScore) : undefined,
     confidence: parsed.confidence != null ? Number(parsed.confidence) : undefined,
   }
