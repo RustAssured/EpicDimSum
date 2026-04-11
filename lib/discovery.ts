@@ -316,29 +316,53 @@ export async function discoverNewSpots(cityFilter?: string): Promise<NewSpot[]> 
   const results = await Promise.all(citiesToScan.map(searchCity))
   const allSpots = results.flat()
 
+  const seen = new Set<string>(allSpots.map(s => s.googlePlaceId))
+
   // Benchmark: always try to find Kaa Lun Palace by Place ID
   const KAA_LUN_PLACE_ID = 'ChIJ2_odAHe3xUcR3Y3mAHwOtp8'
   const kaaLunExists = existing.some(r => r.googlePlaceId === KAA_LUN_PLACE_ID)
 
   if (!kaaLunExists) {
-    console.log('[Discovery] Benchmark: fetching Kaa Lun Palace directly by Place ID')
+    console.log('[Benchmark] Kaa Lun not in DB, fetching by Place ID...')
     const kaaLun = await fetchPlaceById(KAA_LUN_PLACE_ID, 'Den Haag')
+
     if (kaaLun) {
-      console.log(`[Discovery] Benchmark: found Kaa Lun Palace — ${kaaLun.googleRating}★ (${kaaLun.googleReviewCount} reviews)`)
-      allSpots.push(kaaLun)
+      console.log(`[Benchmark] Found: ${kaaLun.name} — ${kaaLun.googleRating}★ (${kaaLun.googleReviewCount} reviews)`)
+
+      if (!seen.has(kaaLun.googlePlaceId)) {
+        seen.add(kaaLun.googlePlaceId)
+        allSpots.push(kaaLun)
+        console.log('[Benchmark] Kaa Lun added to discovery batch')
+      } else {
+        console.log('[Benchmark] Kaa Lun already in this batch via text search!')
+      }
     } else {
-      console.warn('[Discovery] Benchmark: Kaa Lun Palace Place ID returned no data — Place ID may be incorrect')
+      console.error('[Benchmark] fetchPlaceById returned null — checking raw response')
+
+      const altRes = await fetch(
+        `https://places.googleapis.com/v1/places/ChIJ2_odAHe3xUcR3Y3mAHwOtp8`,
+        {
+          headers: {
+            'X-Goog-Api-Key': process.env.GOOGLE_PLACES_API_KEY ?? '',
+            'X-Goog-FieldMask': 'id,displayName',
+          },
+        }
+      )
+      const altData = await altRes.json()
+      console.error('[Benchmark] Raw API response:', JSON.stringify(altData))
     }
+  } else {
+    console.log('[Benchmark] Kaa Lun already in database ✓')
   }
 
   const newSpots = allSpots
     .filter((spot) => !existingPlaceIds.has(spot.googlePlaceId))
     .filter(isActualRestaurant)
 
-  const seen = new Set<string>()
+  const dedupSeen = new Set<string>()
   return newSpots.filter((spot) => {
-    if (seen.has(spot.googlePlaceId)) return false
-    seen.add(spot.googlePlaceId)
+    if (dedupSeen.has(spot.googlePlaceId)) return false
+    dedupSeen.add(spot.googlePlaceId)
     return true
   })
 }
