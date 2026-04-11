@@ -27,7 +27,7 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
         <div className="flex items-center gap-3 mb-4">
           <Mascot type="judge" size={44} />
           <div>
-            <h2 className="font-black text-lg leading-tight">Waarom EpicDimSum?</h2>
+            <h2 className="font-black text-lg leading-tight">Waarom dit beter werkt dan Google</h2>
             <p className="text-xs text-inkBlack/40">Beter dan Google voor dim sum</p>
           </div>
         </div>
@@ -79,6 +79,17 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
                 Wordt er echt over gesproken? En hoe voelt het om er te eten?
               </p>
             </div>
+          </div>
+        </div>
+
+        <div className="flex items-start gap-3 p-3 bg-white rounded-xl border-2 border-inkBlack/10 mb-5">
+          <span className="text-xl shrink-0">🧺</span>
+          <div>
+            <p className="font-black text-sm">Jouw dumpling journey</p>
+            <p className="text-xs text-inkBlack/50 leading-snug mt-0.5">
+              Hou bij waar je bent geweest en wat je ervan vond.
+              Gao bewaart je mandje — jij ontdekt de beste plekken.
+            </p>
           </div>
         </div>
 

@@ -204,15 +204,26 @@ export default function RestaurantCard({ restaurant, rank, currentCity }: Restau
               ↻ ouder dan 30 dgn
             </span>
           )}
-          <a
-            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${restaurant.googlePlaceId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="ml-auto text-[10px] font-black px-2.5 py-1 rounded-full border-2 border-inkBlack/30 text-inkBlack/50 active:border-epicGreen active:text-epicGreen transition-colors whitespace-nowrap"
-          >
-            Bekijk op Maps →
-          </a>
+          <div className="ml-auto flex items-center gap-1.5">
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${restaurant.googlePlaceId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="text-[10px] font-black px-2.5 py-1 rounded-full border-2 border-inkBlack/30 text-inkBlack/50 active:border-inkBlack active:text-inkBlack transition-colors whitespace-nowrap"
+            >
+              Route →
+            </a>
+            <a
+              href={restaurant.reservationUrl ?? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(restaurant.name + ' ' + restaurant.city)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="text-[10px] font-black px-2.5 py-1 rounded-full border-2 border-epicGreen/40 text-epicGreen active:bg-epicGreen/10 transition-colors whitespace-nowrap"
+            >
+              Reserveer →
+            </a>
+          </div>
         </div>
 
         {/* Footer bar */}

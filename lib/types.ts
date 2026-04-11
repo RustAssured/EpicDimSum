@@ -31,6 +31,7 @@ export interface Restaurant {
   }
   status: Status
   verified?: boolean
+  reservationUrl?: string
   summary?: string
   reviewSnippets?: string[]
   sources: {
