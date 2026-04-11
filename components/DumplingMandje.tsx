@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import Mascot from './Mascot'
+import Image from 'next/image'
 
 interface CheckInRecord {
   restaurantId: string
@@ -100,16 +100,16 @@ export default function DumplingMandje() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="w-full flex items-center gap-3 p-4 rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-[#fff3d6] active:translate-x-[2px] active:translate-y-[2px] active:shadow-brutal-sm transition-all"
+        className="w-full flex items-center gap-3 p-4 rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-[#fff3d6] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-brutal-sm transition-all"
       >
-        <Mascot type="happy" size={40} />
+        <Image src="/mascots/GaoMandje.png" alt="Gao in stoommandje" width={52} height={52} className="object-contain shrink-0" />
         <div className="text-left flex-1">
           <p className="font-black text-sm">Mijn Dumpling Mandje 🧺</p>
           <p className="text-xs text-inkBlack/50">
             {checkins.length} {checkins.length === 1 ? 'bezoek' : 'bezoeken'} · {cities.size} {cities.size === 1 ? 'stad' : 'steden'} · {unlockedCount}/{badges.length} badges
           </p>
         </div>
-        <span className="text-xl">🧺</span>
+        <span className="text-2xl">🧺</span>
       </button>
 
       {isOpen && (
@@ -119,12 +119,10 @@ export default function DumplingMandje() {
             <div className="w-10 h-1 bg-inkBlack/20 rounded-full mx-auto mb-4" />
 
             <div className="flex items-center gap-3 mb-5">
-              <Mascot type="top1" size={48} />
+              <Image src="/mascots/GaoMandje.png" alt="Gao in stoommandje" width={64} height={64} className="object-contain shrink-0" />
               <div>
                 <h2 className="font-black text-lg">Mijn Dumpling Mandje 🧺</h2>
-                <p className="text-xs text-inkBlack/40">
-                  {checkins.length} spots · {cities.size} steden · {unlockedCount} badges
-                </p>
+                <p className="text-xs text-inkBlack/40">{checkins.length} spots · {cities.size} steden · {unlockedCount} badges</p>
               </div>
             </div>
 
@@ -147,9 +145,8 @@ export default function DumplingMandje() {
               ))}
             </div>
 
-            {/* Recent check-ins */}
             <p className="font-black text-xs uppercase tracking-wide text-inkBlack/40 mb-2">Recente bezoeken uit jouw mandje</p>
-            <div className="space-y-2">
+            <div className="space-y-2 mb-4">
               {checkins.slice(-5).reverse().map((c, i) => (
                 <div key={i} className="flex items-center gap-2 p-2.5 bg-white rounded-xl border border-inkBlack/10">
                   <span className="text-base">{c.rating === 'fire' ? '🔥' : c.rating === 'solid' ? '👍' : '😐'}</span>
@@ -161,10 +158,7 @@ export default function DumplingMandje() {
               ))}
             </div>
 
-            <button
-              onClick={() => setIsOpen(false)}
-              className="w-full mt-4 py-3 bg-epicRed text-cream font-black rounded-2xl border-2 border-inkBlack shadow-brutal-sm text-sm active:translate-y-[2px] active:shadow-none transition-all"
-            >
+            <button onClick={() => setIsOpen(false)} className="w-full py-3 bg-epicRed text-cream font-black rounded-2xl border-2 border-inkBlack shadow-brutal-sm text-sm">
               Sluiten
             </button>
           </div>
