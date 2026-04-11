@@ -108,35 +108,43 @@ export default function RestaurantCard({ restaurant, rank, currentCity }: Restau
             </div>
           </div>
 
-          {/* Right: Ha Gao Index */}
-          <div className="flex flex-col justify-center bg-[#fff3d6] border-2 border-inkBlack/20 rounded-xl px-3 py-2.5">
-            <div className="flex items-center justify-between gap-1">
-              <p className="text-[10px] font-black text-epicGold uppercase tracking-wide leading-none">🥟 Ha Gao Index</p>
-              <span className="text-base font-black text-inkBlack">{haGaoIndex.toFixed(1)}<span className="text-[10px] text-inkBlack/40">/5</span></span>
-            </div>
-            <div className="mt-1.5">
-              <HaGaoIndex index={haGaoIndex} size="sm" />
-            </div>
-            {haGaoDetail && (
-              <p className="text-[10px] text-inkBlack/50 italic leading-snug mt-1 line-clamp-2">{haGaoDetail}</p>
-            )}
-            {restaurant.dumplingMentionScore !== undefined && (
-              <div className="flex items-center gap-1 mt-1.5 pt-1.5 border-t border-inkBlack/10">
-                <span className="text-[9px] text-inkBlack/40 uppercase tracking-wide font-bold">
-                  {restaurant.dumplingMentionScore}% noemt dumplings
-                </span>
-                {restaurant.dumplingQualityScore !== null && restaurant.dumplingQualityScore !== undefined && (
-                  <span className="text-[9px] font-black text-epicGold">· {restaurant.dumplingQualityScore}% positief</span>
-                )}
+          {/* Right: Ha Gao Index — only if we have real dumpling data */}
+          {haGaoIndex > 0 ? (
+            <div className="flex flex-col justify-center bg-[#fff3d6] border-2 border-inkBlack/20 rounded-xl px-3 py-2.5">
+              <div className="flex items-center justify-between gap-1">
+                <p className="text-[10px] font-black text-epicGold uppercase tracking-wide leading-none">🥟 Ha Gao Index</p>
+                <span className="text-base font-black text-inkBlack">{haGaoIndex.toFixed(1)}<span className="text-[10px] text-inkBlack/40">/5</span></span>
               </div>
-            )}
-            {restaurant.confidence !== undefined && restaurant.confidence < 0.6 && (
-              <div className="flex items-center gap-1 mt-1">
-                <Mascot type="lowconfidence" size={18} alt="Beperkte data" />
-                <p className="text-[9px] text-inkBlack/30 italic">Beperkt aantal reviews</p>
+              <div className="mt-1.5">
+                <HaGaoIndex index={haGaoIndex} size="sm" />
               </div>
-            )}
-          </div>
+              {haGaoDetail && (
+                <p className="text-[10px] text-inkBlack/50 italic leading-snug mt-1 line-clamp-2">{haGaoDetail}</p>
+              )}
+              {restaurant.dumplingMentionScore !== undefined && (
+                <div className="flex items-center gap-1 mt-1.5 pt-1.5 border-t border-inkBlack/10">
+                  <span className="text-[9px] text-inkBlack/40 uppercase tracking-wide font-bold">
+                    {restaurant.dumplingMentionScore}% noemt dumplings
+                  </span>
+                  {restaurant.dumplingQualityScore !== null && restaurant.dumplingQualityScore !== undefined && (
+                    <span className="text-[9px] font-black text-epicGold">· {restaurant.dumplingQualityScore}% positief</span>
+                  )}
+                </div>
+              )}
+              {restaurant.confidence !== undefined && restaurant.confidence < 0.6 && (
+                <div className="flex items-center gap-1 mt-1">
+                  <Mascot type="lowconfidence" size={18} alt="Beperkte data" />
+                  <p className="text-[9px] text-inkBlack/30 italic">Beperkt aantal reviews</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col justify-center bg-inkBlack/5 border border-inkBlack/10 rounded-xl px-3 py-2.5">
+              <p className="text-[10px] text-inkBlack/30 italic text-center leading-snug">
+                Ha Gao Index wordt bepaald bij voldoende dumpling reviews
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Tap-to-explain, max 3 lines */}

@@ -57,37 +57,18 @@ export function isTrustedForPublicFeed(r: Restaurant): boolean {
   if ((r.status as string) === 'pending') return false
   if (r.epicScore < 20) return false
 
-  // Hard rule: if system explicitly detected this is NOT dim sum, exclude
   const summary = (r.summary ?? '').toLowerCase()
   const mustOrder = (r.mustOrder ?? '').toLowerCase()
-  const notDimSum =
-    summary.includes('geen dim sum') ||
-    summary.includes('niet geschikt') ||
-    summary.includes('pastarestaurant') ||
-    summary.includes('italiaans') ||
+
+  // Only exclude if clearly NOT dim sum
+  const clearlyNotDimSum =
     mustOrder.includes('niet van toepassing') ||
-    mustOrder.includes('geen dumplings')
+    mustOrder.includes('geen dumplings') ||
+    summary.includes('geen dim sum') ||
+    summary.includes('italiaans') ||
+    summary.includes('pastarestaurant')
 
-  if (notDimSum) return false
-
-  // Hard rule: zero Ha Gao AND zero dumpling mentions = not dim sum
-  const haGao = r.haGaoIndex ?? 0
-  const mentions = r.dumplingMentionScore ?? 0
-  if (haGao === 0 && mentions === 0) return false
-
-  // Soft quality floor
-  if (mustOrder.includes('bepaald') || mustOrder.includes('onvoldoende')) return false
-  if (!r.mustOrder || r.mustOrder.trim() === '') return false
-
-  // Must have at least one dumpling signal
-  const hasDumplingInMustOrder = mustOrder
-    .match(/ha gao|siu mai|dumpling|har gow|cheung fun|gestoomd|garnaal|dim sum/)
-  const hasDumplingInSummary = summary
-    .match(/ha gao|siu mai|dumpling|dim sum|gestoomd/)
-
-  if (haGao < 1.5 && mentions < 10 && !hasDumplingInMustOrder && !hasDumplingInSummary) {
-    return false
-  }
+  if (clearlyNotDimSum) return false
 
   return true
 }
