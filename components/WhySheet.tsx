@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import Image from 'next/image'
 import Mascot from './Mascot'
 
 interface WhySheetProps {
@@ -25,7 +26,7 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
         <div className="w-10 h-1 bg-inkBlack/20 rounded-full mx-auto mb-4" />
 
         <div className="flex items-center gap-3 mb-4">
-          <img src="/mascots/MasterGao.png" alt="Master Gao" className="w-12 h-12 object-contain shrink-0" />
+          <Image src="/mascots/MasterGao.png" alt="Master Gao" width={48} height={48} className="object-contain shrink-0" />
           <div>
             <h2 className="font-black text-lg leading-tight">Gao is jouw gids naar de beste dumplings</h2>
             <p className="text-xs text-inkBlack/40">Beter dan Google voor dim sum</p>
@@ -35,7 +36,7 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
         {/* Hero statement */}
         <div className="p-4 bg-inkBlack text-cream rounded-2xl mb-4">
           <div className="flex items-center gap-2 mb-2">
-            <img src="/mascots/EpicScoreBrand.png" alt="EpicScore" className="w-6 h-6 object-contain" />
+            <Image src="/mascots/EpicScoreBrand.png" alt="EpicScore" width={24} height={24} className="object-contain" />
             <p className="font-black text-sm">EpicScore™</p>
           </div>
           <p className="font-black text-sm leading-snug">
@@ -50,7 +51,7 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
         {/* 3 signal blocks */}
         <div className="space-y-2 mb-5">
           <div className="flex items-start gap-3 p-3 bg-white rounded-xl border-2 border-inkBlack/10">
-            <img src="/mascots/HaGaoIndex.png" alt="Ha Gao Inspector" className="w-7 h-7 object-contain shrink-0" />
+            <Image src="/mascots/HaGaoIndex.png" alt="Ha Gao Inspector" width={28} height={28} className="object-contain shrink-0" />
             <div>
               <div className="flex items-center gap-2">
                 <p className="font-black text-sm">Ha Gao Index</p>
@@ -66,7 +67,7 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
           </div>
 
           <div className="flex items-start gap-3 p-3 bg-white rounded-xl border-2 border-inkBlack/10">
-            <img src="/mascots/Epicscore.png" alt="" className="w-7 h-7 object-contain shrink-0 mt-0.5" />
+            <Image src="/mascots/Epicscore.png" alt="" width={28} height={28} className="object-contain shrink-0 mt-0.5" />
             <div>
               <p className="font-black text-sm">Reputatie — 25%</p>
               <p className="text-xs text-inkBlack/50 leading-snug mt-0.5">
@@ -76,7 +77,7 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
           </div>
 
           <div className="flex items-start gap-3 p-3 bg-white rounded-xl border-2 border-inkBlack/10">
-            <img src="/mascots/Epicscore.png" alt="" className="w-7 h-7 object-contain shrink-0 mt-0.5" />
+            <Image src="/mascots/Epicscore.png" alt="" width={28} height={28} className="object-contain shrink-0 mt-0.5" />
             <div>
               <p className="font-black text-sm">Online aandacht + Vibe — 35%</p>
               <p className="text-xs text-inkBlack/50 leading-snug mt-0.5">
@@ -87,7 +88,7 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
         </div>
 
         <div className="flex items-start gap-3 p-3 bg-white rounded-xl border-2 border-inkBlack/10 mb-5">
-          <img src="/mascots/basket-full.png" alt="" className="w-7 h-7 object-contain shrink-0 mt-0.5" />
+          <Image src="/mascots/basket-full.png" alt="" width={28} height={28} className="object-contain shrink-0 mt-0.5" />
           <div>
             <p className="font-black text-sm">Jouw dumpling journey</p>
             <p className="text-xs text-inkBlack/50 leading-snug mt-0.5">

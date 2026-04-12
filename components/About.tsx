@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import Image from 'next/image'
 
 function AboutSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   if (!isOpen) return null
@@ -12,7 +13,7 @@ function AboutSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <img src="/mascots/MasterGao.png" alt="Master Gao" className="w-[52px] h-[52px] object-contain shrink-0" />
+          <Image src="/mascots/MasterGao.png" alt="Master Gao" width={52} height={52} className="object-contain shrink-0" />
           <div>
             <h2 className="font-black text-lg leading-tight">Over EpicDimSum</h2>
             <p className="text-xs text-inkBlack/40 leading-tight">een labor of love</p>
@@ -47,9 +48,11 @@ function AboutSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
           <p className="text-xs text-inkBlack/70 leading-relaxed mt-1">
             EpicDimSum zal geregeld worden voorzien van allerhande updates. Want de zoektocht naar de beste Dim Sum en Dumplings, die houdt nooit op!
           </p>
-          <img
+          <Image
             src="/mascots/MasterGao.png"
             alt=""
+            width={32}
+            height={32}
             className="absolute bottom-2 right-3 w-8 h-8 object-contain opacity-40"
           />
         </div>

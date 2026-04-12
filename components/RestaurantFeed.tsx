@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Restaurant, City } from '@/lib/types'
 import RestaurantCard from '@/components/RestaurantCard'
@@ -57,6 +58,12 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
     }
   }
 
+  const handleSurpriseMe = () => {
+    if (restaurants.length === 0) return
+    const random = restaurants[Math.floor(Math.random() * restaurants.length)]
+    router.push(`/restaurant/${random.id}`)
+  }
+
   const filtered = useMemo(() => {
     let list = restaurants
     if (selectedCity !== 'Alle') {
@@ -97,7 +104,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
     <WhySheet isOpen={showWhySheet} onClose={() => setShowWhySheet(false)} />
 
     <div className="space-y-4">
-      {/* Fix D: WHY statement */}
+      {/* WHY statement */}
       <div className="text-center pb-1">
         <p className="text-xs font-black text-inkBlack/60 tracking-wide">
           Niet de populairste dim sum —{' '}
@@ -129,7 +136,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
         Alleen geverifieerde dim sum spots — kwaliteit boven kwantiteit
       </p>
 
-      {/* Sort control */}
+      {/* Sort control + Surprise Me */}
       <div className="flex items-center gap-2">
         <span className="text-[10px] text-inkBlack/40 font-bold uppercase tracking-wide">Sorteren:</span>
         {[
@@ -148,13 +155,20 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
             {opt.label}
           </button>
         ))}
+        <button
+          onClick={handleSurpriseMe}
+          className="ml-auto flex items-center gap-1.5 text-xs font-black px-3 py-1 rounded-full border-2 border-inkBlack/20 bg-cream hover:bg-epicRed/10 transition-all active:scale-95"
+        >
+          <Image src="/mascots/hilarischgao.png" alt="Surprise" width={18} height={18} className="object-contain" />
+          Verras me!
+        </button>
       </div>
 
       {/* Permanent explainer */}
       <div className="grid grid-cols-2 gap-2">
         <div className="bg-epicRed/8 border border-epicRed/20 rounded-xl px-3 py-2">
           <div className="flex items-center gap-1.5 mb-0.5">
-            <img src="/mascots/Epicscore.png" alt="EpicScore" className="w-4 h-4 object-contain" />
+            <Image src="/mascots/Epicscore.png" alt="EpicScore" width={16} height={16} className="object-contain" />
             <p className="text-[10px] font-black text-epicRed uppercase tracking-wide">EpicScore™</p>
           </div>
           <p className="text-[11px] text-inkBlack/60 leading-snug">
@@ -163,7 +177,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
         </div>
         <div className="bg-epicGreen/8 border border-epicGreen/20 rounded-xl px-3 py-2">
           <div className="flex items-center gap-1.5 mb-0.5">
-            <img src="/mascots/HaGaoIndex.png" alt="Ha Gao" className="w-4 h-4 object-contain" />
+            <Image src="/mascots/HaGaoIndex.png" alt="Ha Gao" width={16} height={16} className="object-contain" />
             <p className="text-[10px] font-black text-epicGreen uppercase tracking-wide">Ha Gao Index</p>
           </div>
           <p className="text-[11px] text-inkBlack/60 leading-snug">
@@ -211,7 +225,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
           </div>
 
           {/* Suggest a restaurant */}
-          <div className="mt-4 p-4 rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white">
+          <div id="suggest-form" className="mt-4 p-4 rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white">
             <p className="font-black text-sm mb-1">🥟 Ken jij een goede plek?</p>
             <p className="text-xs text-inkBlack/50 mb-3">Plak een Google Maps link — wij doen de rest</p>
             <div className="flex gap-2">
@@ -239,23 +253,41 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
         </>
       ) : (
         <div className="text-center py-16 flex flex-col items-center gap-3">
-          <Mascot type="saddenedgao" size={80} alt="Geen resultaten" />
-          <p className="font-black text-inkBlack/50">Geen dim sum gevonden…</p>
-          <p className="text-sm text-inkBlack/30">probeer een andere stad of zoekterm</p>
+          <Image
+            src="/mascots/saddenedgao.png"
+            alt="Geen resultaten"
+            width={80}
+            height={80}
+            className="object-contain"
+          />
+          <p className="font-black text-inkBlack/50">
+            Nog geen dim sum gevonden in {cityLabel}…
+          </p>
+          <p className="text-xs text-inkBlack/30 max-w-48">
+            dat voelt niet goed voor Gao
+          </p>
+          <button
+            onClick={() => {
+              document.getElementById('suggest-form')?.scrollIntoView({ behavior: 'smooth' })
+            }}
+            className="mt-2 text-xs font-black px-4 py-2.5 bg-epicGreen text-cream rounded-full border-2 border-inkBlack shadow-brutal-sm"
+          >
+            Ken jij een goede plek hier? →
+          </button>
         </div>
       )}
 
-      {/* Fix E: bottom padding so last card isn't hidden behind floating button */}
+      {/* bottom padding so last card isn't hidden behind floating button */}
       <div className="h-20" />
     </div>
 
-    {/* Fix E: floating WHY button */}
+    {/* floating WHY button */}
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
       <button
         onClick={() => setShowWhySheet(true)}
         className="pointer-events-auto flex items-center gap-2 bg-inkBlack/90 text-cream px-4 py-2.5 rounded-full text-xs font-black border border-inkBlack/20 shadow-lg active:scale-95 transition-transform"
       >
-        <img src="/mascots/MasterGao.png" alt="Gao" className="w-5 h-5 object-contain shrink-0" />
+        <Image src="/mascots/MasterGao.png" alt="Gao" width={20} height={20} className="object-contain shrink-0" />
         Waarom anders dan Google?
       </button>
     </div>

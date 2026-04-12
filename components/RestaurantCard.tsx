@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { Restaurant, City } from '@/lib/types'
 import ScoreBar from './ScoreBar'
@@ -55,7 +56,7 @@ export default function RestaurantCard({ restaurant, rank, currentCity }: Restau
         <div className="px-4 pt-4 pb-2">
           {rank === 1 ? (
             <div className="flex items-center gap-1 mb-1">
-              <img src="/mascots/EpicScoreBrand.png" alt="#1" className="w-6 h-6 object-contain" />
+              <Image src="/mascots/EpicScoreBrand.png" alt="#1" width={24} height={24} className="object-contain" />
               <span className="text-[10px] font-black text-inkBlack/40">#1</span>
             </div>
           ) : rank && rank > 1 ? (
@@ -80,7 +81,7 @@ export default function RestaurantCard({ restaurant, rank, currentCity }: Restau
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl border-2 ${style.border} ${style.bg}`}
             aria-label="Uitleg EpicScore"
           >
-            <img src="/mascots/Epicscore.png" alt="" className="w-4 h-4 object-contain" />
+            <Image src="/mascots/Epicscore.png" alt="" width={16} height={16} className="object-contain" />
             <span className={`text-2xl font-black leading-none ${style.text}`}>{epicScore}</span>
           </button>
         </div>
@@ -90,7 +91,7 @@ export default function RestaurantCard({ restaurant, rank, currentCity }: Restau
           <div className="mx-4 mb-2 flex flex-col bg-[#fff3d6] border-2 border-inkBlack/20 rounded-xl px-3 py-2.5">
             <div className="flex items-center justify-between gap-1">
               <div className="flex items-center gap-1.5">
-                <img src="/mascots/HaGaoIndex.png" alt="Ha Gao Inspector" className="w-5 h-5 object-contain shrink-0" />
+                <Image src="/mascots/HaGaoIndex.png" alt="Ha Gao Inspector" width={20} height={20} className="object-contain shrink-0" />
                 <p className="text-[10px] font-black text-epicGold uppercase tracking-wide leading-none">Ha Gao Index</p>
               </div>
               <span className="text-base font-black text-inkBlack">{haGaoIndex.toFixed(1)}<span className="text-[10px] text-inkBlack/40">/5</span></span>

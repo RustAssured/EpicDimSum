@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
 import { getAllRestaurants, getRestaurantById } from '@/lib/db'
 import StatusBadge from '@/components/StatusBadge'
@@ -145,7 +146,7 @@ export default async function RestaurantPage({ params }: PageProps) {
             <div className="flex items-center justify-between gap-3 mb-3">
               <div>
                 <div className="flex items-center gap-2 mb-0.5">
-                  <img src="/mascots/HaGaoIndex.png" alt="Ha Gao Inspector" className="w-8 h-8 object-contain shrink-0" />
+                  <Image src="/mascots/HaGaoIndex.png" alt="Ha Gao Inspector" width={32} height={32} className="object-contain shrink-0" />
                   <p className="text-sm font-black text-inkBlack">Ha Gao Index</p>
                 </div>
                 <p className="text-[10px] text-epicGreen/70 uppercase tracking-wide font-bold">

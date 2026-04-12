@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { getPublicRestaurants } from '@/lib/db'
 import RestaurantFeed from '@/components/RestaurantFeed'
@@ -15,7 +16,7 @@ export default async function Home() {
       <header className="sticky top-0 z-50 bg-cream border-b-[3px] border-inkBlack">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <img src="/mascots/MasterGao.png" alt="Gao" className="w-10 h-10 object-contain shrink-0" />
+            <Image src="/mascots/MasterGao.png" alt="Gao" width={40} height={40} className="object-contain shrink-0" />
             <div className="flex flex-col leading-tight">
               <h1 className="text-xl font-black tracking-tight leading-none">
                 <span className="text-epicRed">Epic</span>
