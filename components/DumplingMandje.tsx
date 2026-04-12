@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import Icon from './Icon'
 
 interface CheckInRecord {
   restaurantId: string
@@ -14,7 +15,7 @@ interface Badge {
   id: string
   name: string
   description: string
-  emoji: string
+  icon: string
   unlocked: boolean
 }
 
@@ -24,48 +25,12 @@ function getBadges(checkins: CheckInRecord[]): Badge[] {
   const total = checkins.length
 
   return [
-    {
-      id: 'first',
-      name: 'Eerste Dumpling',
-      description: 'Je eerste check-in',
-      emoji: '🥟',
-      unlocked: total >= 1,
-    },
-    {
-      id: 'explorer',
-      name: 'Dim Sum Explorer',
-      description: '3 verschillende restaurants',
-      emoji: '🗺️',
-      unlocked: total >= 3,
-    },
-    {
-      id: 'city_hopper',
-      name: 'Stad Hopper',
-      description: 'Dim sum in 2 steden',
-      emoji: '🏙️',
-      unlocked: cities.size >= 2,
-    },
-    {
-      id: 'connaisseur',
-      name: 'Ha Gao Connaisseur',
-      description: '3× "On fire" rating',
-      emoji: '🔥',
-      unlocked: fireCount >= 3,
-    },
-    {
-      id: 'reiziger',
-      name: 'Dim Sum Reiziger',
-      description: 'Dim sum in 3 steden',
-      emoji: '✈️',
-      unlocked: cities.size >= 3,
-    },
-    {
-      id: 'meester',
-      name: 'Dim Sum Meester',
-      description: '10 restaurants bezocht',
-      emoji: '👑',
-      unlocked: total >= 10,
-    },
+    { id: 'first', name: 'Eerste Dumpling', description: 'Je eerste check-in', icon: 'dumpling-sparkle.png', unlocked: total >= 1 },
+    { id: 'explorer', name: 'Dim Sum Explorer', description: '3 verschillende restaurants', icon: 'dumpling-group.png', unlocked: total >= 3 },
+    { id: 'city_hopper', name: 'Stad Hopper', description: 'Dim sum in 2 steden', icon: 'dumpling-pin.png', unlocked: cities.size >= 2 },
+    { id: 'connaisseur', name: 'Ha Gao Connaisseur', description: '3× On fire rating', icon: 'flame.png', unlocked: fireCount >= 3 },
+    { id: 'reiziger', name: 'Dim Sum Reiziger', description: 'Dim sum in 3 steden', icon: 'dumpling-pin.png', unlocked: cities.size >= 3 },
+    { id: 'meester', name: 'Dim Sum Meester', description: '10 restaurants bezocht', icon: 'dumpling-crown.png', unlocked: total >= 10 },
   ]
 }
 
@@ -102,14 +67,17 @@ export default function DumplingMandje() {
         onClick={() => setIsOpen(true)}
         className="w-full flex items-center gap-3 p-4 rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-[#fff3d6] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-brutal-sm transition-all"
       >
-        <Image src="/mascots/GaoMandje.png" alt="Gao in stoommandje" width={52} height={52} className="object-contain shrink-0" />
+        <Icon
+          src={checkins.length > 0 ? 'basket-full.png' : 'basket-empty.png'}
+          alt="Dumpling Mandje"
+          size={48}
+        />
         <div className="text-left flex-1">
-          <p className="font-black text-sm">Mijn Dumpling Mandje 🧺</p>
+          <p className="font-black text-sm">Mijn Dumpling Mandje</p>
           <p className="text-xs text-inkBlack/50">
             {checkins.length} {checkins.length === 1 ? 'bezoek' : 'bezoeken'} · {cities.size} {cities.size === 1 ? 'stad' : 'steden'} · {unlockedCount}/{badges.length} badges
           </p>
         </div>
-        <span className="text-2xl">🧺</span>
       </button>
 
       {isOpen && (
@@ -138,18 +106,28 @@ export default function DumplingMandje() {
                       : 'bg-inkBlack/5 border-inkBlack/10 opacity-40'
                   }`}
                 >
-                  <span className="text-2xl mb-1">{badge.emoji}</span>
+                  <Icon
+                    src={badge.icon}
+                    alt={badge.name}
+                    size={badge.unlocked ? 32 : 28}
+                    className="mb-1"
+                  />
                   <p className="text-[10px] font-black text-inkBlack leading-tight">{badge.name}</p>
                   <p className="text-[9px] text-inkBlack/40 leading-tight mt-0.5">{badge.description}</p>
                 </div>
               ))}
             </div>
 
+            {/* Recent visits */}
             <p className="font-black text-xs uppercase tracking-wide text-inkBlack/40 mb-2">Recente bezoeken uit jouw mandje</p>
             <div className="space-y-2 mb-4">
               {checkins.slice(-5).reverse().map((c, i) => (
                 <div key={i} className="flex items-center gap-2 p-2.5 bg-white rounded-xl border border-inkBlack/10">
-                  <span className="text-base">{c.rating === 'fire' ? '🔥' : c.rating === 'solid' ? '👍' : '😐'}</span>
+                  <Icon
+                    src={c.rating === 'fire' ? 'flame.png' : c.rating === 'solid' ? 'dumpling-check.png' : 'dumpling-meh.png'}
+                    alt={c.rating}
+                    size={18}
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-black truncate">{c.restaurantName}</p>
                     <p className="text-[10px] text-inkBlack/40">{c.city}</p>

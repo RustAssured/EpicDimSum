@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Mascot from './Mascot'
+import Icon from './Icon'
 import Image from 'next/image'
 
 interface CheckInProps {
@@ -21,15 +22,38 @@ interface Summary {
 const options: {
   value: Rating
   label: string
-  emoji: string
+  icon: string
+  iconAlt: string
   gao: 'hilarischgao' | 'happy' | 'upsetsteaminggao'
   bg: string
   border: string
 }[] = [
-  { value: 'fire', label: 'On fire!', emoji: '🔥', gao: 'hilarischgao', bg: 'bg-epicRed/8', border: 'border-epicRed/30' },
-  { value: 'solid', label: 'Solide', emoji: '👍', gao: 'happy', bg: 'bg-epicGreen/8', border: 'border-epicGreen/30' },
-  { value: 'meh', label: 'Mwah...', emoji: '😐', gao: 'upsetsteaminggao', bg: 'bg-inkBlack/5', border: 'border-inkBlack/20' },
+  { value: 'fire', label: 'On fire!', icon: 'flame.png', iconAlt: 'On fire', gao: 'hilarischgao', bg: 'bg-epicRed/8', border: 'border-epicRed/30' },
+  { value: 'solid', label: 'Solide', icon: 'dumpling-check.png', iconAlt: 'Solide', gao: 'happy', bg: 'bg-epicGreen/8', border: 'border-epicGreen/30' },
+  { value: 'meh', label: 'Mwah...', icon: 'dumpling-meh.png', iconAlt: 'Teleurstellend', gao: 'upsetsteaminggao', bg: 'bg-inkBlack/5', border: 'border-inkBlack/20' },
 ]
+
+function RatingSummary({ summary }: { summary: Summary }) {
+  return (
+    <span className="inline-flex items-center gap-1 flex-wrap justify-center">
+      {summary.fire > 0 && (
+        <span className="inline-flex items-center gap-0.5">
+          · <Icon src="flame.png" alt="fire" size={14} /> {summary.fire}
+        </span>
+      )}
+      {summary.solid > 0 && (
+        <span className="inline-flex items-center gap-0.5">
+          · <Icon src="dumpling-check.png" alt="solid" size={14} /> {summary.solid}
+        </span>
+      )}
+      {summary.meh > 0 && (
+        <span className="inline-flex items-center gap-0.5">
+          · <Icon src="dumpling-meh.png" alt="meh" size={14} /> {summary.meh}
+        </span>
+      )}
+    </span>
+  )
+}
 
 export default function CheckIn({ restaurantId, restaurantName, restaurantCity }: CheckInProps) {
   const [submitted, setSubmitted] = useState<Rating | null>(null)
@@ -101,9 +125,7 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
           {summary && summary.total > 0 && (
             <p className="text-xs text-inkBlack/50 mt-2">
               {summary.total} {summary.total === 1 ? 'bezoeker' : 'bezoekers'} via EpicDimSum
-              {summary.fire > 0 && ` · ${summary.fire}🔥`}
-              {summary.solid > 0 && ` · ${summary.solid}👍`}
-              {summary.meh > 0 && ` · ${summary.meh}😐`}
+              <RatingSummary summary={summary} />
             </p>
           )}
         </div>
@@ -141,9 +163,10 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
                 key={opt.value}
                 onClick={() => handleCheckIn(opt.value)}
                 disabled={loading}
-                className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl border-2 ${opt.bg} ${opt.border} hover:border-inkBlack transition-all active:scale-95 disabled:opacity-50`}
+                className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl border-2 ${opt.bg} ${opt.border} active:scale-95 transition-transform disabled:opacity-50`}
               >
-                <Mascot type={opt.gao} size={36} />
+                <Icon src={opt.icon} alt={opt.iconAlt} size={24} />
+                <Mascot type={opt.gao} size={32} />
                 <span className="text-[10px] font-black text-inkBlack/60 leading-none text-center">
                   {opt.label}
                 </span>
@@ -153,11 +176,9 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
 
           {/* Existing summary */}
           {summary && summary.total > 0 && (
-            <p className="text-[10px] text-inkBlack/30 text-center mt-3">
+            <p className="text-[10px] text-inkBlack/30 text-center mt-3 inline-flex items-center gap-1 w-full justify-center flex-wrap">
               {summary.total} {summary.total === 1 ? 'bezoeker' : 'bezoekers'} checkte al in
-              {summary.fire > 0 && ` · ${summary.fire}🔥`}
-              {summary.solid > 0 && ` · ${summary.solid}👍`}
-              {summary.meh > 0 && ` · ${summary.meh}😐`}
+              <RatingSummary summary={summary} />
             </p>
           )}
         </>
