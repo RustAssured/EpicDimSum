@@ -21,27 +21,32 @@ export function AboutSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 
         {/* Body copy */}
         <div className="space-y-4 mb-6">
-          <p className="text-sm text-inkBlack/80 leading-relaxed">
-            EpicDimSum is gemaakt omdat ik moe werd van het zoeken naar goede dim sum in Nederland.
-            Google toont je wat populair is — niet wat goed is. Een tent met 4,2 sterren en 800 reviews
-            kan nog steeds slechte har gow serveren.
+          <p className="text-xs text-inkBlack/70 leading-relaxed">
+            EpicDimSum begon met een simpele, doch belangrijke vraag: wat als ik mijn liefde voor
+            Dim Sum, dumplings en de mensen die er net zo gek op zijn,
+            een eigen plekje geef?
           </p>
-          <p className="text-sm text-inkBlack/80 leading-relaxed">
-            Gao is de dumpling judge die ik altijd wilde hebben: eerlijk, halsstarrig en volledig
-            geobsedeerd door de kwaliteit van de har gow. Hij combineert Google data, Iens, Tripadvisor
-            en online buzz tot één score die je echt kunt vertrouwen.
+
+          <p className="text-xs text-inkBlack/70 leading-relaxed">
+            Geen grote ambities. Wel een oprechte: een Dim Sum gids die voelt
+            als van "mij". Met een eigen stem, een eigen mascotte, en een
+            eerlijke kijk op wat nou echt een goede dumpling maakt.
+          </p>
+
+          <p className="text-xs text-inkBlack/70 leading-relaxed">
+            Gao is de enige echte dumpling judge: eerlijk, halsstarrig en
+            volledig geobsedeerd door de kwaliteit van de dumplings. Hij
+            combineert Google data, Iens, Tripadvisor en online buzz tot
+            één score die je echt kunt vertrouwen.
           </p>
         </div>
 
         {/* Promise block */}
         <div className="relative bg-[#fff3d6] border-2 border-inkBlack/20 rounded-2xl p-4 mb-6 overflow-hidden">
           <p className="text-xs font-black uppercase tracking-wide text-inkBlack/50 mb-2">De EpicDimSum belofte</p>
-          <ul className="space-y-1.5 text-sm text-inkBlack/80 leading-relaxed">
-            <li>Geen gesponsorde restaurants</li>
-            <li>Geen populariteitsscores — alleen kwaliteit</li>
-            <li>Ha Gao als ultieme maatstaf voor dumplingvakmanschap</li>
-            <li>Altijd eerlijk, ook als het teleurstellend is</li>
-          </ul>
+          <p className="text-xs text-inkBlack/70 leading-relaxed mt-1">
+            EpicDimSum zal geregeld worden voorzien van allerhande updates. Want de zoektocht naar de beste Dim Sum en Dumplings, die houdt nooit op!
+          </p>
           <img
             src="/mascots/MasterGao.png"
             alt=""
