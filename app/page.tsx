@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import Link from 'next/link'
 import { getPublicRestaurants } from '@/lib/db'
 import RestaurantFeed from '@/components/RestaurantFeed'
+import About from '@/components/About'
 
 export const revalidate = 3600
 
@@ -26,12 +27,15 @@ export default async function Home() {
               </p>
             </div>
           </div>
-          <Link
-            href="/admin/sync"
-            className="text-xs text-inkBlack/30 hover:text-inkBlack/60 transition-colors"
-          >
-            Admin
-          </Link>
+          <div className="flex items-center gap-3">
+            <About />
+            <Link
+              href="/admin/sync"
+              className="text-xs text-inkBlack/30 hover:text-inkBlack/60 transition-colors"
+            >
+              Admin
+            </Link>
+          </div>
         </div>
       </header>
 
