@@ -66,7 +66,7 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
           </div>
 
           <div className="flex items-start gap-3 p-3 bg-white rounded-xl border-2 border-inkBlack/10">
-            <span className="text-xl shrink-0">⭐</span>
+            <img src="/mascots/Epicscore.png" alt="" className="w-7 h-7 object-contain shrink-0 mt-0.5" />
             <div>
               <p className="font-black text-sm">Reputatie — 25%</p>
               <p className="text-xs text-inkBlack/50 leading-snug mt-0.5">
@@ -76,7 +76,7 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
           </div>
 
           <div className="flex items-start gap-3 p-3 bg-white rounded-xl border-2 border-inkBlack/10">
-            <span className="text-xl shrink-0">📡</span>
+            <img src="/mascots/Epicscore.png" alt="" className="w-7 h-7 object-contain shrink-0 mt-0.5" />
             <div>
               <p className="font-black text-sm">Online aandacht + Vibe — 35%</p>
               <p className="text-xs text-inkBlack/50 leading-snug mt-0.5">
@@ -87,7 +87,7 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
         </div>
 
         <div className="flex items-start gap-3 p-3 bg-white rounded-xl border-2 border-inkBlack/10 mb-5">
-          <span className="text-xl shrink-0">🧺</span>
+          <img src="/mascots/basket-full.png" alt="" className="w-7 h-7 object-contain shrink-0 mt-0.5" />
           <div>
             <p className="font-black text-sm">Jouw dumpling journey</p>
             <p className="text-xs text-inkBlack/50 leading-snug mt-0.5">

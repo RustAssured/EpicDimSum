@@ -124,8 +124,10 @@ export default async function RestaurantPage({ params }: PageProps) {
 
             {/* Sources */}
             <div className="flex gap-1.5 justify-end flex-wrap">
-              <span className="text-xs bg-cream border border-inkBlack/20 rounded-full px-2 py-0.5 font-medium">
-                ⭐ {sources.googleRating.toFixed(1)} ({sources.googleReviewCount.toLocaleString('nl-NL')})
+              <span className="text-xs bg-cream border border-inkBlack/20 rounded-full px-2 py-0.5 font-medium text-inkBlack/60">
+                {sources.googleRating.toFixed(1)} ({sources.googleReviewCount > 999
+                  ? Math.round(sources.googleReviewCount / 1000) + 'k'
+                  : sources.googleReviewCount} reviews)
               </span>
               {sources.blogMentions > 0 && (
                 <span className="text-xs bg-epicPurple/10 border border-epicPurple/30 text-epicPurple rounded-full px-2 py-0.5 font-bold">

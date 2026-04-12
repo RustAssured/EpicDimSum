@@ -89,7 +89,7 @@ export default function DumplingMandje() {
             <div className="flex items-center gap-3 mb-5">
               <Image src="/mascots/GaoMandje.png" alt="Gao in stoommandje" width={64} height={64} className="object-contain shrink-0" />
               <div>
-                <h2 className="font-black text-lg">Mijn Dumpling Mandje 🧺</h2>
+                <h2 className="font-black text-lg">Mijn Dumpling Mandje</h2>
                 <p className="text-xs text-inkBlack/40">{checkins.length} spots · {cities.size} steden · {unlockedCount} badges</p>
               </div>
             </div>

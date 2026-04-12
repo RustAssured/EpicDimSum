@@ -133,7 +133,7 @@ export default function RestaurantCard({ restaurant, rank, currentCity }: Restau
           <div className="mx-4 mb-2 px-3 py-2 rounded-xl bg-inkBlack/5 border border-inkBlack/10">
             <p className="text-[10px] text-inkBlack/60 leading-snug">
               <span className="block">🥟 <b>Ha Gao 40%</b> — dumplingkwaliteit telt het zwaarst</span>
-              <span className="block">⭐ <b>Reputatie 25%</b> · 📡 <b>Online 20%</b> · ✨ <b>Vibe 10%</b></span>
+              <span className="block"><b>Reputatie 25%</b> · <b>Online 20%</b> · <b>Vibe 10%</b></span>
               <span className="block italic opacity-70">Kleine plek, perfecte dumplings → wint van grote naam met slechte ha gao</span>
             </p>
           </div>
@@ -162,20 +162,19 @@ export default function RestaurantCard({ restaurant, rank, currentCity }: Restau
 
         {/* Source pills + CTAs */}
         <div className="px-4 pb-2 flex items-center gap-1.5 flex-wrap">
-          <span className="text-xs bg-cream border border-inkBlack/20 rounded-full px-2 py-0.5 font-medium">
-            ⭐ {sources.googleRating.toFixed(1)}
-            {sources.googleReviewCount > 0 && (
-              <span className="text-inkBlack/40 ml-1">({sources.googleReviewCount.toLocaleString('nl-NL')})</span>
-            )}
+          <span className="text-xs bg-cream border border-inkBlack/20 rounded-full px-2 py-0.5 font-medium text-inkBlack/60">
+            {sources.googleRating.toFixed(1)} ({sources.googleReviewCount > 999
+              ? Math.round(sources.googleReviewCount / 1000) + 'k'
+              : sources.googleReviewCount})
           </span>
           {scores.buzz >= 40 && (
             <span className="text-xs bg-epicPurple/10 border border-epicPurple/30 text-epicPurple rounded-full px-2 py-0.5 font-bold">
-              📡 Online aandacht
+              trending
             </span>
           )}
-          {sources.blogMentions > 0 && (
-            <span className="text-xs bg-epicPurple/10 border border-epicPurple/30 text-epicPurple rounded-full px-2 py-0.5 font-medium">
-              {sources.blogMentions} vermeldingen
+          {(sources.blogMentions ?? 0) > 2 && (
+            <span className="text-xs bg-epicGreen/10 border border-epicGreen/30 text-epicGreen rounded-full px-2 py-0.5 font-bold">
+              {sources.blogMentions}× vermeld
             </span>
           )}
           {(Date.now() - new Date(sources.lastUpdated).getTime()) > 30 * 24 * 60 * 60 * 1000 && (
