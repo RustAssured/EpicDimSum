@@ -7,6 +7,7 @@ import HaGaoIndex from '@/components/HaGaoIndex'
 import ShareButton from '@/components/ShareButton'
 import Mascot from '@/components/Mascot'
 import CheckIn from '@/components/CheckIn'
+import Image from 'next/image'
 
 export const revalidate = 3600
 
@@ -142,7 +143,10 @@ export default async function RestaurantPage({ params }: PageProps) {
           <div className="p-4">
             <div className="flex items-center justify-between gap-3 mb-3">
               <div>
-                <p className="text-sm font-black text-inkBlack">Ha Gao Index</p>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <Image src="/mascots/HaGaoIndex.png" alt="Ha Gao Inspector" width={32} height={32} className="object-contain shrink-0" />
+                  <p className="text-sm font-black text-inkBlack">Ha Gao Index</p>
+                </div>
                 <p className="text-[10px] text-epicGreen/70 uppercase tracking-wide font-bold">
                   de ultieme dumplingtest · Ha Gao 60% + Siu Mai 40%
                 </p>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import Image from 'next/image'
 import Mascot from './Mascot'
 
 interface WhySheetProps {
@@ -46,7 +47,7 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
         {/* 3 signal blocks */}
         <div className="space-y-2 mb-5">
           <div className="flex items-start gap-3 p-3 bg-white rounded-xl border-2 border-inkBlack/10">
-            <span className="text-xl shrink-0">🥟</span>
+            <Image src="/mascots/HaGaoIndex.png" alt="Ha Gao Inspector" width={28} height={28} className="object-contain shrink-0" />
             <div>
               <div className="flex items-center gap-2">
                 <p className="font-black text-sm">Ha Gao Index</p>

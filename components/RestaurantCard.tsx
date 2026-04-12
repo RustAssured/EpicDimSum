@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Restaurant, City } from '@/lib/types'
 import ScoreBar from './ScoreBar'
 import StatusBadge from './StatusBadge'
@@ -112,7 +113,10 @@ export default function RestaurantCard({ restaurant, rank, currentCity }: Restau
           {haGaoIndex > 0 ? (
             <div className="flex flex-col justify-center bg-[#fff3d6] border-2 border-inkBlack/20 rounded-xl px-3 py-2.5">
               <div className="flex items-center justify-between gap-1">
-                <p className="text-[10px] font-black text-epicGold uppercase tracking-wide leading-none">🥟 Ha Gao Index</p>
+                <div className="flex items-center gap-1.5">
+                  <Image src="/mascots/HaGaoIndex.png" alt="Ha Gao Inspector" width={24} height={24} className="object-contain shrink-0" />
+                  <p className="text-[10px] font-black text-epicGold uppercase tracking-wide leading-none">Ha Gao Index</p>
+                </div>
                 <span className="text-base font-black text-inkBlack">{haGaoIndex.toFixed(1)}<span className="text-[10px] text-inkBlack/40">/5</span></span>
               </div>
               <div className="mt-1.5">
