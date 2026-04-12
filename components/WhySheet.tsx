@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect } from 'react'
-import Image from 'next/image'
 import Mascot from './Mascot'
 
 interface WhySheetProps {
@@ -26,28 +25,32 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
         <div className="w-10 h-1 bg-inkBlack/20 rounded-full mx-auto mb-4" />
 
         <div className="flex items-center gap-3 mb-4">
-          <Mascot type="judge" size={44} />
+          <img src="/mascots/MasterGao.png" alt="Master Gao" className="w-12 h-12 object-contain shrink-0" />
           <div>
-            <h2 className="font-black text-lg leading-tight">Waarom dit beter werkt dan Google</h2>
+            <h2 className="font-black text-lg leading-tight">Gao is jouw gids naar de beste dumplings</h2>
             <p className="text-xs text-inkBlack/40">Beter dan Google voor dim sum</p>
           </div>
         </div>
 
         {/* Hero statement */}
         <div className="p-4 bg-inkBlack text-cream rounded-2xl mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <img src="/mascots/EpicScoreBrand.png" alt="EpicScore" className="w-6 h-6 object-contain" />
+            <p className="font-black text-sm">EpicScore™</p>
+          </div>
           <p className="font-black text-sm leading-snug">
             Google laat zien wat <em>populair</em> is.<br />
             Wij laten zien wat <em>goed</em> is.
           </p>
           <p className="text-xs text-cream/60 mt-2 leading-snug">
-            EpicScore is altijd betrouwbaar — gebaseerd op reputatie, online aandacht en sfeer. De Ha Gao Index is de bonus: als die er staat, weten we écht hoe de dumplings zijn.
+            EpicScore is altijd betrouwbaar. De Ha Gao Index is de bonus — als die er staat, weet je dat er echte dumpling intelligence achter zit.
           </p>
         </div>
 
         {/* 3 signal blocks */}
         <div className="space-y-2 mb-5">
           <div className="flex items-start gap-3 p-3 bg-white rounded-xl border-2 border-inkBlack/10">
-            <Image src="/mascots/HaGaoIndex.png" alt="Ha Gao Inspector" width={28} height={28} className="object-contain shrink-0" />
+            <img src="/mascots/HaGaoIndex.png" alt="Ha Gao Inspector" className="w-7 h-7 object-contain shrink-0" />
             <div>
               <div className="flex items-center gap-2">
                 <p className="font-black text-sm">Ha Gao Index</p>

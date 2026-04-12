@@ -2,7 +2,6 @@ import { Suspense } from 'react'
 import Link from 'next/link'
 import { getPublicRestaurants } from '@/lib/db'
 import RestaurantFeed from '@/components/RestaurantFeed'
-import Mascot from '@/components/Mascot'
 
 export const revalidate = 3600
 
@@ -15,15 +14,15 @@ export default async function Home() {
       <header className="sticky top-0 z-50 bg-cream border-b-[3px] border-inkBlack">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <Mascot type="happy" size={40} className="shrink-0" alt="Gao de dumpling mascot" />
-            <div>
-              <h1 className="text-xl font-black leading-none tracking-tight">
+            <img src="/mascots/MasterGao.png" alt="Gao" className="w-10 h-10 object-contain shrink-0" />
+            <div className="flex flex-col leading-tight">
+              <h1 className="text-xl font-black tracking-tight leading-none">
                 <span className="text-epicRed">Epic</span>
                 <span className="text-epicGreen">Dim</span>
                 <span className="text-epicGold">Sum</span>
               </h1>
-              <p className="text-[10px] text-inkBlack/50 font-medium leading-none mt-0.5">
-                Alleen de beste · Streng gecureerd
+              <p className="text-[10px] text-inkBlack/50 font-medium hidden sm:block">
+                Gao is jouw gids naar de beste dumplings
               </p>
             </div>
           </div>

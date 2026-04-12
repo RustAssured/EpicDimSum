@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Restaurant, City } from '@/lib/types'
 import ScoreBar from './ScoreBar'
 import StatusBadge from './StatusBadge'
@@ -21,22 +20,10 @@ const priceColor: Record<string, string> = {
   '€€€': 'text-epicRed',
 }
 
-// Fix F: subtle color palette — tinted bg, colored border and text, not a solid fill
 function epicScoreStyle(score: number) {
   if (score >= 75) return { border: 'border-epicGreen', text: 'text-epicGreen', bg: 'bg-epicGreen/8' }
   if (score >= 55) return { border: 'border-epicGold', text: 'text-epicGold', bg: 'bg-epicGold/8' }
   return { border: 'border-epicRed', text: 'text-epicRed', bg: 'bg-epicRed/8' }
-}
-
-type MascotType = 'happy' | 'judge' | 'lowconfidence' | 'mustorder' | 'sleepy' | 'top1'
-  | 'hilarischgao' | 'angrygao' | 'upsetsteaminggao' | 'saddenedgao' | 'cryinggao' | 'sickgao'
-
-function gaoForScore(score: number): MascotType {
-  if (score >= 90) return 'hilarischgao'
-  if (score >= 75) return 'happy'
-  if (score >= 55) return 'sleepy'
-  if (score >= 35) return 'upsetsteaminggao'
-  return 'cryinggao'
 }
 
 export default function RestaurantCard({ restaurant, rank, currentCity }: RestaurantCardProps) {
@@ -58,9 +45,6 @@ export default function RestaurantCard({ restaurant, rank, currentCity }: Restau
   } = restaurant
 
   const style = epicScoreStyle(epicScore)
-  const gaoType = gaoForScore(epicScore)
-
-  // Fix A: carry city param so back-nav restores city filter
   const cityParam = currentCity && currentCity !== 'Alle' ? `?city=${encodeURIComponent(currentCity)}` : ''
 
   return (
@@ -69,19 +53,17 @@ export default function RestaurantCard({ restaurant, rank, currentCity }: Restau
 
         {/* Header */}
         <div className="px-4 pt-4 pb-2">
-          {rank && (
-            <p className="text-[10px] font-black text-inkBlack/30 mb-0.5">#{rank}</p>
-          )}
+          {rank === 1 ? (
+            <div className="flex items-center gap-1 mb-1">
+              <img src="/mascots/EpicScoreBrand.png" alt="#1" className="w-6 h-6 object-contain" />
+              <span className="text-[10px] font-black text-inkBlack/40">#1</span>
+            </div>
+          ) : rank && rank > 1 ? (
+            <span className="text-[10px] font-black text-inkBlack/30 mb-1 block">#{rank}</span>
+          ) : null}
           <div className="flex items-start justify-between gap-2 mb-2">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                {rank === 1 && (
-                  <Mascot type="top1" size={44} className="-mt-2" alt="#1 beste dim sum" />
-                )}
-                <h2 className="font-black text-inkBlack text-lg leading-tight truncate">
-                  {name}
-                </h2>
-              </div>
+              <h2 className="font-black text-inkBlack text-lg leading-tight truncate">{name}</h2>
               <p className="text-xs text-inkBlack/50 font-medium">
                 {city} &middot; <span className={`font-bold ${priceColor[priceRange]}`}>{priceRange}</span>
               </p>
@@ -90,70 +72,63 @@ export default function RestaurantCard({ restaurant, rank, currentCity }: Restau
           </div>
         </div>
 
-        {/* Fix G: Gao (32px) next to EpicScore badge + Ha Gao — side by side */}
-        <div className="px-4 pb-2 grid grid-cols-[auto_1fr] gap-3">
-
-          {/* Left: Gao + EpicScore badge */}
-          <div className="flex items-center gap-2">
-            <Mascot type={gaoType} size={32} alt="" />
-            <div className={`flex flex-col items-center border-2 rounded-xl px-3 py-2 min-w-[56px] ${style.bg} ${style.border}`}>
-              <button
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowScoreDetail((v) => !v) }}
-                className={`text-[9px] font-black uppercase tracking-wider ${style.text} opacity-70`}
-                aria-label="Uitleg EpicScore"
-              >
-                Epic ⓘ
-              </button>
-              <span className={`text-3xl font-black leading-none ${style.text}`}>{epicScore}</span>
-              <span className={`text-[9px] font-bold ${style.text} opacity-40`}>/100</span>
-            </div>
-          </div>
-
-          {/* Right: Ha Gao Index — only if we have real dumpling data */}
-          {haGaoIndex > 0 ? (
-            <div className="flex flex-col justify-center bg-[#fff3d6] border-2 border-inkBlack/20 rounded-xl px-3 py-2.5">
-              <div className="flex items-center justify-between gap-1">
-                <div className="flex items-center gap-1.5">
-                  <Image src="/mascots/HaGaoIndex.png" alt="Ha Gao Inspector" width={24} height={24} className="object-contain shrink-0" />
-                  <p className="text-[10px] font-black text-epicGold uppercase tracking-wide leading-none">Ha Gao Index</p>
-                </div>
-                <span className="text-base font-black text-inkBlack">{haGaoIndex.toFixed(1)}<span className="text-[10px] text-inkBlack/40">/5</span></span>
-              </div>
-              <div className="mt-1.5">
-                <HaGaoIndex index={haGaoIndex} size="sm" />
-              </div>
-              {haGaoDetail && (
-                <p className="text-[10px] text-inkBlack/50 italic leading-snug mt-1 line-clamp-2">{haGaoDetail}</p>
-              )}
-              {restaurant.dumplingMentionScore !== undefined && restaurant.dumplingMentionScore > 0 && (
-                <div className="flex items-center gap-2 mt-1.5 pt-1.5 border-t border-inkBlack/10">
-                  <span className="text-[9px] text-inkBlack/40 font-bold uppercase tracking-wide">
-                    {restaurant.dumplingMentionScore}% noemt dumplings
-                  </span>
-                  {restaurant.dumplingQualityScore !== undefined && restaurant.dumplingQualityScore !== null && (
-                    <span className="text-[9px] font-black text-epicGold">
-                      · {restaurant.dumplingQualityScore}% positief
-                    </span>
-                  )}
-                </div>
-              )}
-              {restaurant.confidence !== undefined && restaurant.confidence < 0.6 && (
-                <div className="flex items-center gap-1 mt-1">
-                  <Mascot type="lowconfidence" size={18} alt="Beperkte data" />
-                  <p className="text-[9px] text-inkBlack/30 italic">Beperkt aantal reviews</p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="flex flex-col justify-center bg-inkBlack/5 border border-inkBlack/10 rounded-xl px-3 py-2.5">
-              <p className="text-[10px] text-inkBlack/30 italic text-center leading-snug">
-                Ha Gao Index wordt bepaald bij voldoende dumpling reviews
-              </p>
-            </div>
-          )}
+        {/* EpicScore row */}
+        <div className="flex items-center justify-between px-4 pb-2">
+          <span className="text-[10px] text-inkBlack/40 font-bold uppercase tracking-wide">EpicScore</span>
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowScoreDetail((v) => !v) }}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl border-2 ${style.border} ${style.bg}`}
+            aria-label="Uitleg EpicScore"
+          >
+            <img src="/mascots/Epicscore.png" alt="" className="w-4 h-4 object-contain" />
+            <span className={`text-2xl font-black leading-none ${style.text}`}>{epicScore}</span>
+          </button>
         </div>
 
-        {/* Tap-to-explain, max 3 lines */}
+        {/* Ha Gao Index — only if we have real dumpling data */}
+        {haGaoIndex > 0 ? (
+          <div className="mx-4 mb-2 flex flex-col bg-[#fff3d6] border-2 border-inkBlack/20 rounded-xl px-3 py-2.5">
+            <div className="flex items-center justify-between gap-1">
+              <div className="flex items-center gap-1.5">
+                <img src="/mascots/HaGaoIndex.png" alt="Ha Gao Inspector" className="w-5 h-5 object-contain shrink-0" />
+                <p className="text-[10px] font-black text-epicGold uppercase tracking-wide leading-none">Ha Gao Index</p>
+              </div>
+              <span className="text-base font-black text-inkBlack">{haGaoIndex.toFixed(1)}<span className="text-[10px] text-inkBlack/40">/5</span></span>
+            </div>
+            <div className="mt-1.5">
+              <HaGaoIndex index={haGaoIndex} size="sm" />
+            </div>
+            {haGaoDetail && (
+              <p className="text-[10px] text-inkBlack/50 italic leading-snug mt-1 line-clamp-2">{haGaoDetail}</p>
+            )}
+            {restaurant.dumplingMentionScore !== undefined && restaurant.dumplingMentionScore > 0 && (
+              <div className="flex items-center gap-2 mt-1.5 pt-1.5 border-t border-inkBlack/10">
+                <span className="text-[9px] text-inkBlack/40 font-bold uppercase tracking-wide">
+                  {restaurant.dumplingMentionScore}% noemt dumplings
+                </span>
+                {restaurant.dumplingQualityScore !== undefined && restaurant.dumplingQualityScore !== null && (
+                  <span className="text-[9px] font-black text-epicGold">
+                    · {restaurant.dumplingQualityScore}% positief
+                  </span>
+                )}
+              </div>
+            )}
+            {restaurant.confidence !== undefined && restaurant.confidence < 0.6 && (
+              <div className="flex items-center gap-1 mt-1">
+                <Mascot type="lowconfidence" size={18} alt="Beperkte data" />
+                <p className="text-[9px] text-inkBlack/30 italic">Beperkt aantal reviews</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="mx-4 mb-2 flex flex-col bg-inkBlack/5 border border-inkBlack/10 rounded-xl px-3 py-2.5">
+            <p className="text-[10px] text-inkBlack/30 italic text-center leading-snug">
+              Ha Gao Index wordt bepaald bij voldoende dumpling reviews
+            </p>
+          </div>
+        )}
+
+        {/* Tap-to-explain EpicScore */}
         {showScoreDetail && (
           <div className="mx-4 mb-2 px-3 py-2 rounded-xl bg-inkBlack/5 border border-inkBlack/10">
             <p className="text-[10px] text-inkBlack/60 leading-snug">
@@ -164,7 +139,7 @@ export default function RestaurantCard({ restaurant, rank, currentCity }: Restau
           </div>
         )}
 
-        {/* Compact rankReason — one subtle line */}
+        {/* Compact rankReason */}
         {rankReason && (
           <p className="px-4 pb-1 text-[10px] text-inkBlack/40 italic leading-snug line-clamp-1">— {rankReason}</p>
         )}
@@ -185,7 +160,7 @@ export default function RestaurantCard({ restaurant, rank, currentCity }: Restau
           <p className="text-xs text-inkBlack leading-snug line-clamp-2">{mustOrder}</p>
         </div>
 
-        {/* Source pills */}
+        {/* Source pills + CTAs */}
         <div className="px-4 pb-2 flex items-center gap-1.5 flex-wrap">
           <span className="text-xs bg-cream border border-inkBlack/20 rounded-full px-2 py-0.5 font-medium">
             ⭐ {sources.googleRating.toFixed(1)}

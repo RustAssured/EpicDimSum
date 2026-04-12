@@ -154,7 +154,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
       <div className="grid grid-cols-2 gap-2">
         <div className="bg-epicRed/8 border border-epicRed/20 rounded-xl px-3 py-2">
           <div className="flex items-center gap-1.5 mb-0.5">
-            <span className="text-base">🔥</span>
+            <img src="/mascots/Epicscore.png" alt="EpicScore" className="w-4 h-4 object-contain" />
             <p className="text-[10px] font-black text-epicRed uppercase tracking-wide">EpicScore™</p>
           </div>
           <p className="text-[11px] text-inkBlack/60 leading-snug">
@@ -163,7 +163,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
         </div>
         <div className="bg-epicGreen/8 border border-epicGreen/20 rounded-xl px-3 py-2">
           <div className="flex items-center gap-1.5 mb-0.5">
-            <Mascot type="judge" size={18} className="shrink-0" />
+            <img src="/mascots/HaGaoIndex.png" alt="Ha Gao" className="w-4 h-4 object-contain" />
             <p className="text-[10px] font-black text-epicGreen uppercase tracking-wide">Ha Gao Index</p>
           </div>
           <p className="text-[11px] text-inkBlack/60 leading-snug">
@@ -255,7 +255,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
         onClick={() => setShowWhySheet(true)}
         className="pointer-events-auto flex items-center gap-2 bg-inkBlack/90 text-cream px-4 py-2.5 rounded-full text-xs font-black border border-inkBlack/20 shadow-lg active:scale-95 transition-transform"
       >
-        <Mascot type="judge" size={18} className="shrink-0" />
+        <img src="/mascots/MasterGao.png" alt="Gao" className="w-5 h-5 object-contain shrink-0" />
         Waarom anders dan Google?
       </button>
     </div>
