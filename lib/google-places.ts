@@ -45,6 +45,39 @@ export async function fetchGooglePlacesData(placeId: string): Promise<PlacesData
   }
 }
 
+export async function searchGooglePlaceByText(
+  query: string
+): Promise<{ placeId: string; name: string; address: string } | null> {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY
+  if (!apiKey) throw new Error('GOOGLE_PLACES_API_KEY not set')
+
+  const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': apiKey,
+      'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress',
+    },
+    body: JSON.stringify({ textQuery: query, maxResultCount: 1 }),
+    cache: 'no-store',
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`Google Places API error ${res.status}: ${text}`)
+  }
+
+  const data = await res.json()
+  const place = data.places?.[0]
+  if (!place) return null
+
+  return {
+    placeId: place.id,
+    name: place.displayName?.text ?? query,
+    address: place.formattedAddress ?? '',
+  }
+}
+
 export function normalizeGoogleScore(rating: number, reviewCount: number): number {
   // rating is 0-5, normalize to 0-100
   // Apply a slight boost for high review counts (social proof)

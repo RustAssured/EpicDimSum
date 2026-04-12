@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 
-export function AboutSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function AboutSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   if (!isOpen) return null
 
   return (

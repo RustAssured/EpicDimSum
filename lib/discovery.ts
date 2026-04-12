@@ -98,7 +98,7 @@ async function searchNearby(city: { name: string; lat: number; lng: number }): P
   const data = await res.json()
   const places: PlacesNearbyResult[] = data.places ?? []
 
-  console.log(`[Discovery Nearby] ${city.name}: ${places.length} raw results`)
+  console.debug(`[Discovery Nearby] ${city.name}: ${places.length} raw results`)
 
   const filtered = places.filter((p) => {
     const name = p.displayName?.text?.toLowerCase() ?? ''
@@ -121,7 +121,7 @@ async function searchNearby(city: { name: string; lat: number; lng: number }): P
     return false
   })
 
-  console.log(`[Discovery Nearby] ${city.name}: ${places.length} raw → ${filtered.length} after filter`)
+  console.debug(`[Discovery Nearby] ${city.name}: ${places.length} raw → ${filtered.length} after filter`)
 
   return filtered.map((p) => ({
     googlePlaceId: p.id,
@@ -175,7 +175,7 @@ async function searchByText(
   }
 
   const data = await res.json()
-  console.log(`[Discovery TextSearch] "${textQuery}":`, JSON.stringify(data).slice(0, 300))
+  console.debug(`[Discovery TextSearch] "${textQuery}":`, JSON.stringify(data).slice(0, 300))
 
   const places: PlacesTextResult[] = data.places ?? []
 
@@ -185,7 +185,7 @@ async function searchByText(
     googleReviewCount: p.userRatingCount ?? 0,
   }))
 
-  console.log(`[Discovery TextSearch] "${textQuery}": ${places.length} raw → ${filtered.length} after filter`)
+  console.debug(`[Discovery TextSearch] "${textQuery}": ${places.length} raw → ${filtered.length} after filter`)
 
   return filtered.map((p) => ({
     googlePlaceId: p.id,
@@ -236,7 +236,7 @@ async function searchAllQueriesForCity(city: { name: string; lat: number; lng: n
   for (const query of queries) {
     try {
       const results = await searchByText(city, query)
-      console.log(`[Discovery] "${query}" → ${results.length} results: ${results.map(r => r.name).join(', ')}`)
+      console.debug(`[Discovery] "${query}" → ${results.length} results: ${results.map(r => r.name).join(', ')}`)
 
       for (const spot of results) {
         if (!seen.has(spot.googlePlaceId)) {
@@ -249,7 +249,7 @@ async function searchAllQueriesForCity(city: { name: string; lat: number; lng: n
     }
   }
 
-  console.log(`[Discovery] ${city.name} total unique: ${allSpots.length} → ${allSpots.map(r => r.name).join(', ')}`)
+  console.debug(`[Discovery] ${city.name} total unique: ${allSpots.length} → ${allSpots.map(r => r.name).join(', ')}`)
   return allSpots
 }
 
@@ -323,18 +323,18 @@ export async function discoverNewSpots(cityFilter?: string): Promise<NewSpot[]> 
   const kaaLunExists = existing.some(r => r.googlePlaceId === KAA_LUN_PLACE_ID)
 
   if (!kaaLunExists) {
-    console.log('[Benchmark] Kaa Lun not in DB, fetching by Place ID...')
+    console.debug('[Benchmark] Kaa Lun not in DB, fetching by Place ID...')
     const kaaLun = await fetchPlaceById(KAA_LUN_PLACE_ID, 'Den Haag')
 
     if (kaaLun) {
-      console.log(`[Benchmark] Found: ${kaaLun.name} — ${kaaLun.googleRating}★ (${kaaLun.googleReviewCount} reviews)`)
+      console.debug(`[Benchmark] Found: ${kaaLun.name} — ${kaaLun.googleRating}★ (${kaaLun.googleReviewCount} reviews)`)
 
       if (!seen.has(kaaLun.googlePlaceId)) {
         seen.add(kaaLun.googlePlaceId)
         allSpots.push(kaaLun)
-        console.log('[Benchmark] Kaa Lun added to discovery batch')
+        console.debug('[Benchmark] Kaa Lun added to discovery batch')
       } else {
-        console.log('[Benchmark] Kaa Lun already in this batch via text search!')
+        console.debug('[Benchmark] Kaa Lun already in this batch via text search!')
       }
     } else {
       console.error('[Benchmark] fetchPlaceById returned null — checking raw response')
@@ -352,7 +352,7 @@ export async function discoverNewSpots(cityFilter?: string): Promise<NewSpot[]> 
       console.error('[Benchmark] Raw API response:', JSON.stringify(altData))
     }
   } else {
-    console.log('[Benchmark] Kaa Lun already in database ✓')
+    console.debug('[Benchmark] Kaa Lun already in database ✓')
   }
 
   const newSpots = allSpots

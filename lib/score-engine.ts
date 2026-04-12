@@ -157,16 +157,3 @@ Return ONLY valid JSON, no markdown, no preamble:
     confidence: parsed.confidence != null ? Number(parsed.confidence) : undefined,
   }
 }
-
-export function weightedEpicScore(params: {
-  googleScore: number
-  haGaoScore: number
-  buzzScore: number
-  vibeScore: number
-  confidence?: number
-}): number {
-  const { googleScore, haGaoScore, buzzScore, vibeScore, confidence = 0.5 } = params
-  const base = googleScore * 0.25 + haGaoScore * 0.40 + buzzScore * 0.20 + vibeScore * 0.10
-  const modifier = (confidence - 0.5) * 10
-  return Math.round(base + modifier)
-}
