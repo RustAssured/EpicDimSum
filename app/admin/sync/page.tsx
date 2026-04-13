@@ -45,6 +45,10 @@ export default function AdminSyncPage() {
   const [scanning, setScanning] = useState<string | null>(null)
   const [cityScanResults, setCityScanResults] = useState<Record<string, string>>({})
 
+  // Grote NL scan state
+  const [fullScanRunning, setFullScanRunning] = useState(false)
+  const [fullScanResult, setFullScanResult] = useState<string | null>(null)
+
 
   // Restaurant list filter
   const [listFilter, setListFilter] = useState<'all' | 'verified' | 'review'>('all')
@@ -219,6 +223,28 @@ export default function AdminSyncPage() {
       }))
     } finally {
       setScanning(null)
+    }
+  }
+
+  const handleFullScan = async () => {
+    if (!window.confirm('Grote NL scan: alle 14 steden sequentieel doorzoeken. Dit duurt ~5 minuten.')) return
+    setFullScanRunning(true)
+    setFullScanResult(null)
+    try {
+      const res = await fetch('/api/admin/full-scan', {
+        method: 'POST',
+        headers: { 'x-sync-secret': secret },
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(humanizeError(err.error || `HTTP ${res.status}`))
+      }
+      const data = await res.json()
+      setFullScanResult(`✓ ${data.added} nieuw toegevoegd, ${data.found} gevonden in alle steden`)
+    } catch (err) {
+      setFullScanResult(`⚠️ ${err instanceof Error ? err.message : 'Fout'}`)
+    } finally {
+      setFullScanRunning(false)
     }
   }
 
@@ -397,6 +423,23 @@ export default function AdminSyncPage() {
                 )}
               </div>
             ))}
+            {/* Grote NL scan */}
+            <div className="border-t border-inkBlack/10 pt-3 w-full flex items-center gap-3">
+              <button
+                onClick={handleFullScan}
+                disabled={fullScanRunning || !!scanning}
+                className={`px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
+                  ${fullScanRunning || !!scanning
+                    ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
+                    : 'bg-epicGreen text-cream active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
+                  }`}
+              >
+                {fullScanRunning ? '⏳ Alle steden scannen...' : '🌍 Grote NL scan'}
+              </button>
+              {fullScanResult && (
+                <span className="text-xs font-bold text-inkBlack/60">{fullScanResult}</span>
+              )}
+            </div>
           </div>
         </div>
 

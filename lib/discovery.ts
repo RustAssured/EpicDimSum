@@ -283,6 +283,28 @@ async function searchCity(city: { name: string; lat: number; lng: number }): Pro
   })
 }
 
+const CITY_TIMEOUT_MS = 60_000 // 60 s per city
+
+async function searchCityWithTimeout(city: { name: string; lat: number; lng: number }): Promise<NewSpot[]> {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      console.debug(`[Discovery] Timeout for ${city.name} after ${CITY_TIMEOUT_MS / 1000}s`)
+      resolve([])
+    }, CITY_TIMEOUT_MS)
+
+    searchCity(city)
+      .then((results) => {
+        clearTimeout(timer)
+        resolve(results)
+      })
+      .catch((err) => {
+        clearTimeout(timer)
+        console.error(`[Discovery] searchCity error for ${city.name}:`, err)
+        resolve([])
+      })
+  })
+}
+
 export async function fetchPlaceById(placeId: string, cityName: string): Promise<NewSpot | null> {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY
   if (!apiKey) return null
@@ -324,8 +346,16 @@ export async function discoverNewSpots(cityFilter?: string): Promise<NewSpot[]> 
     ? DISCOVERY_CITIES.filter((c) => c.name === cityFilter)
     : DISCOVERY_CITIES
 
-  const results = await Promise.all(citiesToScan.map(searchCity))
-  const allSpots = results.flat()
+  // Sequential scan — one city at a time with per-city timeout guard
+  const allSpots: NewSpot[] = []
+  for (const city of citiesToScan) {
+    try {
+      const spots = await searchCityWithTimeout(city)
+      allSpots.push(...spots)
+    } catch (err) {
+      console.error(`[Discovery] Skipping ${city.name} due to error:`, err)
+    }
+  }
 
   const seen = new Set<string>(allSpots.map(s => s.googlePlaceId))
 
