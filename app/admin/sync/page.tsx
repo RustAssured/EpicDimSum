@@ -379,7 +379,11 @@ export default function AdminSyncPage() {
           {/* Per-city scan */}
           <div className="border-t border-inkBlack/10 pt-3 flex flex-wrap gap-2">
             <p className="text-xs font-bold text-inkBlack/50 w-full uppercase tracking-wide">Scan per stad:</p>
-            {['Amsterdam', 'Rotterdam', 'Den Haag', 'Utrecht', 'Eindhoven'].map((city) => (
+            {[
+              'Amsterdam', 'Rotterdam', 'Den Haag', 'Utrecht', 'Arnhem',
+              'Eindhoven', 'Groningen', 'Leeuwarden', 'Lelystad', 'Maastricht',
+              'Middelburg', 'Assen', 'Zwolle', "'s-Hertogenbosch",
+            ].map((city) => (
               <div key={city} className="flex flex-col items-start gap-0.5">
                 <button
                   onClick={() => handleCityScan(city)}
@@ -486,7 +490,16 @@ export default function AdminSyncPage() {
                   <option>Rotterdam</option>
                   <option>Den Haag</option>
                   <option>Utrecht</option>
+                  <option>Arnhem</option>
                   <option>Eindhoven</option>
+                  <option>Groningen</option>
+                  <option>Leeuwarden</option>
+                  <option>Lelystad</option>
+                  <option>Maastricht</option>
+                  <option>Middelburg</option>
+                  <option>Assen</option>
+                  <option>Zwolle</option>
+                  <option>{"'s-Hertogenbosch"}</option>
                 </select>
               </div>
               <div>

@@ -11,6 +11,17 @@ const CITY_MAP: Record<string, City> = {
   'den haag (the hague)': 'Den Haag',
   utrecht: 'Utrecht',
   eindhoven: 'Eindhoven',
+  groningen: 'Groningen',
+  leeuwarden: 'Leeuwarden',
+  assen: 'Assen',
+  zwolle: 'Zwolle',
+  arnhem: 'Arnhem',
+  maastricht: 'Maastricht',
+  middelburg: 'Middelburg',
+  lelystad: 'Lelystad',
+  "'s-hertogenbosch": "'s-Hertogenbosch",
+  's-hertogenbosch': "'s-Hertogenbosch",
+  'den bosch': "'s-Hertogenbosch",
 }
 
 function normalizeCity(city: string): City {

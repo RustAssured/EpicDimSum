@@ -1,4 +1,18 @@
-export type City = 'Amsterdam' | 'Rotterdam' | 'Den Haag' | 'Utrecht' | 'Eindhoven'
+export type City =
+  | 'Amsterdam'
+  | 'Rotterdam'
+  | 'Den Haag'
+  | 'Utrecht'
+  | 'Eindhoven'
+  | 'Groningen'
+  | 'Leeuwarden'
+  | 'Assen'
+  | 'Zwolle'
+  | 'Arnhem'
+  | 'Maastricht'
+  | 'Middelburg'
+  | 'Lelystad'
+  | "'s-Hertogenbosch"
 export type PriceRange = '€' | '€€' | '€€€'
 export type Status = 'open' | 'busy' | 'closed' | 'pending'
 

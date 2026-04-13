@@ -11,11 +11,22 @@ export interface NewSpot {
 }
 
 const DISCOVERY_CITIES = [
+  // Randstad + huidige steden
   { name: 'Amsterdam', lat: 52.3676, lng: 4.9041 },
   { name: 'Rotterdam', lat: 51.9225, lng: 4.4792 },
   { name: 'Den Haag', lat: 52.0705, lng: 4.3007 },
   { name: 'Utrecht', lat: 52.0907, lng: 5.1214 },
   { name: 'Eindhoven', lat: 51.4416, lng: 5.4697 },
+  // Alle provinciale hoofdsteden
+  { name: 'Groningen', lat: 53.2194, lng: 6.5665 },
+  { name: 'Leeuwarden', lat: 53.2012, lng: 5.7999 },
+  { name: 'Assen', lat: 52.9929, lng: 6.5623 },
+  { name: 'Zwolle', lat: 52.5168, lng: 6.0830 },
+  { name: 'Arnhem', lat: 51.9851, lng: 5.8987 },
+  { name: 'Maastricht', lat: 50.8514, lng: 5.6910 },
+  { name: 'Middelburg', lat: 51.4988, lng: 3.6136 },
+  { name: 'Lelystad', lat: 52.5185, lng: 5.4714 },
+  { name: "'s-Hertogenbosch", lat: 51.6978, lng: 5.3037 },
 ]
 
 const DIM_SUM_KEYWORDS = ['dim sum', 'dimsum', 'yum cha', 'kantonees', 'cantonese', 'ha gao', 'har gow', 'siu mai']
