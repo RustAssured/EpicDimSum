@@ -27,6 +27,38 @@ function epicScoreStyle(score: number) {
   return { border: 'border-epicRed', text: 'text-epicRed', bg: 'bg-epicRed/8' }
 }
 
+function epicScoreVerdict(score: number): string {
+  if (score >= 90) return 'Uitzonderlijk'
+  if (score >= 80) return 'Uitstekend'
+  if (score >= 70) return 'Goed'
+  if (score >= 60) return 'Redelijk'
+  return 'Twijfelachtig'
+}
+
+function dumplingStatus(restaurant: Restaurant): string {
+  const haGao = restaurant.haGaoIndex ?? 0
+  const mentions = restaurant.dumplingMentionScore ?? 0
+  const quality = restaurant.dumplingQualityScore ?? 0
+  const reviewCount = restaurant.sources.googleReviewCount ?? 0
+
+  if (haGao >= 4.0 && mentions >= 30 && quality >= 70) {
+    return 'Sterk dumplingbewijs'
+  }
+  if (haGao >= 3.5 && reviewCount < 100) {
+    return 'Veelbelovend, nog weinig data'
+  }
+  if (haGao < 2.0 && mentions < 15 && restaurant.scores.google >= 80) {
+    return 'Goed restaurant, maar weinig dim sum-signaal'
+  }
+  if (haGao < 1.0 && mentions < 5) {
+    return 'Waarschijnlijk geen dim sum-specialist'
+  }
+  if (haGao >= 2.5 && mentions >= 15) {
+    return 'Solide dumplingkwaliteit'
+  }
+  return 'Beperkt dumplingbewijs beschikbaar'
+}
+
 export default function RestaurantCard({ restaurant, rank, currentCity }: RestaurantCardProps) {
   const [showScoreDetail, setShowScoreDetail] = useState(false)
 
@@ -78,11 +110,16 @@ export default function RestaurantCard({ restaurant, rank, currentCity }: Restau
           <span className="text-[10px] text-inkBlack/40 font-bold uppercase tracking-wide">EpicScore</span>
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowScoreDetail((v) => !v) }}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl border-2 ${style.border} ${style.bg}`}
+            className={`flex flex-col items-center px-3 py-1.5 rounded-xl border-2 ${style.border} ${style.bg}`}
             aria-label="Uitleg EpicScore"
           >
-            <Image src="/mascots/Epicscore.png" alt="" width={16} height={16} className="object-contain" />
-            <span className={`text-2xl font-black leading-none ${style.text}`}>{epicScore}</span>
+            <div className="flex items-center gap-1.5">
+              <Image src="/mascots/Epicscore.png" alt="" width={16} height={16} className="object-contain" />
+              <span className={`text-2xl font-black leading-none ${style.text}`}>{epicScore}</span>
+            </div>
+            <span className={`text-[9px] font-bold ${style.text} opacity-60 leading-none mt-0.5`}>
+              {epicScoreVerdict(epicScore)}
+            </span>
           </button>
         </div>
 
@@ -102,18 +139,12 @@ export default function RestaurantCard({ restaurant, rank, currentCity }: Restau
             {haGaoDetail && (
               <p className="text-[10px] text-inkBlack/50 italic leading-snug mt-1 line-clamp-2">{haGaoDetail}</p>
             )}
-            {restaurant.dumplingMentionScore !== undefined && restaurant.dumplingMentionScore > 0 && (
-              <div className="flex items-center gap-2 mt-1.5 pt-1.5 border-t border-inkBlack/10">
-                <span className="text-[9px] text-inkBlack/40 font-bold uppercase tracking-wide">
-                  {restaurant.dumplingMentionScore}% noemt dumplings
-                </span>
-                {restaurant.dumplingQualityScore !== undefined && restaurant.dumplingQualityScore !== null && (
-                  <span className="text-[9px] font-black text-epicGold">
-                    · {restaurant.dumplingQualityScore}% positief
-                  </span>
-                )}
-              </div>
-            )}
+            {/* Human status line — always visible */}
+            <div className="mt-1.5 pt-1.5 border-t border-inkBlack/10">
+              <p className="text-[10px] font-black text-inkBlack/50">
+                {dumplingStatus(restaurant)}
+              </p>
+            </div>
             {restaurant.confidence !== undefined && restaurant.confidence < 0.6 && (
               <div className="flex items-center gap-1 mt-1">
                 <Mascot type="lowconfidence" size={18} alt="Beperkte data" />

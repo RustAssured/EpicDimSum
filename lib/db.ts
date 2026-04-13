@@ -57,18 +57,29 @@ export function isTrustedForPublicFeed(r: Restaurant): boolean {
   if ((r.status as string) === 'pending') return false
   if (r.epicScore < 20) return false
 
-  const summary = (r.summary ?? '').toLowerCase()
   const mustOrder = (r.mustOrder ?? '').toLowerCase()
+  const summary = (r.summary ?? '').toLowerCase()
 
-  // Only exclude if clearly NOT dim sum
-  const clearlyNotDimSum =
+  const explicitlyNotDimSum =
     mustOrder.includes('niet van toepassing') ||
     mustOrder.includes('geen dumplings') ||
     summary.includes('geen dim sum') ||
-    summary.includes('italiaans') ||
-    summary.includes('pastarestaurant')
+    summary.includes('pastarestaurant') ||
+    summary.includes('italiaans')
 
-  if (clearlyNotDimSum) return false
+  if (explicitlyNotDimSum) return false
+
+  // Structural filter: all three signals must be low to exclude
+  const haGao = r.haGaoIndex ?? 0
+  const mentions = r.dumplingMentionScore ?? 0
+  const quality = r.dumplingQualityScore ?? 0
+
+  const clearlyNoDumplingSignal =
+    haGao < 1.0 &&
+    mentions < 5 &&
+    (quality === 0 || quality === null)
+
+  if (clearlyNoDumplingSignal) return false
 
   return true
 }

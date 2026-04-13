@@ -110,7 +110,7 @@ Return ONLY valid JSON, no markdown, no preamble:
   "vibeScore": <int 0-100, atmosphere based on non-dumpling review signals>,
   "buzzScore": ${buzzJsonField},
   "epicScore": <int 0-100, calculated as above>,
-  "rankReason": "<one punchy Dutch sentence max 12 words explaining the rank — focus on dumpling quality>",
+  "rankReason": "<max 10 words Dutch — be direct about WHY this ranks here. If haGaoIndex is low despite good Google score, say: 'Goed restaurant maar weinig dim sum-bewijs'. If haGaoIndex is high, say what makes the dumplings good. Never be vague. Examples: 'Consistente ha gao kwaliteit door de jaren heen' / 'Hoge buzz maar dumplingkwaliteit wisselvallig' / 'Goed restaurant, geen echte dim sum-specialist'>",
   "summary": "<2 sentences max in Dutch, honest and specific about dumpling quality>"
 }`
 
