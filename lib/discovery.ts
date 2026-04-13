@@ -46,10 +46,22 @@ export const BLOCKLIST_KEYWORDS = [
   'winkel', 'markt', 'market', 'school', 'academy',
 ]
 
-export function isActualRestaurant(spot: Pick<NewSpot, 'name' | 'googleReviewCount'>): boolean {
+const SMALLER_CITIES = [
+  'Groningen', 'Leeuwarden', 'Assen', 'Zwolle',
+  'Arnhem', 'Maastricht', 'Middelburg', 'Lelystad', "'s-Hertogenbosch",
+]
+
+export function isActualRestaurant(
+  spot: Pick<NewSpot, 'name' | 'googleReviewCount'>,
+  cityName?: string
+): boolean {
   const nameLower = spot.name.toLowerCase()
   if (BLOCKLIST_KEYWORDS.some((kw) => nameLower.includes(kw))) return false
-  if (spot.googleReviewCount < 10) return false
+
+  // Lower threshold for smaller cities
+  const minReviews = cityName && SMALLER_CITIES.includes(cityName) ? 5 : 10
+  if (spot.googleReviewCount < minReviews) return false
+
   return true
 }
 
@@ -194,7 +206,7 @@ async function searchByText(
   const filtered = places.filter((p) => isActualRestaurant({
     name: p.displayName?.text ?? '',
     googleReviewCount: p.userRatingCount ?? 0,
-  }))
+  }, city.name))
 
   console.debug(`[Discovery TextSearch] "${textQuery}": ${places.length} raw → ${filtered.length} after filter`)
 
@@ -218,22 +230,27 @@ function getCityQueries(city: { name: string }): string[] {
     `yum cha ${city.name}`,
     `Chinees restaurant ${city.name} dim sum`,
     `Kantonees restaurant ${city.name}`,
-    `蒸饺 ${city.name}`,
+    `dumplings ${city.name}`,
+    `Chinese restaurant ${city.name}`,
   ]
 
   if (city.name === 'Den Haag') {
     base.push('dim sum Wagenstraat Den Haag')
     base.push('Chinees Wagenstraat Den Haag')
-    base.push('dim sum Chinatown Den Haag')
-    base.push('Kaa Lun Palace Den Haag')
-    base.push('Kantonees restaurant Wagenstraat')
-    base.push('Chinese restaurant Wagenstraat Den Haag')
+    base.push('Kantonees restaurant Wagenstraat Den Haag')
+    base.push('Chinese restaurant Chinatown Den Haag')
   }
 
   if (city.name === 'Rotterdam') {
     base.push('dim sum Rotterdam Centrum')
     base.push('Chinees restaurant Rotterdam West Kruiskade')
     base.push('dim sum West-Kruiskade')
+  }
+
+  if (SMALLER_CITIES.includes(city.name)) {
+    base.push(`Chinees restaurant ${city.name}`)
+    base.push(`Aziatisch restaurant ${city.name} dumplings`)
+    base.push(`dim sum ${city.name} Nederland`)
   }
 
   return base
@@ -398,7 +415,7 @@ export async function discoverNewSpots(cityFilter?: string): Promise<NewSpot[]> 
 
   const newSpots = allSpots
     .filter((spot) => !existingPlaceIds.has(spot.googlePlaceId))
-    .filter(isActualRestaurant)
+    .filter((spot) => isActualRestaurant(spot, spot.city))
 
   const dedupSeen = new Set<string>()
   return newSpots.filter((spot) => {
