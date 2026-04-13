@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import Mascot from './Mascot'
 import Icon from './Icon'
 import Image from 'next/image'
+import { createClient } from '@/lib/auth'
 
 interface CheckInProps {
   restaurantId: string
@@ -82,9 +83,16 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
     if (submitted || loading || alreadyCheckedIn) return
     setLoading(true)
     try {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
       const res = await fetch('/api/checkin', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ restaurantId, rating }),
       })
       const data = await res.json()

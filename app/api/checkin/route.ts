@@ -39,6 +39,15 @@ export async function POST(request: NextRequest) {
     const ip = getIp(request)
     const ipHash = hashIp(ip)
 
+    // Resolve user_id from Bearer token if present
+    let userId: string | null = null
+    const authHeader = request.headers.get('authorization')
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.replace('Bearer ', '')
+      const { data: { user } } = await getSupabaseAdmin().auth.getUser(token)
+      userId = user?.id ?? null
+    }
+
     // Rate limit: max 1 check-in per restaurant per IP per 24 hours
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
     const { data: existing } = await getSupabaseAdmin()
@@ -60,7 +69,7 @@ export async function POST(request: NextRequest) {
 
     const { error } = await getSupabaseAdmin()
       .from('checkins')
-      .insert({ restaurant_id: restaurantId, rating, ip_hash: ipHash })
+      .insert({ restaurant_id: restaurantId, rating, ip_hash: ipHash, user_id: userId })
 
     if (error) throw error
 
