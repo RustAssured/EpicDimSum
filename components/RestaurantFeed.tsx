@@ -64,6 +64,11 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
     router.push(`/restaurant/${random.id}`)
   }
 
+  const availableCities = useMemo(() => {
+    const citySet = new Set(restaurants.map(r => r.city))
+    return Array.from(citySet) as City[]
+  }, [restaurants])
+
   const filtered = useMemo(() => {
     let list = restaurants
     if (selectedCity !== 'Alle') {
@@ -129,7 +134,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
       </div>
 
       {/* City filter */}
-      <CityFilter selected={selectedCity} onChange={setSelectedCity} />
+      <CityFilter selected={selectedCity} onChange={setSelectedCity} availableCities={availableCities} />
 
       {/* Product promise */}
       <p className="text-xs text-inkBlack/40 font-medium text-center -mt-1">
