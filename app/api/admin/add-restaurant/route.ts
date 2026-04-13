@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Restaurant, City, PriceRange } from '@/lib/types'
+
+export const maxDuration = 300
+export const runtime = 'nodejs'
 import { upsertRestaurant, getAllRestaurants } from '@/lib/db'
 import { fetchGooglePlacesData, normalizeGoogleScore } from '@/lib/google-places'
 import { fetchIensData } from '@/lib/iens-scraper'

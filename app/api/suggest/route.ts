@@ -63,8 +63,8 @@ export async function POST(request: NextRequest) {
   }
 
   const { mapsUrl } = body
-  if (!mapsUrl || typeof mapsUrl !== 'string') {
-    return NextResponse.json({ error: 'Geen URL opgegeven' }, { status: 400 })
+  if (!mapsUrl || typeof mapsUrl !== 'string' || mapsUrl.length > 2048) {
+    return NextResponse.json({ error: 'Ongeldige URL' }, { status: 400 })
   }
 
   const placeId = extractPlaceId(mapsUrl)

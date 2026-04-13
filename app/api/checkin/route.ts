@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase'
-import { createHash } from 'crypto'
+import { createHmac } from 'crypto'
 
 function hashIp(ip: string): string {
-  return createHash('sha256').update(ip + 'epicdimsum_salt').digest('hex').slice(0, 16)
+  const salt = process.env.RATE_LIMIT_SALT ?? 'epicdimsum_fallback_salt'
+  return createHmac('sha256', salt).update(ip).digest('hex')
 }
 
 function getIp(request: NextRequest): string {

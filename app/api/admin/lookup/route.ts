@@ -8,7 +8,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { name, city } = await request.json() as { name: string; city: string }
+  let body: { name?: string; city?: string }
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Ongeldige invoer' }, { status: 400 })
+  }
+  const { name, city } = body
   if (!name || !city) {
     return NextResponse.json({ error: 'name and city are required' }, { status: 400 })
   }
