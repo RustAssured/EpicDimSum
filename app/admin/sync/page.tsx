@@ -227,25 +227,46 @@ export default function AdminSyncPage() {
   }
 
   const handleFullScan = async () => {
-    if (!window.confirm('Grote NL scan: alle 14 steden sequentieel doorzoeken. Dit duurt ~5 minuten.')) return
+    if (!secret) return
     setFullScanRunning(true)
-    setFullScanResult(null)
-    try {
-      const res = await fetch('/api/admin/full-scan', {
-        method: 'POST',
-        headers: { 'x-sync-secret': secret },
-      })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(humanizeError(err.error || `HTTP ${res.status}`))
+    setFullScanResult('Gestart...')
+
+    const cities = [
+      'Amsterdam', 'Rotterdam', 'Den Haag', 'Utrecht', 'Eindhoven',
+      'Groningen', 'Leeuwarden', 'Assen', 'Zwolle', 'Arnhem',
+      'Maastricht', 'Middelburg', 'Lelystad', "'s-Hertogenbosch"
+    ]
+
+    let totalAdded = 0
+
+    for (const city of cities) {
+      setFullScanResult(`Scanning ${city}...`)
+      try {
+        const res = await fetch(
+          `/api/admin/full-scan?city=${encodeURIComponent(city)}`,
+          {
+            method: 'POST',
+            headers: { 'x-sync-secret': secret },
+            signal: AbortSignal.timeout(30000), // 30s per city max
+          }
+        )
+        if (res.ok) {
+          const data = await res.json()
+          totalAdded += data.added ?? 0
+          setFullScanResult(`${city} ✓ — ${totalAdded} nieuw totaal`)
+        } else {
+          setFullScanResult(`${city} overgeslagen — doorgaan...`)
+        }
+      } catch {
+        // Timeout or error — skip this city and continue
+        setFullScanResult(`${city} timeout — doorgaan...`)
       }
-      const data = await res.json()
-      setFullScanResult(`✓ ${data.added} nieuw toegevoegd, ${data.found} gevonden in alle steden`)
-    } catch (err) {
-      setFullScanResult(`⚠️ ${err instanceof Error ? err.message : 'Fout'}`)
-    } finally {
-      setFullScanRunning(false)
+      // Small pause between cities
+      await new Promise(r => setTimeout(r, 1500))
     }
+
+    setFullScanResult(`✓ Klaar! ${totalAdded} nieuwe restaurants gevonden`)
+    setFullScanRunning(false)
   }
 
   const handleCleanupNonDimSum = async () => {
