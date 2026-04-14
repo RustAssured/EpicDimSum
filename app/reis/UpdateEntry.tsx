@@ -8,6 +8,7 @@ interface Update {
   content: string[]
   mistake: string
   fixed: boolean
+  fixedNote?: string
 }
 
 export default function UpdateEntry({ update }: { update: Update }) {
@@ -37,10 +38,13 @@ export default function UpdateEntry({ update }: { update: Update }) {
           </p>
         </div>
         <p className="text-xs text-inkBlack/60 leading-snug italic">{update.mistake}</p>
-        {update.fixed && (
-          <div className="flex items-center gap-1.5 mt-2">
-            <Image src="/mascots/dumpling-check.png" alt="gefixed" width={16} height={16} className="object-contain" />
-            <p className="text-[10px] font-black text-epicGreen">Opgelost dankzij community feedback</p>
+        {update.fixed && update.fixedNote && (
+          <div className="mt-2 pt-2 border-t border-epicGreen/20">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Image src="/mascots/dumpling-check.png" alt="gefixed" width={16} height={16} className="object-contain" />
+              <p className="text-[10px] font-black text-epicGreen">Opgelost</p>
+            </div>
+            <p className="text-[10px] text-inkBlack/50 leading-snug italic">{update.fixedNote}</p>
           </div>
         )}
       </div>

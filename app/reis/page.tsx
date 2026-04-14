@@ -10,6 +10,24 @@ export const metadata = {
 
 const updates = [
   {
+    id: 'launch-week',
+    date: '14 april 2026',
+    title: 'De week dat alles klikte',
+    emoji: '🔥',
+    content: [
+      'Wat een week. Gao heeft hard gewerkt. Heel hard.',
+      'We begonnen met een idee: de beste dim sum gids van Nederland. Niet de grootste. De beste. En deze week werd dat echt.',
+      'De Dumpling Intelligence Engine v2 draait nu op drie bronnen — Iens, Tripadvisor en web search. Geen 5 willekeurige Google reviews meer. Echte teksten. Echte signalen. Gao weet nu écht wat hij beoordeelt.',
+      'Nederland is nu compleet — alle 14 provinciale hoofdsteden plus Rotterdam. En ja... Middelburg heeft dim sum. Maastricht niet. Gao is verbaasd en blij tegelijk.',
+      'Het Dumpling Mandje is live. Badges, bezoekhistorie, GaoMandje als mascot. Jouw reis met Gao begint nu echt.',
+      'Google login werkt. Check-ins zijn authentiek. En de score is eerlijker dan ooit — geen cijfers meer, alleen dumplings. Want cijfers voelen als een rapportcijfer. Dumplings voelen als een feestje.',
+      'En het allerbelangrijkste van deze week: we besloten dat EpicDimSum geen directory is. Het is een keurmerk. Gao staat achter elk restaurant op deze lijst. Persoonlijk.',
+    ],
+    mistake: 'Gao had aanvankelijk restaurants in de feed met een Ha Gao score van 0.0 — gebaseerd op 5 willekeurige Google reviews. Oriental City Amsterdam kreeg ten onrechte geen Ha Gao Index. Dat klopte niet.',
+    fixed: true,
+    fixedNote: 'Dumpling Intelligence Engine v2 lost dit op. Iens + Tripadvisor + web search geeft nu een eerlijk beeld. Oriental City scoort nu 4.2/5 Ha Gao Index. Terecht.',
+  },
+  {
     id: 'origin',
     date: 'April 2026',
     title: 'Het begin',
@@ -20,8 +38,9 @@ const updates = [
       'De Ha Gao Index werd geboren. Niet hoeveel sterren een restaurant heeft, maar hoe goed de dumplings écht zijn.',
       'En toen verscheen Gao. Klein, rond, met grote ogen en een nog grotere mening over dumplings.',
     ],
-    mistake: 'Gao dacht dat 5 Google reviews genoeg waren om een Ha Gao Index te berekenen. Dat bleek niet zo. Iens, Tripadvisor en web search geven een veel eerlijker beeld.',
+    mistake: 'Gao dacht dat 5 Google reviews genoeg waren om een Ha Gao Index te berekenen. Dat bleek niet zo.',
     fixed: true,
+    fixedNote: 'Dumpling Intelligence Engine v2 lost dit op met Iens, Tripadvisor en web search als databronnen.',
   },
 ]
 
