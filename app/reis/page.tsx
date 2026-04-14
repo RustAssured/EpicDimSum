@@ -70,6 +70,45 @@ export default function ReisPage() {
 
       <div className="max-w-2xl mx-auto px-4 py-8">
 
+        {/* Food collage */}
+        <div className="rounded-2xl border-[3px] border-inkBlack shadow-brutal overflow-hidden mb-6">
+          <div className="sm:flex sm:items-center">
+
+            {/* Photo */}
+            <div className="sm:w-1/2 shrink-0">
+              <Image
+                src="/images/dimsum-collage.jpg"
+                alt="Een leven vol dim sum en dumplings"
+                width={600}
+                height={400}
+                className="w-full h-56 sm:h-full object-cover"
+              />
+            </div>
+
+            {/* Text */}
+            <div className="p-5 sm:w-1/2 bg-white">
+              <div className="flex items-center gap-2 mb-3">
+                <Image
+                  src="/mascots/hilarischgao.png"
+                  alt="Gao blij"
+                  width={32}
+                  height={32}
+                  className="object-contain shrink-0"
+                />
+                <p className="font-black text-sm text-inkBlack">De aanleiding</p>
+              </div>
+              <p className="text-sm text-inkBlack/70 leading-relaxed">
+                Ja, dat ik van dim sum en dumplings hou, moge duidelijk zijn.
+                Met op de foto het bewijs van veel (te veel?) heerlijke dumplings,
+                bao&apos;s en meer. En die liefde voor deze heerlijke gerechten heeft
+                mij geïnspireerd om de meest epische dim sum bij elkaar te verzamelen!
+              </p>
+            </div>
+
+          </div>
+          <div className="h-2 bg-epicRed" />
+        </div>
+
         {/* Voorwoord */}
         <div className="rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white overflow-hidden mb-8">
           <div className="p-5">
