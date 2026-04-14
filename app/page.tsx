@@ -14,36 +14,33 @@ export default async function Home() {
     <main className="min-h-screen bg-cream">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-cream border-b-[3px] border-inkBlack">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <Image src="/mascots/MasterGao.png" alt="Gao" width={40} height={40} className="object-contain shrink-0" />
-            <div className="flex flex-col leading-tight">
-              <h1 className="text-xl font-black tracking-tight leading-none">
+        <div className="max-w-2xl mx-auto px-4 py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Image src="/mascots/MasterGao.png" alt="Gao" width={36} height={36} className="object-contain shrink-0" />
+            <div>
+              <h1 className="font-black text-base leading-none">
                 <span className="text-epicRed">Epic</span>
                 <span className="text-epicGreen">Dim</span>
                 <span className="text-epicGold">Sum</span>
               </h1>
-              <p className="text-[10px] text-inkBlack/50 font-medium hidden sm:block">
+              <p className="text-[9px] text-inkBlack/40 font-medium leading-none mt-0.5 hidden sm:block">
                 Plekken waar Gao voor juicht
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <nav className="flex items-center gap-3">
             <About />
             <Link
               href="/reis"
               className="flex items-center gap-1 text-xs font-bold text-inkBlack/40 hover:text-inkBlack/70 transition-colors"
             >
-              <Image src="/mascots/dumpling-pin.png" alt="" width={14} height={14} className="object-contain" />
+              <Image src="/mascots/dumpling-pin.png" alt="" width={12} height={12} className="object-contain" />
               Reis
             </Link>
-            <Link
-              href="/admin/sync"
-              className="text-xs text-inkBlack/30 hover:text-inkBlack/60 transition-colors"
-            >
+            <a href="/admin/sync" className="text-xs text-inkBlack/30 hover:text-inkBlack/60 transition-colors">
               Admin
-            </Link>
-          </div>
+            </a>
+          </nav>
         </div>
       </header>
 

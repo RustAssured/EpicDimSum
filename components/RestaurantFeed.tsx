@@ -203,73 +203,63 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
         Alleen geverifieerde dim sum spots — kwaliteit boven kwantiteit
       </p>
 
-      {/* Location button — full width */}
-      <button
-        onClick={handleLocation}
-        className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl border-2 text-sm font-black transition-all active:scale-95 ${
-          sortByDistance
-            ? 'bg-inkBlack text-cream border-inkBlack shadow-brutal-sm'
-            : 'bg-cream text-inkBlack border-inkBlack/20 hover:bg-inkBlack/5'
-        }`}
-      >
-        <Image src="/mascots/dumpling-pin.png" alt="locatie" width={18} height={18} className="object-contain" />
-        {locationLoading ? 'Zoeken...' : sortByDistance ? "Gao's picks nabij jou — klik om uit te zetten" : 'Laat spots bij mij in de buurt zien'}
-      </button>
+      {/* Single control bar — all viewing actions in one row */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
 
-      {sortByDistance && (
-        <p className="text-[10px] text-inkBlack/40 font-bold text-center -mt-2">
-          Gesorteerd op afstand · alleen door Gao goedgekeurde spots
-        </p>
-      )}
+        {/* Sort toggle */}
+        <button
+          onClick={() => setSortBy(sortBy === 'epic' ? 'hagao' : 'epic')}
+          className="shrink-0 flex items-center gap-1.5 rounded-full border-[3px] border-inkBlack bg-inkBlack px-4 py-2 text-xs font-black text-cream"
+        >
+          {sortBy === 'epic' ? 'Beste overall' : 'Ha Gao'}
+          <span className="text-[10px] opacity-60">▾</span>
+        </button>
 
-      {/* Sort control + view toggle + Surprise Me */}
-      <div className="flex items-center gap-2">
-        <span className="text-[10px] text-inkBlack/40 font-bold uppercase tracking-wide">Sorteren:</span>
-        {[
-          { value: 'epic', label: 'Beste overall' },
-          { value: 'hagao', label: 'Ha Gao' },
-        ].map((opt) => (
-          <button
-            key={opt.value}
-            onClick={() => setSortBy(opt.value as 'epic' | 'hagao')}
-            className={`text-xs font-black px-3 py-1 rounded-full border-2 border-inkBlack transition-all ${
-              sortBy === opt.value
-                ? 'bg-inkBlack text-cream'
-                : 'bg-cream text-inkBlack active:bg-inkBlack/10'
-            }`}
-          >
-            {opt.label}
-          </button>
-        ))}
-        <div className="ml-auto flex items-center gap-1 bg-inkBlack/5 border border-inkBlack/10 rounded-xl p-1">
+        {/* Location — compact pill */}
+        <button
+          onClick={handleLocation}
+          className={`shrink-0 flex items-center gap-1.5 rounded-full border-[3px] border-inkBlack px-3 py-2 text-xs font-black transition-all ${
+            sortByDistance
+              ? 'bg-inkBlack text-cream'
+              : 'bg-cream text-inkBlack'
+          }`}
+        >
+          <Image src="/mascots/dumpling-pin.png" alt="" width={14} height={14} className="object-contain" />
+          {locationLoading ? '...' : sortByDistance ? 'Nabij jou' : 'In jouw buurt'}
+        </button>
+
+        {/* List/Map toggle */}
+        <div className="shrink-0 flex rounded-full border-[3px] border-inkBlack overflow-hidden">
           <button
             onClick={() => setViewMode('list')}
-            className={`text-xs font-black px-2.5 py-1 rounded-lg transition-all ${
-              viewMode === 'list' ? 'bg-inkBlack text-cream' : 'text-inkBlack/50'
+            className={`px-3 py-2 text-xs font-black transition-colors ${
+              viewMode === 'list' ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack'
             }`}
           >
             Lijst
           </button>
           <button
             onClick={() => setViewMode('map')}
-            className={`text-xs font-black px-2.5 py-1 rounded-lg transition-all ${
-              viewMode === 'map' ? 'bg-inkBlack text-cream' : 'text-inkBlack/50'
+            className={`px-3 py-2 text-xs font-black transition-colors ${
+              viewMode === 'map' ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack'
             }`}
           >
             Kaart
           </button>
         </div>
+
+        {/* Surprise — icon only */}
         <button
           onClick={handleSurpriseMe}
-          className="flex items-center gap-1.5 text-xs font-black px-3 py-1 rounded-full border-2 border-inkBlack/20 bg-cream hover:bg-epicRed/10 transition-all active:scale-95"
+          className="shrink-0 flex items-center justify-center w-9 h-9 rounded-full border-[3px] border-inkBlack bg-cream active:scale-95 transition-transform"
         >
-          <Image src="/mascots/hilarischgao.png" alt="Surprise" width={18} height={18} className="object-contain" />
-          Verras me!
+          <Image src="/mascots/hilarischgao.png" alt="Verras me" width={20} height={20} className="object-contain" />
         </button>
+
       </div>
 
-      {/* Permanent explainer */}
-      <div className="grid grid-cols-2 gap-2">
+      {/* Permanent explainer — hidden on mobile */}
+      <div className="hidden sm:grid grid-cols-2 gap-2">
         <div className="bg-epicRed/8 border border-epicRed/20 rounded-xl px-3 py-2">
           <div className="flex items-center gap-1.5 mb-0.5">
             <Image src="/mascots/Epicscore.png" alt="EpicScore" width={16} height={16} className="object-contain" />
@@ -413,10 +403,10 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
       <button
         onClick={() => setShowWhySheet(true)}
-        className="pointer-events-auto flex items-center gap-2 bg-inkBlack/90 text-cream px-4 py-2.5 rounded-full text-xs font-black border border-inkBlack/20 shadow-lg active:scale-95 transition-transform"
+        className="pointer-events-auto flex items-center gap-1.5 bg-inkBlack/85 backdrop-blur text-cream px-3 py-2 rounded-full text-[11px] font-black border border-white/10 shadow-lg"
       >
-        <Image src="/mascots/MasterGao.png" alt="Gao" width={20} height={20} className="object-contain shrink-0" />
-        Waarom anders dan Google?
+        <Image src="/mascots/MasterGao.png" alt="" width={16} height={16} className="object-contain shrink-0" />
+        Waarom dit werkt
       </button>
     </div>
     </>

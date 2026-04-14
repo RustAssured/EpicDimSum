@@ -104,28 +104,28 @@ export default function RestaurantCard({ restaurant, rank, currentCity, distance
         </div>
 
         {/* Dumpling scale */}
-        <div className="px-4 pb-2">
+        <div className="px-3 pb-2">
           {(() => {
             const { count, label } = dumplingScale(epicScore ?? 0)
             return (
               <button
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowScoreDetail((v) => !v) }}
-                className="flex flex-col items-center gap-1 w-full"
+                className="flex flex-col items-center gap-1.5 w-full py-2"
                 aria-label="Uitleg EpicScore"
               >
-                <div className="flex items-center gap-0.5">
+                <div className="flex items-center gap-1">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Image
                       key={i}
                       src="/mascots/dumpling.png"
                       alt="dumpling"
-                      width={i < count ? 20 : 16}
-                      height={i < count ? 20 : 16}
-                      className={`object-contain transition-all ${i < count ? 'opacity-100' : 'opacity-20'}`}
+                      width={i < count ? 28 : 20}
+                      height={i < count ? 28 : 20}
+                      className={`object-contain transition-all ${i < count ? 'opacity-100' : 'opacity-15'}`}
                     />
                   ))}
                 </div>
-                <p className="text-[9px] font-black text-inkBlack/50 leading-none">{label}</p>
+                <p className="text-[10px] font-black text-inkBlack/50 leading-none text-center">{label}</p>
               </button>
             )
           })()}
