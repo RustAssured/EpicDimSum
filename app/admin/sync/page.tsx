@@ -25,7 +25,7 @@ export default function AdminSyncPage() {
   const [adminRestaurants, setAdminRestaurants] = useState<Restaurant[]>(restaurantsData as Restaurant[])
 
   // Sync-all state
-  const [syncAllProgress, setSyncAllProgress] = useState<{ current: number; total: number } | null>(null)
+  const [syncAllState, setSyncAllState] = useState<{ loading: boolean; result: string | null; error: string | null }>({ loading: false, result: null, error: null })
 
   // Add restaurant form
   const [addForm, setAddForm] = useState({
@@ -114,29 +114,46 @@ export default function AdminSyncPage() {
   }
 
   const handleSyncAll = async () => {
-    // Fetch all restaurants from DB (not just seed JSON)
-    let allRestaurants: Restaurant[] = adminRestaurants
-    try {
-      const res = await fetch('/api/restaurants', { headers: { 'x-sync-secret': secret } })
-      if (res.ok) {
-        const data = await res.json()
-        const list: Restaurant[] = Array.isArray(data) ? data : (data.restaurants ?? [])
-        if (list.length > 0) {
-          allRestaurants = list
-          setAdminRestaurants(list)
-        }
-      }
-    } catch { /* fall back to current list */ }
+    if (!secret) return
+    setSyncAllState({ loading: true, result: null, error: null })
 
-    setSyncAllProgress({ current: 0, total: allRestaurants.length })
-    for (let i = 0; i < allRestaurants.length; i++) {
-      setSyncAllProgress({ current: i + 1, total: allRestaurants.length })
-      await handleSync(allRestaurants[i].id)
-      if (i < allRestaurants.length - 1) {
-        await new Promise((r) => setTimeout(r, 1000))
+    try {
+      // Fetch ALL restaurants including unverified — use admin endpoint
+      const res = await fetch('/api/admin/restaurants', {
+        headers: { 'x-sync-secret': secret },
+      })
+
+      const allRestaurants: Restaurant[] = res.ok ? await res.json() : adminRestaurants
+
+      setAdminRestaurants(allRestaurants)
+      setSyncAllState({
+        loading: false,
+        result: `Syncing ${allRestaurants.length} restaurants...`,
+        error: null,
+      })
+
+      // Sync each one
+      for (let i = 0; i < allRestaurants.length; i++) {
+        await handleSync(allRestaurants[i].id)
+        setSyncAllState({
+          loading: true,
+          result: `Syncing ${i + 1}/${allRestaurants.length}...`,
+          error: null,
+        })
       }
+
+      setSyncAllState({
+        loading: false,
+        result: `✓ Alle ${allRestaurants.length} restaurants gesyncet`,
+        error: null,
+      })
+    } catch (err) {
+      setSyncAllState({
+        loading: false,
+        result: null,
+        error: err instanceof Error ? err.message : 'Fout',
+      })
     }
-    setSyncAllProgress(null)
   }
 
   const handleDelete = async (restaurantId: string) => {
@@ -418,22 +435,25 @@ export default function AdminSyncPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="font-black text-inkBlack text-sm">Sync</p>
-              {syncAllProgress && (
-                <p className="text-xs text-epicGold font-bold mt-0.5">
-                  Syncing {syncAllProgress.current}/{syncAllProgress.total}...
+              {syncAllState.result && (
+                <p className={`text-xs font-bold mt-0.5 ${syncAllState.error ? 'text-epicRed' : 'text-epicGold'}`}>
+                  {syncAllState.result}
                 </p>
+              )}
+              {syncAllState.error && (
+                <p className="text-xs text-epicRed font-bold mt-0.5">{syncAllState.error}</p>
               )}
             </div>
             <button
               onClick={handleSyncAll}
-              disabled={syncAllProgress !== null}
+              disabled={syncAllState.loading}
               className={`px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
-                ${syncAllProgress !== null
+                ${syncAllState.loading
                   ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
                   : 'bg-epicGold text-cream active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
                 }`}
             >
-              {syncAllProgress ? `⏳ ${syncAllProgress.current}/${syncAllProgress.total}` : '🔄 Sync alle restaurants'}
+              {syncAllState.loading ? `⏳ ${syncAllState.result ?? '...'}` : 'Sync alle restaurants'}
             </button>
           </div>
 
