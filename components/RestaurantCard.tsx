@@ -13,6 +13,7 @@ interface RestaurantCardProps {
   restaurant: Restaurant
   rank?: number
   currentCity?: City | 'Alle'
+  distance?: number // in km
 }
 
 const priceColor: Record<string, string> = {
@@ -51,7 +52,7 @@ function dumplingStatus(restaurant: Restaurant): string {
   return ''
 }
 
-export default function RestaurantCard({ restaurant, rank, currentCity }: RestaurantCardProps) {
+export default function RestaurantCard({ restaurant, rank, currentCity, distance }: RestaurantCardProps) {
   const [showScoreDetail, setShowScoreDetail] = useState(false)
 
   const {
@@ -89,9 +90,19 @@ export default function RestaurantCard({ restaurant, rank, currentCity }: Restau
           <div className="flex items-start justify-between gap-2 mb-2">
             <div className="flex-1 min-w-0">
               <h2 className="font-black text-inkBlack text-lg leading-tight truncate">{name}</h2>
-              <p className="text-xs text-inkBlack/50 font-medium">
-                {city} &middot; <span className={`font-bold ${priceColor[priceRange]}`}>{priceRange}</span>
-              </p>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <p className="text-xs text-inkBlack/50 font-medium">
+                  {city} &middot; <span className={`font-bold ${priceColor[priceRange]}`}>{priceRange}</span>
+                </p>
+                {distance !== undefined && (
+                  <span className="text-[9px] font-black text-inkBlack/40 bg-inkBlack/5 px-2 py-0.5 rounded-full">
+                    {distance < 1
+                      ? `${Math.round(distance * 1000)}m`
+                      : `${distance.toFixed(1)}km`
+                    }
+                  </span>
+                )}
+              </div>
             </div>
             <StatusBadge status={status} />
           </div>

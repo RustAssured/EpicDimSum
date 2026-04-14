@@ -38,6 +38,9 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
   const [suggestUrl, setSuggestUrl] = useState('')
   const [suggestState, setSuggestState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [suggestMessage, setSuggestMessage] = useState('')
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [locationLoading, setLocationLoading] = useState(false)
+  const [sortByDistance, setSortByDistance] = useState(false)
 
   const handleSuggest = async () => {
     if (!suggestUrl.trim()) return
@@ -57,6 +60,38 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
       setSuggestState('error')
       setSuggestMessage(err instanceof Error ? err.message : 'Er ging iets mis')
     }
+  }
+
+  const handleLocation = () => {
+    if (sortByDistance) {
+      setSortByDistance(false)
+      return
+    }
+    if (userLocation) {
+      setSortByDistance(true)
+      return
+    }
+    setLocationLoading(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        setSortByDistance(true)
+        setLocationLoading(false)
+      },
+      () => { setLocationLoading(false) }
+    )
+  }
+
+  function getDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371
+    const dLat = (lat2 - lat1) * Math.PI / 180
+    const dLng = (lng2 - lng1) * Math.PI / 180
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) *
+      Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2)
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
   }
 
   const handleSurpriseMe = () => {
@@ -94,6 +129,21 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
     // Global top 15 across all cities — best overall
     return sorted.slice(0, MAX_PER_CITY)
   }, [restaurants, selectedCity, searchQuery, sortBy])
+
+  const sortedRestaurants = useMemo(() => {
+    if (sortByDistance && userLocation) {
+      return [...filtered].sort((a, b) => {
+        const distA = a.coords
+          ? getDistance(userLocation.lat, userLocation.lng, a.coords.lat, a.coords.lng)
+          : 999
+        const distB = b.coords
+          ? getDistance(userLocation.lat, userLocation.lng, b.coords.lat, b.coords.lng)
+          : 999
+        return distA - distB
+      })
+    }
+    return [...filtered].sort((a, b) => (b.epicScore ?? 0) - (a.epicScore ?? 0))
+  }, [filtered, sortByDistance, userLocation])
 
   const cityLabel = selectedCity === 'Alle' ? 'Nederland' : selectedCity
 
@@ -162,6 +212,17 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
           </button>
         ))}
         <button
+          onClick={handleLocation}
+          className={`flex items-center gap-1.5 text-xs font-black px-3 py-1 rounded-full border-2 transition-all active:scale-95 ${
+            sortByDistance
+              ? 'bg-inkBlack text-cream border-inkBlack'
+              : 'border-inkBlack/20 bg-cream text-inkBlack hover:bg-inkBlack/5'
+          }`}
+        >
+          <Image src="/mascots/dumpling-pin.png" alt="locatie" width={16} height={16} className="object-contain" />
+          {locationLoading ? 'Zoeken...' : sortByDistance ? "Gao's picks nabij jou" : 'Bij mij in de buurt'}
+        </button>
+        <button
           onClick={handleSurpriseMe}
           className="ml-auto flex items-center gap-1.5 text-xs font-black px-3 py-1 rounded-full border-2 border-inkBlack/20 bg-cream hover:bg-epicRed/10 transition-all active:scale-95"
         >
@@ -169,6 +230,12 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
           Verras me!
         </button>
       </div>
+
+      {sortByDistance && (
+        <p className="text-[10px] text-inkBlack/40 font-bold text-center mt-1">
+          Dichtbij jou · geselecteerd door Gao
+        </p>
+      )}
 
       {/* Permanent explainer */}
       <div className="grid grid-cols-2 gap-2">
@@ -207,10 +274,22 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
       {filtered.length > 0 ? (
         <>
           <div className="space-y-3">
-            {filtered.map((restaurant, index) => (
-              <RestaurantCard key={restaurant.id} restaurant={restaurant} rank={index + 1} currentCity={selectedCity} />
-            ))}
+            {sortedRestaurants.map((restaurant, index) => {
+              const distance = sortByDistance && userLocation && restaurant.coords
+                ? getDistance(userLocation.lat, userLocation.lng, restaurant.coords.lat, restaurant.coords.lng)
+                : undefined
+              return (
+                <RestaurantCard
+                  key={restaurant.id}
+                  restaurant={restaurant}
+                  rank={index + 1}
+                  currentCity={selectedCity}
+                  distance={distance}
+                />
+              )
+            })}
           </div>
+
 
           {/* Gao sticker banner */}
           <div className="mt-8 p-4 rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-[#fff3d6] flex items-center justify-between gap-4">
