@@ -114,11 +114,25 @@ export default function AdminSyncPage() {
   }
 
   const handleSyncAll = async () => {
-    setSyncAllProgress({ current: 0, total: adminRestaurants.length })
-    for (let i = 0; i < adminRestaurants.length; i++) {
-      setSyncAllProgress({ current: i + 1, total: adminRestaurants.length })
-      await handleSync(adminRestaurants[i].id)
-      if (i < adminRestaurants.length - 1) {
+    // Fetch all restaurants from DB (not just seed JSON)
+    let allRestaurants: Restaurant[] = adminRestaurants
+    try {
+      const res = await fetch('/api/restaurants', { headers: { 'x-sync-secret': secret } })
+      if (res.ok) {
+        const data = await res.json()
+        const list: Restaurant[] = Array.isArray(data) ? data : (data.restaurants ?? [])
+        if (list.length > 0) {
+          allRestaurants = list
+          setAdminRestaurants(list)
+        }
+      }
+    } catch { /* fall back to current list */ }
+
+    setSyncAllProgress({ current: 0, total: allRestaurants.length })
+    for (let i = 0; i < allRestaurants.length; i++) {
+      setSyncAllProgress({ current: i + 1, total: allRestaurants.length })
+      await handleSync(allRestaurants[i].id)
+      if (i < allRestaurants.length - 1) {
         await new Promise((r) => setTimeout(r, 1000))
       }
     }

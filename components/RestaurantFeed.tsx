@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -10,6 +11,15 @@ import CityFilter from '@/components/CityFilter'
 import Mascot from '@/components/Mascot'
 import WhySheet from '@/components/WhySheet'
 import DumplingMandje from '@/components/DumplingMandje'
+
+const RestaurantMapDynamic = dynamic(() => import('@/components/RestaurantMap'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[60vh] rounded-2xl border-[3px] border-inkBlack flex items-center justify-center bg-inkBlack/5">
+      <p className="text-sm font-black text-inkBlack/40">Kaart laden...</p>
+    </div>
+  ),
+})
 
 interface RestaurantFeedProps {
   restaurants: Restaurant[]
@@ -41,6 +51,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [locationLoading, setLocationLoading] = useState(false)
   const [sortByDistance, setSortByDistance] = useState(false)
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list')
 
   const handleSuggest = async () => {
     if (!suggestUrl.trim()) return
@@ -192,12 +203,31 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
         Alleen geverifieerde dim sum spots — kwaliteit boven kwantiteit
       </p>
 
-      {/* Sort control + Surprise Me */}
+      {/* Location button — full width */}
+      <button
+        onClick={handleLocation}
+        className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl border-2 text-sm font-black transition-all active:scale-95 ${
+          sortByDistance
+            ? 'bg-inkBlack text-cream border-inkBlack shadow-brutal-sm'
+            : 'bg-cream text-inkBlack border-inkBlack/20 hover:bg-inkBlack/5'
+        }`}
+      >
+        <Image src="/mascots/dumpling-pin.png" alt="locatie" width={18} height={18} className="object-contain" />
+        {locationLoading ? 'Zoeken...' : sortByDistance ? "Gao's picks nabij jou — klik om uit te zetten" : 'Laat spots bij mij in de buurt zien'}
+      </button>
+
+      {sortByDistance && (
+        <p className="text-[10px] text-inkBlack/40 font-bold text-center -mt-2">
+          Gesorteerd op afstand · alleen door Gao goedgekeurde spots
+        </p>
+      )}
+
+      {/* Sort control + view toggle + Surprise Me */}
       <div className="flex items-center gap-2">
         <span className="text-[10px] text-inkBlack/40 font-bold uppercase tracking-wide">Sorteren:</span>
         {[
           { value: 'epic', label: 'Beste overall' },
-          { value: 'hagao', label: '🥟 Ha Gao' },
+          { value: 'hagao', label: 'Ha Gao' },
         ].map((opt) => (
           <button
             key={opt.value}
@@ -211,31 +241,32 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
             {opt.label}
           </button>
         ))}
-        <button
-          onClick={handleLocation}
-          className={`flex items-center gap-1.5 text-xs font-black px-3 py-1 rounded-full border-2 transition-all active:scale-95 ${
-            sortByDistance
-              ? 'bg-inkBlack text-cream border-inkBlack'
-              : 'border-inkBlack/20 bg-cream text-inkBlack hover:bg-inkBlack/5'
-          }`}
-        >
-          <Image src="/mascots/dumpling-pin.png" alt="locatie" width={16} height={16} className="object-contain" />
-          {locationLoading ? 'Zoeken...' : sortByDistance ? "Gao's picks nabij jou" : 'Bij mij in de buurt'}
-        </button>
+        <div className="ml-auto flex items-center gap-1 bg-inkBlack/5 border border-inkBlack/10 rounded-xl p-1">
+          <button
+            onClick={() => setViewMode('list')}
+            className={`text-xs font-black px-2.5 py-1 rounded-lg transition-all ${
+              viewMode === 'list' ? 'bg-inkBlack text-cream' : 'text-inkBlack/50'
+            }`}
+          >
+            Lijst
+          </button>
+          <button
+            onClick={() => setViewMode('map')}
+            className={`text-xs font-black px-2.5 py-1 rounded-lg transition-all ${
+              viewMode === 'map' ? 'bg-inkBlack text-cream' : 'text-inkBlack/50'
+            }`}
+          >
+            Kaart
+          </button>
+        </div>
         <button
           onClick={handleSurpriseMe}
-          className="ml-auto flex items-center gap-1.5 text-xs font-black px-3 py-1 rounded-full border-2 border-inkBlack/20 bg-cream hover:bg-epicRed/10 transition-all active:scale-95"
+          className="flex items-center gap-1.5 text-xs font-black px-3 py-1 rounded-full border-2 border-inkBlack/20 bg-cream hover:bg-epicRed/10 transition-all active:scale-95"
         >
           <Image src="/mascots/hilarischgao.png" alt="Surprise" width={18} height={18} className="object-contain" />
           Verras me!
         </button>
       </div>
-
-      {sortByDistance && (
-        <p className="text-[10px] text-inkBlack/40 font-bold text-center mt-1">
-          Dichtbij jou · geselecteerd door Gao
-        </p>
-      )}
 
       {/* Permanent explainer */}
       <div className="grid grid-cols-2 gap-2">
@@ -270,9 +301,19 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
         </p>
       </div>
 
-      {/* Restaurant cards */}
+      {/* Restaurant cards / map */}
       {filtered.length > 0 ? (
         <>
+          {viewMode === 'map' ? (
+            <RestaurantMapDynamic
+              restaurants={sortedRestaurants}
+              userLocation={userLocation ?? undefined}
+              onRestaurantClick={(id) => {
+                const params = new URLSearchParams(searchParams.toString())
+                window.location.href = `/restaurant/${id}${params.size > 0 ? '?' + params.toString() : ''}`
+              }}
+            />
+          ) : (
           <div className="space-y-3">
             {sortedRestaurants.map((restaurant, index) => {
               const distance = sortByDistance && userLocation && restaurant.coords
@@ -289,6 +330,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
               )
             })}
           </div>
+          )}
 
 
           {/* Gao sticker banner */}

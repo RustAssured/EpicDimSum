@@ -22,17 +22,10 @@ const priceColor: Record<string, string> = {
   '€€€': 'text-epicRed',
 }
 
-function epicScoreStyle(score: number) {
-  if (score >= 75) return { border: 'border-epicGreen', text: 'text-epicGreen', bg: 'bg-epicGreen/8' }
-  if (score >= 55) return { border: 'border-epicGold', text: 'text-epicGold', bg: 'bg-epicGold/8' }
-  return { border: 'border-epicRed', text: 'text-epicRed', bg: 'bg-epicRed/8' }
-}
-
-function epicScoreVerdict(score: number): string {
-  if (score >= 90) return 'Gao is door het dolle!'
-  if (score >= 80) return 'Gao is super blij'
-  if (score >= 70) return 'Gao is blij'
-  return 'Gao is fan'
+function dumplingScale(score: number): { count: number; label: string } {
+  if (score >= 80) return { count: 5, label: 'Gao is door het dolle' }
+  if (score >= 70) return { count: 4, label: 'Gao is blij' }
+  return { count: 3, label: 'Gao is fan' }
 }
 
 function dumplingStatus(restaurant: Restaurant): string {
@@ -70,12 +63,24 @@ export default function RestaurantCard({ restaurant, rank, currentCity, distance
     sources,
   } = restaurant
 
-  const style = epicScoreStyle(epicScore)
   const cityParam = currentCity && currentCity !== 'Alle' ? `?city=${encodeURIComponent(currentCity)}` : ''
 
   return (
     <Link href={`/restaurant/${id}${cityParam}`}>
       <article className="rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white overflow-hidden active:translate-x-[3px] active:translate-y-[3px] active:shadow-brutal-sm transition-all cursor-pointer">
+
+        {/* Distance banner — shown when sorting by location */}
+        {distance !== undefined && (
+          <div className="flex items-center gap-1.5 px-4 py-2 bg-inkBlack/5 border-b border-inkBlack/10">
+            <Image src="/mascots/dumpling-pin.png" alt="" width={14} height={14} className="object-contain" />
+            <p className="text-xs font-black text-inkBlack">
+              {distance < 1
+                ? `${Math.round(distance * 1000)} meter van jou`
+                : `${distance.toFixed(1)} km van jou`
+              }
+            </p>
+          </div>
+        )}
 
         {/* Header */}
         <div className="px-4 pt-4 pb-2">
@@ -90,40 +95,40 @@ export default function RestaurantCard({ restaurant, rank, currentCity, distance
           <div className="flex items-start justify-between gap-2 mb-2">
             <div className="flex-1 min-w-0">
               <h2 className="font-black text-inkBlack text-lg leading-tight truncate">{name}</h2>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <p className="text-xs text-inkBlack/50 font-medium">
-                  {city} &middot; <span className={`font-bold ${priceColor[priceRange]}`}>{priceRange}</span>
-                </p>
-                {distance !== undefined && (
-                  <span className="text-[9px] font-black text-inkBlack/40 bg-inkBlack/5 px-2 py-0.5 rounded-full">
-                    {distance < 1
-                      ? `${Math.round(distance * 1000)}m`
-                      : `${distance.toFixed(1)}km`
-                    }
-                  </span>
-                )}
-              </div>
+              <p className="text-xs text-inkBlack/50 font-medium">
+                {city} &middot; <span className={`font-bold ${priceColor[priceRange]}`}>{priceRange}</span>
+              </p>
             </div>
             <StatusBadge status={status} />
           </div>
         </div>
 
-        {/* EpicScore row */}
-        <div className="flex items-center justify-between px-4 pb-2">
-          <span className="text-[10px] text-inkBlack/40 font-bold uppercase tracking-wide">EpicScore</span>
-          <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowScoreDetail((v) => !v) }}
-            className={`flex flex-col items-center px-3 py-1.5 rounded-xl border-2 ${style.border} ${style.bg}`}
-            aria-label="Uitleg EpicScore"
-          >
-            <div className="flex items-center gap-1.5">
-              <Image src="/mascots/Epicscore.png" alt="" width={16} height={16} className="object-contain" />
-              <span className={`text-2xl font-black leading-none ${style.text}`}>{epicScore}</span>
-            </div>
-            <span className={`text-[9px] font-bold ${style.text} opacity-60 leading-none mt-0.5`}>
-              {epicScoreVerdict(epicScore)}
-            </span>
-          </button>
+        {/* Dumpling scale */}
+        <div className="px-4 pb-2">
+          {(() => {
+            const { count, label } = dumplingScale(epicScore ?? 0)
+            return (
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowScoreDetail((v) => !v) }}
+                className="flex flex-col items-center gap-1 w-full"
+                aria-label="Uitleg EpicScore"
+              >
+                <div className="flex items-center gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Image
+                      key={i}
+                      src="/mascots/dumpling.png"
+                      alt="dumpling"
+                      width={i < count ? 20 : 16}
+                      height={i < count ? 20 : 16}
+                      className={`object-contain transition-all ${i < count ? 'opacity-100' : 'opacity-20'}`}
+                    />
+                  ))}
+                </div>
+                <p className="text-[9px] font-black text-inkBlack/50 leading-none">{label}</p>
+              </button>
+            )
+          })()}
         </div>
 
         {/* Ha Gao Index — only if we have real dumpling data */}
