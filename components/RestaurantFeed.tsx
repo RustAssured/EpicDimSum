@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Restaurant, City } from '@/lib/types'
 import RestaurantCard from '@/components/RestaurantCard'
@@ -257,28 +258,29 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
           </div>
         </>
       ) : (
-        <div className="text-center py-16 flex flex-col items-center gap-3">
+        <div className="text-center py-16 flex flex-col items-center gap-4">
           <Image
-            src="/mascots/saddenedgao.png"
-            alt="Geen resultaten"
-            width={80}
-            height={80}
+            src="/mascots/sleepy.png"
+            alt="Gao is aan het speuren"
+            width={72}
+            height={72}
             className="object-contain"
           />
-          <p className="font-black text-inkBlack/50">
-            Nog geen dim sum gevonden in {cityLabel}…
-          </p>
-          <p className="text-xs text-inkBlack/30 max-w-48">
-            dat voelt niet goed voor Gao
-          </p>
-          <button
-            onClick={() => {
-              document.getElementById('suggest-form')?.scrollIntoView({ behavior: 'smooth' })
-            }}
-            className="mt-2 text-xs font-black px-4 py-2.5 bg-epicGreen text-cream rounded-full border-2 border-inkBlack shadow-brutal-sm"
+          <div>
+            <p className="font-black text-inkBlack/60">
+              Gao is hier nog aan het speuren
+            </p>
+            <p className="text-xs text-inkBlack/30 mt-1 max-w-xs mx-auto leading-relaxed">
+              Hij weet zeker dat er dim sum parels verstopt zitten.
+              Hij vindt ze. Dat beloven we.
+            </p>
+          </div>
+          <Link
+            href="/reis"
+            className="text-xs font-black text-epicGreen border border-epicGreen/30 px-3 py-1.5 rounded-full"
           >
-            Ken jij een goede plek hier? →
-          </button>
+            Ken jij een parel? →
+          </Link>
         </div>
       )}
 

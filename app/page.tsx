@@ -24,7 +24,7 @@ export default async function Home() {
                 <span className="text-epicGold">Sum</span>
               </h1>
               <p className="text-[10px] text-inkBlack/50 font-medium hidden sm:block">
-                Gao is jouw gids naar de beste dumplings
+                Plekken waar Gao voor juicht
               </p>
             </div>
           </div>

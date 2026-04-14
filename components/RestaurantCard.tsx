@@ -28,35 +28,27 @@ function epicScoreStyle(score: number) {
 }
 
 function epicScoreVerdict(score: number): string {
-  if (score >= 90) return 'Uitzonderlijk'
-  if (score >= 80) return 'Uitstekend'
-  if (score >= 70) return 'Goed'
-  if (score >= 60) return 'Redelijk'
-  return 'Twijfelachtig'
+  if (score >= 90) return 'Gao is door het dolle!'
+  if (score >= 80) return 'Gao is super blij'
+  if (score >= 70) return 'Gao is blij'
+  return 'Gao is fan'
 }
 
 function dumplingStatus(restaurant: Restaurant): string {
   const haGao = restaurant.haGaoIndex ?? 0
   const mentions = restaurant.dumplingMentionScore ?? 0
   const quality = restaurant.dumplingQualityScore ?? 0
-  const reviewCount = restaurant.sources.googleReviewCount ?? 0
 
   if (haGao >= 4.0 && mentions >= 30 && quality >= 70) {
-    return 'Sterk dumplingbewijs'
+    return 'Gao zweert bij deze dumplings'
   }
-  if (haGao >= 3.5 && reviewCount < 100) {
-    return 'Veelbelovend, nog weinig data'
-  }
-  if (haGao < 2.0 && mentions < 15 && restaurant.scores.google >= 80) {
-    return 'Goed restaurant, maar weinig dim sum-signaal'
-  }
-  if (haGao < 1.0 && mentions < 5) {
-    return 'Waarschijnlijk geen dim sum-specialist'
+  if (haGao >= 3.5) {
+    return 'Gao komt hier graag terug'
   }
   if (haGao >= 2.5 && mentions >= 15) {
-    return 'Solide dumplingkwaliteit'
+    return 'Gao is aan het ontdekken'
   }
-  return 'Beperkt dumplingbewijs beschikbaar'
+  return ''
 }
 
 export default function RestaurantCard({ restaurant, rank, currentCity }: RestaurantCardProps) {

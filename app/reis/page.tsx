@@ -64,7 +64,7 @@ export default function ReisPage() {
               />
               <div>
                 <p className="font-black text-lg leading-tight">Gao&apos;s Reis</p>
-                <p className="text-xs text-inkBlack/40 mt-0.5">Een eerlijk verslag van wat werkt, wat niet werkt, en wat we samen leren.</p>
+                <p className="text-xs text-inkBlack/40 mt-0.5">Gao juicht altijd. Hoe hoger de score, hoe harder hij juicht.</p>
               </div>
             </div>
 

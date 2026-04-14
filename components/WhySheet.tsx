@@ -44,7 +44,9 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
             Wij laten zien wat <em>goed</em> is.
           </p>
           <p className="text-xs text-cream/60 mt-2 leading-snug">
-            EpicScore is altijd betrouwbaar. De Ha Gao Index is de bonus — als die er staat, weet je dat er echte dumpling intelligence achter zit.
+            Op deze lijst staan betekent dat Gao voor je juicht. En hoe hoger
+            de score, hoe harder hij juicht. Maar één ding is altijd zeker:
+            als Gao je kent, weet hij dat je dim sum de moeite waard is.
           </p>
         </div>
 
