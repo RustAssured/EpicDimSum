@@ -31,6 +31,13 @@ export default async function Home() {
           <div className="flex items-center gap-3">
             <About />
             <Link
+              href="/reis"
+              className="flex items-center gap-1 text-xs font-bold text-inkBlack/40 hover:text-inkBlack/70 transition-colors"
+            >
+              <Image src="/mascots/dumpling-pin.png" alt="" width={14} height={14} className="object-contain" />
+              Reis
+            </Link>
+            <Link
               href="/admin/sync"
               className="text-xs text-inkBlack/30 hover:text-inkBlack/60 transition-colors"
             >
