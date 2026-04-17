@@ -10,6 +10,50 @@ export const metadata = {
 
 const updates = [
   {
+    id: 'crispy-clear',
+    date: '17 april 2026',
+    title: 'Crispy clear',
+    emoji: '✨',
+    content: [
+      {
+        type: 'paragraph' as const,
+        text: 'Gao heeft vandaag geleerd dat een product pas echt klaar voelt als je stopt met toevoegen en begint met verfijnen.',
+      },
+      {
+        type: 'bullets' as const,
+        icon: 'Dumpling-check.png',
+        items: [
+          'De Dumpling Reis kaart staat nu tussen de controls en de lijst — eerst jij, dan Gao.',
+          'Niet ingelogd? Gao wacht op je eerste plek. Ingelogd? Je reis is zichtbaar.',
+          'De hele kaart is klikbaar — geen knopje, maar een echte ingang.',
+          'Tactiele feedback bij hover en tap — het voelt nu als bewegen, niet klikken.',
+          'Feedback tab in admin — bug reports direct zichtbaar, markeerbaar als afgehandeld.',
+          'Help Gao knop onderaan elke restaurantpagina — laagdrempelig, open, uitnodigend.',
+        ],
+      },
+      {
+        type: 'paragraph' as const,
+        text: 'En het icon systeem is af. Chopsticks voor ambacht. Ha Gao voor kwaliteit. Siew Mai als je siu mai moet bestellen. Een taal die betekenis draagt.',
+      },
+      {
+        type: 'bullets' as const,
+        icon: 'chopsticks.png',
+        items: [
+          "Gao's Dagboek — van \"Reis\" naar \"Dagboek\". Want een dagboek bevat fouten, inzichten en eerlijke gedachten.",
+          'Max-width container hersteld — desktop ziet er weer netjes uit.',
+          'Geflagde restaurants verwijderbaar via admin — bulk delete plus zichtbare feedback.',
+        ],
+      },
+      {
+        type: 'paragraph' as const,
+        text: 'Iemand zei vandaag: "crispy clear." Dat is precies wat Gao wilde horen.',
+      },
+    ],
+    mistake: 'De EpicScore en Ha Gao uitlegpills stonden nog op desktop zichtbaar terwijl ze op mobiel al verborgen waren. Inconsistent — en eigenlijk overbodig nu de WHY sheet die uitleg geeft.',
+    fixed: true,
+    fixedNote: 'Pills volledig verwijderd op alle schermen. De WHY knop doet dit werk beter.',
+  },
+  {
     id: 'minder-meer',
     date: '17 april 2026',
     title: 'De week dat minder meer werd',
@@ -84,7 +128,7 @@ const updates = [
   },
   {
     id: 'origin',
-    date: 'April 2026',
+    date: '10 april 2026',
     title: 'Het begin',
     emoji: '🌱',
     content: [
