@@ -318,28 +318,6 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
 
       </div>
 
-      {/* Permanent explainer — hidden on mobile */}
-      <div className="hidden sm:grid grid-cols-2 gap-2">
-        <div className="bg-epicRed/8 border border-epicRed/20 rounded-xl px-3 py-2">
-          <div className="flex items-center gap-1.5 mb-0.5">
-            <Image src="/mascots/Epicscore.png" alt="EpicScore" width={16} height={16} className="object-contain" />
-            <p className="text-[10px] font-black text-epicRed uppercase tracking-wide">EpicScore™</p>
-          </div>
-          <p className="text-[11px] text-inkBlack/60 leading-snug">
-            Gebaseerd op dumplingkwaliteit, niet populariteit
-          </p>
-        </div>
-        <div className="bg-epicGreen/8 border border-epicGreen/20 rounded-xl px-3 py-2">
-          <div className="flex items-center gap-1.5 mb-0.5">
-            <Image src="/mascots/HaGaoIndex.png" alt="Ha Gao" width={16} height={16} className="object-contain" />
-            <p className="text-[10px] font-black text-epicGreen uppercase tracking-wide">Ha Gao Index</p>
-          </div>
-          <p className="text-[11px] text-inkBlack/60 leading-snug">
-            De ultieme dumplingtest — hier bewijst een keuken zich
-          </p>
-        </div>
-      </div>
-
       {/* Journey card — personal, between controls and list */}
       <JourneyCard
         user={user}
@@ -353,9 +331,6 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
       {/* Results count */}
       <div className="flex items-center justify-between">
         <p className="text-sm font-bold text-inkBlack/50">{countText}</p>
-        <p className="text-xs text-inkBlack/30">
-          {sortBy === 'hagao' ? 'Ha Gao Index' : 'EpicScore'}
-        </p>
       </div>
 
       {/* Restaurant cards / map */}
