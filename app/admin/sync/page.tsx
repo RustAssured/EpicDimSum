@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Restaurant, City, PriceRange } from '@/lib/types'
 import { isTrustedForPublicFeed } from '@/lib/db'
 import restaurantsData from '@/data/restaurants.json'
@@ -63,6 +64,16 @@ export default function AdminSyncPage() {
   // Agent state
   const [agentRunning, setAgentRunning] = useState(false)
   const [agentResult, setAgentResult] = useState<any>(null)
+
+  // Tab + feedback state
+  const [activeTab, setActiveTab] = useState<'restaurants' | 'feedback'>('restaurants')
+  const [feedback, setFeedback] = useState<{
+    id: string
+    message: string
+    status: string
+    created_at: string
+  }[]>([])
+  const [feedbackLoading, setFeedbackLoading] = useState(false)
 
   // Silent seed cleanup on mount
   useEffect(() => {
@@ -357,6 +368,38 @@ export default function AdminSyncPage() {
     }
   }
 
+  const loadFeedback = async () => {
+    if (!secret) return
+    setFeedbackLoading(true)
+    try {
+      const res = await fetch('/api/admin/feedback', {
+        headers: { 'x-sync-secret': secret },
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setFeedback(data)
+      }
+    } finally {
+      setFeedbackLoading(false)
+    }
+  }
+
+  const markFeedbackDone = async (id: string) => {
+    try {
+      await fetch('/api/admin/feedback', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-sync-secret': secret,
+        },
+        body: JSON.stringify({ id, status: 'done' }),
+      })
+      setFeedback(prev =>
+        prev.map(f => f.id === id ? { ...f, status: 'done' } : f)
+      )
+    } catch { /* skip */ }
+  }
+
   if (!authed) {
     return (
       <main className="min-h-screen bg-cream flex items-center justify-center p-4">
@@ -400,7 +443,35 @@ export default function AdminSyncPage() {
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-2xl mx-auto px-4 py-6">
+
+        {/* Tab toggle */}
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setActiveTab('restaurants')}
+            className={`flex-1 py-2.5 rounded-xl border-2 border-inkBlack text-xs font-black transition-all ${
+              activeTab === 'restaurants' ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack'
+            }`}
+          >
+            🥟 Restaurants
+          </button>
+          <button
+            onClick={() => { setActiveTab('feedback'); loadFeedback() }}
+            className={`flex-1 py-2.5 rounded-xl border-2 border-inkBlack text-xs font-black transition-all ${
+              activeTab === 'feedback' ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack'
+            }`}
+          >
+            💬 Feedback
+            {feedback.filter(f => f.status === 'open').length > 0 && (
+              <span className="ml-1.5 bg-epicRed text-cream text-[9px] font-black px-1.5 py-0.5 rounded-full">
+                {feedback.filter(f => f.status === 'open').length}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Restaurants tab */}
+        {activeTab === 'restaurants' && <div className="space-y-6">
 
         {/* Agent Status */}
         <div className="p-4 rounded-2xl border-[3px] border-epicPurple/40 bg-epicPurple/5 shadow-[4px_4px_0px_rgba(83,74,183,0.3)]">
@@ -840,6 +911,55 @@ export default function AdminSyncPage() {
             })}
           </div>
         </div>
+
+        </div>}{/* end restaurants tab */}
+
+        {/* Feedback tab */}
+        {activeTab === 'feedback' && (
+          <div className="space-y-3">
+            {feedbackLoading && (
+              <p className="text-center text-xs text-inkBlack/40 py-8">Gao laadt feedback...</p>
+            )}
+
+            {!feedbackLoading && feedback.length === 0 && (
+              <div className="text-center py-12">
+                <Image src="/mascots/sleepy.png" alt="" width={48} height={48} className="object-contain mx-auto mb-3 opacity-40" />
+                <p className="text-xs text-inkBlack/40">Nog geen feedback ontvangen</p>
+              </div>
+            )}
+
+            {!feedbackLoading && feedback.map(item => (
+              <div
+                key={item.id}
+                className={`p-4 rounded-2xl border-2 ${
+                  item.status === 'open'
+                    ? 'border-epicRed/30 bg-epicRed/5'
+                    : 'border-inkBlack/10 bg-white opacity-60'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <p className="text-xs text-inkBlack/70 leading-relaxed flex-1">{item.message}</p>
+                  <button
+                    onClick={() => markFeedbackDone(item.id)}
+                    className={`shrink-0 text-[10px] font-black px-2.5 py-1 rounded-full border transition-all ${
+                      item.status === 'open'
+                        ? 'border-epicGreen/40 text-epicGreen hover:bg-epicGreen/10'
+                        : 'border-inkBlack/20 text-inkBlack/30'
+                    }`}
+                  >
+                    {item.status === 'open' ? '✓ Afgehandeld' : 'Gedaan'}
+                  </button>
+                </div>
+                <p className="text-[9px] text-inkBlack/30">
+                  {new Date(item.created_at).toLocaleDateString('nl-NL', {
+                    day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
+                  })}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+
       </div>
     </main>
   )
