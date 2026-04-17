@@ -156,6 +156,18 @@ export default function AdminSyncPage() {
     }
   }
 
+  const handleDeleteFlagged = async () => {
+    if (!window.confirm('Verwijder alle geflagde restaurants? Dit kan niet ongedaan worden.')) return
+
+    const flagged = adminRestaurants.filter(r => r.verified === false)
+
+    for (const r of flagged) {
+      await handleDelete(r.id)
+    }
+
+    setAdminRestaurants(prev => prev.filter(r => r.verified !== false))
+  }
+
   const handleDelete = async (restaurantId: string) => {
     if (!window.confirm('Weet je het zeker? Dit verwijdert het restaurant permanent.')) return
     try {
@@ -454,6 +466,12 @@ export default function AdminSyncPage() {
                 }`}
             >
               {syncAllState.loading ? `⏳ ${syncAllState.result ?? '...'}` : 'Sync alle restaurants'}
+            </button>
+            <button
+              onClick={handleDeleteFlagged}
+              className="text-xs font-black px-3 py-2 rounded-full bg-epicRed text-cream border-2 border-inkBlack shadow-brutal-sm"
+            >
+              🗑️ Verwijder alle geflagde
             </button>
           </div>
 
