@@ -142,12 +142,12 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
   const handleSaveNote = async () => {
     if (!note.trim()) return
 
-    // Always save to localStorage first
     const stored = localStorage.getItem(`checkin_${restaurantId}`)
     if (stored) {
       try {
         const parsed = JSON.parse(stored)
         parsed.note = note.trim()
+        parsed.noteAddedAt = new Date().toISOString()
         localStorage.setItem(`checkin_${restaurantId}`, JSON.stringify(parsed))
       } catch { /* skip */ }
     }

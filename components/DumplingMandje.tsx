@@ -304,7 +304,7 @@ export default function DumplingMandje() {
                     <p className="text-xs font-black truncate">{c.restaurantName}</p>
                     <p className="text-[10px] text-inkBlack/40">{c.city}</p>
                     {c.note && (
-                      <p className="text-[10px] text-inkBlack/50 italic mt-1.5 pl-6 leading-snug">
+                      <p className="text-[10px] text-inkBlack/50 italic mt-1.5 pl-6 leading-snug line-clamp-2">
                         &ldquo;{c.note}&rdquo;
                       </p>
                     )}
