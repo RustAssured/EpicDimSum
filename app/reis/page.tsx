@@ -10,37 +10,105 @@ export const metadata = {
 
 const updates = [
   {
+    id: 'minder-meer',
+    date: '17 april 2026',
+    title: 'De week dat minder meer werd',
+    emoji: '🔥',
+    content: [
+      {
+        type: 'paragraph' as const,
+        text: 'Gao heeft deze week iets geleerd dat hij niet verwacht had. Niet hoe hij meer restaurants kon vinden. Maar hoe hij er minder kon laten zien.',
+      },
+      {
+        type: 'bullets' as const,
+        icon: 'Dumpling-check.png',
+        items: [
+          'Score bars verdwenen — Reputatie, Vibe, Online aandacht. Allemaal weg. Gao vertrouwt je om zelf te kiezen.',
+          'Dumplings zijn de score. Geen getal, geen percentage. Gewoon: hoeveel dumplings Gao uitdeelt.',
+          'Must Order staat nu bovenaan — eerste wat je ziet als je een restaurant opent.',
+          "Bullets in plaats van alinea's — waarom Gao ergens voor juicht is nu scanbaar.",
+          'Sticky Reserveer knop — altijd zichtbaar, ook als je scrolt.',
+        ],
+      },
+      {
+        type: 'paragraph' as const,
+        text: 'Nederland heeft nu 14 steden. Inclusief Middelburg, dat tegen alle verwachtingen in wél dim sum heeft. Maastricht niet. Gao was ook verrast.',
+      },
+      {
+        type: 'bullets' as const,
+        icon: 'chopsticks.png',
+        items: [
+          'Chopsticks = ambacht en handgemaakt',
+          'Ha Gao icoon = dumplingkwaliteit',
+          'Siew Mai icoon = als je siu mai moet bestellen',
+          'Ha Gao met ster = uitzonderlijke kwaliteit',
+        ],
+      },
+      {
+        type: 'paragraph' as const,
+        text: 'Een systeem dat taal spreekt in plaats van decoratie. Dat is het doel.',
+      },
+    ],
+    mistake: 'Gao heeft restaurants geflagged die eigenlijk goede dim sum serveerden. En restaurants zonder dim sum stonden nog te lang in de lijst. De agent is streng maar niet perfect. Gao ook niet.',
+    fixed: false,
+  },
+  {
     id: 'launch-week',
     date: '14 april 2026',
     title: 'De week dat alles klikte',
-    emoji: '🔥',
+    emoji: '🥟',
     content: [
-      'Wat een week. Gao heeft hard gewerkt. Heel hard.',
-      'We begonnen met een idee: de beste dim sum gids van Nederland. Niet de grootste. De beste. En deze week werd dat echt.',
-      'De Dumpling Intelligence Engine v2 draait nu op drie bronnen — Iens, Tripadvisor en web search. Geen 5 willekeurige Google reviews meer. Echte teksten. Echte signalen. Gao weet nu écht wat hij beoordeelt.',
-      'Nederland is nu compleet — alle 14 provinciale hoofdsteden plus Rotterdam. En ja... Middelburg heeft dim sum. Maastricht niet. Gao is verbaasd en blij tegelijk.',
-      'Het Dumpling Mandje is live. Badges, bezoekhistorie, GaoMandje als mascot. Jouw reis met Gao begint nu echt.',
-      'Google login werkt. Check-ins zijn authentiek. En de score is eerlijker dan ooit — geen cijfers meer, alleen dumplings. Want cijfers voelen als een rapportcijfer. Dumplings voelen als een feestje.',
-      'En het allerbelangrijkste van deze week: we besloten dat EpicDimSum geen directory is. Het is een keurmerk. Gao staat achter elk restaurant op deze lijst. Persoonlijk.',
+      {
+        type: 'paragraph' as const,
+        text: 'Wat een week. Gao heeft hard gewerkt. Heel hard.',
+      },
+      {
+        type: 'bullets' as const,
+        icon: 'ha-gao.png',
+        items: [
+          'Dumpling Intelligence Engine v2 draait op drie bronnen — Iens, Tripadvisor en web search.',
+          'Nederland compleet — alle 14 provinciale hoofdsteden plus Rotterdam.',
+          'Het Dumpling Mandje is live — badges, bezoekhistorie, GaoMandje.',
+          'Google login werkt — check-ins zijn authentiek en persistent.',
+          'De score is eerlijker dan ooit — geen cijfers, alleen dumplings.',
+        ],
+      },
+      {
+        type: 'paragraph' as const,
+        text: 'En het allerbelangrijkste: we besloten dat EpicDimSum geen directory is. Het is een keurmerk. Gao staat achter elk restaurant op deze lijst. Persoonlijk.',
+      },
     ],
-    mistake: 'Gao had aanvankelijk restaurants in de feed met een Ha Gao score van 0.0 — gebaseerd op 5 willekeurige Google reviews. Oriental City Amsterdam kreeg ten onrechte geen Ha Gao Index. Dat klopte niet.',
+    mistake: 'Gao dacht dat 5 Google reviews genoeg waren voor een Ha Gao Index. Oriental City Amsterdam kreeg ten onrechte geen score.',
     fixed: true,
-    fixedNote: 'Dumpling Intelligence Engine v2 lost dit op. Iens + Tripadvisor + web search geeft nu een eerlijk beeld. Oriental City scoort nu 4.2/5 Ha Gao Index. Terecht.',
+    fixedNote: 'Dumpling Intelligence Engine v2 lost dit op. Oriental City scoort nu 4.2/5 Ha Gao Index. Terecht.',
   },
   {
     id: 'origin',
     date: 'April 2026',
     title: 'Het begin',
-    emoji: '🥟',
+    emoji: '🌱',
     content: [
-      'Gao bestond nog niet. EpicDimSum bestond nog niet. Er was alleen een idee en een passie voor dim sum.',
-      'In een paar dagen werd een volledig product gebouwd — Next.js, Supabase, Google Places API, Claude Haiku. Een eigen scoring engine die niemand nabootst.',
-      'De Ha Gao Index werd geboren. Niet hoeveel sterren een restaurant heeft, maar hoe goed de dumplings écht zijn.',
-      'En toen verscheen Gao. Klein, rond, met grote ogen en een nog grotere mening over dumplings.',
+      {
+        type: 'paragraph' as const,
+        text: 'Gao bestond nog niet. EpicDimSum bestond nog niet. Er was alleen een idee en een passie voor dim sum.',
+      },
+      {
+        type: 'bullets' as const,
+        icon: 'Ha-Gao-star.png',
+        items: [
+          'Next.js, Supabase, Google Places API, Claude Haiku — in een paar dagen gebouwd.',
+          'De Ha Gao Index werd geboren — niet hoeveel sterren, maar hoe goed de dumplings écht zijn.',
+          'Gao verscheen. Klein, rond, met grote ogen en een grote mening over dumplings.',
+        ],
+      },
+      {
+        type: 'paragraph' as const,
+        text: 'Gebouwd door iemand die nog nooit zoiets had gemaakt. En dat voelde, en voelt, groter dan verwacht.',
+      },
     ],
     mistake: 'Gao dacht dat 5 Google reviews genoeg waren om een Ha Gao Index te berekenen. Dat bleek niet zo.',
     fixed: true,
-    fixedNote: 'Dumpling Intelligence Engine v2 lost dit op met Iens, Tripadvisor en web search als databronnen.',
+    fixedNote: 'Dumpling Intelligence Engine v2 lost dit op met Iens, Tripadvisor en web search.',
   },
 ]
 
