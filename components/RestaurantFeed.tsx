@@ -203,36 +203,49 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
         Alleen geverifieerde dim sum spots — kwaliteit boven kwantiteit
       </p>
 
-      {/* Single control bar — all viewing actions in one row */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+      {/* Control bar — horizontally scrollable, never wraps */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-4 px-4">
 
-        {/* Sort toggle */}
+        {/* Sort: Beste overall */}
         <button
-          onClick={() => setSortBy(sortBy === 'epic' ? 'hagao' : 'epic')}
-          className="shrink-0 flex items-center gap-1.5 rounded-full border-[3px] border-inkBlack bg-inkBlack px-4 py-2 text-xs font-black text-cream"
+          onClick={() => setSortBy('epic')}
+          className={`shrink-0 flex items-center gap-1.5 rounded-full border-[3px] border-inkBlack px-3 py-1.5 text-xs font-black transition-all ${
+            sortBy === 'epic' ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack'
+          }`}
         >
-          {sortBy === 'epic' ? 'Beste overall' : 'Ha Gao'}
-          <span className="text-[10px] opacity-60">▾</span>
+          Beste overall
         </button>
 
-        {/* Location — compact pill */}
+        {/* Sort: Ha Gao */}
+        <button
+          onClick={() => setSortBy('hagao')}
+          className={`shrink-0 flex items-center gap-1.5 rounded-full border-[3px] border-inkBlack px-3 py-1.5 text-xs font-black transition-all ${
+            sortBy === 'hagao' ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack'
+          }`}
+        >
+          <Image src="/mascots/HaGaoIndex.png" alt="" width={14} height={14} className="object-contain" />
+          Ha Gao
+        </button>
+
+        {/* Location */}
         <button
           onClick={handleLocation}
-          className={`shrink-0 flex items-center gap-1.5 rounded-full border-[3px] border-inkBlack px-3 py-2 text-xs font-black transition-all ${
-            sortByDistance
-              ? 'bg-inkBlack text-cream'
-              : 'bg-cream text-inkBlack'
+          className={`shrink-0 flex items-center gap-1.5 rounded-full border-[3px] border-inkBlack px-3 py-1.5 text-xs font-black transition-all ${
+            sortByDistance ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack'
           }`}
         >
           <Image src="/mascots/dumpling-pin.png" alt="" width={14} height={14} className="object-contain" />
           {locationLoading ? '...' : sortByDistance ? 'Nabij jou' : 'In jouw buurt'}
         </button>
 
+        {/* Divider */}
+        <div className="shrink-0 w-px h-5 bg-inkBlack/20" />
+
         {/* List/Map toggle */}
         <div className="shrink-0 flex rounded-full border-[3px] border-inkBlack overflow-hidden">
           <button
             onClick={() => setViewMode('list')}
-            className={`px-3 py-2 text-xs font-black transition-colors ${
+            className={`px-3 py-1.5 text-xs font-black transition-colors ${
               viewMode === 'list' ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack'
             }`}
           >
@@ -240,7 +253,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
           </button>
           <button
             onClick={() => setViewMode('map')}
-            className={`px-3 py-2 text-xs font-black transition-colors ${
+            className={`px-3 py-1.5 text-xs font-black transition-colors ${
               viewMode === 'map' ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack'
             }`}
           >
@@ -248,12 +261,16 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
           </button>
         </div>
 
-        {/* Surprise — icon only */}
+        {/* Divider */}
+        <div className="shrink-0 w-px h-5 bg-inkBlack/20" />
+
+        {/* Surprise Me — with label */}
         <button
           onClick={handleSurpriseMe}
-          className="shrink-0 flex items-center justify-center w-9 h-9 rounded-full border-[3px] border-inkBlack bg-cream active:scale-95 transition-transform"
+          className="shrink-0 flex items-center gap-1.5 rounded-full border-[3px] border-inkBlack bg-cream px-3 py-1.5 text-xs font-black active:scale-95 transition-transform"
         >
-          <Image src="/mascots/hilarischgao.png" alt="Verras me" width={20} height={20} className="object-contain" />
+          <Image src="/mascots/hilarischgao.png" alt="Verras me" width={18} height={18} className="object-contain" />
+          Verras me!
         </button>
 
       </div>
