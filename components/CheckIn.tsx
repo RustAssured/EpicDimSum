@@ -62,6 +62,9 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
   const [summary, setSummary] = useState<Summary | null>(null)
   const [loading, setLoading] = useState(false)
   const [user, setUser] = useState<{ id: string } | null>(null)
+  const [showNote, setShowNote] = useState(false)
+  const [note, setNote] = useState('')
+  const [noteSaved, setNoteSaved] = useState(false)
 
   // Auth state — getSession reads from cookie, no network call
   useEffect(() => {
@@ -136,6 +139,39 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
     }
   }
 
+  const handleSaveNote = async () => {
+    if (!note.trim()) return
+
+    // Always save to localStorage first
+    const stored = localStorage.getItem(`checkin_${restaurantId}`)
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        parsed.note = note.trim()
+        localStorage.setItem(`checkin_${restaurantId}`, JSON.stringify(parsed))
+      } catch { /* skip */ }
+    }
+
+    // If logged in, also save to Supabase
+    if (user) {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        await fetch('/api/checkin/note', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ restaurantId, note: note.trim() }),
+        }).catch(() => {})
+      }
+    }
+
+    setNoteSaved(true)
+    setShowNote(false)
+  }
+
   const submittedOption = options.find(o => o.value === submitted)
 
   return (
@@ -151,6 +187,46 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
             <p className="text-xs text-inkBlack/50 mt-2">
               {summary.total} {summary.total === 1 ? 'bezoeker' : 'bezoekers'} via EpicDimSum
               <RatingSummary summary={summary} />
+            </p>
+          )}
+          {!noteSaved && (
+            <div className="mt-3">
+              {!showNote ? (
+                <button
+                  onClick={() => setShowNote(true)}
+                  className="w-full text-[10px] font-black text-inkBlack/30 hover:text-inkBlack/60 transition-colors py-1"
+                >
+                  Wil je Gao nog iets meegeven? →
+                </button>
+              ) : (
+                <div className="space-y-2 text-left">
+                  <textarea
+                    value={note}
+                    onChange={(e) => setNote(e.target.value.slice(0, 280))}
+                    placeholder="Bijv: velletje perfect dun, vulling iets te zout..."
+                    rows={2}
+                    className="w-full text-xs p-2.5 rounded-xl border-2 border-inkBlack/20 bg-white focus:outline-none focus:border-epicGreen/40 resize-none leading-relaxed"
+                    autoFocus
+                  />
+                  <div className="flex items-center justify-between">
+                    <p className="text-[9px] text-inkBlack/30">
+                      {note.length}/280 · alleen zichtbaar voor jou
+                    </p>
+                    <button
+                      onClick={handleSaveNote}
+                      disabled={!note.trim()}
+                      className="text-[10px] font-black text-epicGreen disabled:opacity-30"
+                    >
+                      Opslaan →
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          {noteSaved && (
+            <p className="text-[10px] text-epicGreen font-black text-center mt-2">
+              Gao heeft je notitie ontvangen 🥟
             </p>
           )}
         </div>

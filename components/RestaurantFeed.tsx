@@ -173,9 +173,9 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
     <div className="space-y-4">
       {/* WHY statement */}
       <div className="text-center pb-1">
-        <p className="text-xs font-black text-inkBlack/60 tracking-wide">
-          Niet de populairste dim sum —{' '}
-          <span className="text-epicRed">de beste dumplings</span>
+        <p className="text-sm font-black text-inkBlack">
+          Jouw persoonlijke dim sum reis{' '}
+          <span className="text-epicRed">— langs de beste dumplings</span>
         </p>
       </div>
 
