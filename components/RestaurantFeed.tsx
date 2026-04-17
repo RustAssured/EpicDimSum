@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -11,6 +11,9 @@ import CityFilter from '@/components/CityFilter'
 import Mascot from '@/components/Mascot'
 import WhySheet from '@/components/WhySheet'
 import DumplingMandje from '@/components/DumplingMandje'
+import JourneyCard from '@/components/JourneyCard'
+import { createClient } from '@/lib/auth'
+import type { User } from '@supabase/supabase-js'
 
 const RestaurantMapDynamic = dynamic(() => import('@/components/RestaurantMap'), {
   ssr: false,
@@ -52,6 +55,46 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
   const [locationLoading, setLocationLoading] = useState(false)
   const [sortByDistance, setSortByDistance] = useState(false)
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list')
+  const [showMandje, setShowMandje] = useState(false)
+  const [user, setUser] = useState<User | null>(null)
+  const [checkinCount, setCheckinCount] = useState(0)
+  const [cityCount, setCityCount] = useState(0)
+  const [journeyMessage, setJourneyMessage] = useState('')
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => setUser(session?.user ?? null)
+    )
+    return () => subscription.unsubscribe()
+  }, [])
+
+  useEffect(() => {
+    const records: { city: string; restaurantId: string }[] = []
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key?.startsWith('checkin_')) {
+        try {
+          const data = localStorage.getItem(key)
+          if (data) {
+            const parsed = JSON.parse(data)
+            if (parsed.restaurantId) records.push(parsed)
+          }
+        } catch { /* skip */ }
+      }
+    }
+    const cities = new Set(records.map(r => r.city))
+    setCheckinCount(records.length)
+    setCityCount(cities.size)
+    if (records.length === 0) setJourneyMessage('')
+    else if (records.length < 3) setJourneyMessage('De reis is begonnen')
+    else if (records.length < 5) setJourneyMessage('Gao begint je te kennen')
+    else if (cities.size >= 3) setJourneyMessage('Gao ziet dat je op ontdekkingstocht bent')
+    else setJourneyMessage('Gao ziet dat je serieus bent')
+  }, [])
 
   const handleSuggest = async () => {
     if (!suggestUrl.trim()) return
@@ -297,8 +340,15 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
         </div>
       </div>
 
-      {/* Dumpling Mandje */}
-      <DumplingMandje />
+      {/* Journey card — personal, between controls and list */}
+      <JourneyCard
+        user={user}
+        checkinCount={checkinCount}
+        cityCount={cityCount}
+        gaoMessage={journeyMessage}
+        onOpen={() => setShowMandje(true)}
+      />
+      <DumplingMandje open={showMandje} onClose={() => setShowMandje(false)} />
 
       {/* Results count */}
       <div className="flex items-center justify-between">

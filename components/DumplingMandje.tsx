@@ -71,10 +71,15 @@ function getBadges(checkins: CheckInRecord[]): Badge[] {
   ]
 }
 
-export default function DumplingMandje() {
+export default function DumplingMandje({ open, onClose }: { open?: boolean; onClose?: () => void }) {
   const [checkins, setCheckins] = useState<CheckInRecord[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [user, setUser] = useState<User | null>(null)
+
+  // Sync external open prop
+  useEffect(() => {
+    if (open) setIsOpen(true)
+  }, [open])
 
   // Load checkins from localStorage
   useEffect(() => {
@@ -143,30 +148,11 @@ export default function DumplingMandje() {
   const unlockedCount = badges.filter(b => b.unlocked).length
   const cities = new Set(checkins.map(c => c.city))
 
-  if (checkins.length === 0) return null
-
   return (
     <>
-      <button
-        onClick={() => setIsOpen(true)}
-        className="w-full flex items-center gap-3 p-4 rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-[#fff3d6] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-brutal-sm transition-all"
-      >
-        <Icon
-          src={checkins.length > 0 ? 'basket-full.png' : 'basket-empty.png'}
-          alt="Dumpling Mandje"
-          size={48}
-        />
-        <div className="text-left flex-1">
-          <p className="font-black text-sm">Mijn Dumpling Mandje</p>
-          <p className="text-xs text-inkBlack/50">
-            {checkins.length} {checkins.length === 1 ? 'bezoek' : 'bezoeken'} · {cities.size} {cities.size === 1 ? 'stad' : 'steden'} · {unlockedCount}/{badges.length} badges
-          </p>
-        </div>
-      </button>
-
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-end">
-          <div className="absolute inset-0 bg-inkBlack/40" onClick={() => setIsOpen(false)} />
+          <div className="absolute inset-0 bg-inkBlack/40" onClick={() => { setIsOpen(false); onClose?.() }} />
           <div className="relative w-full bg-cream rounded-t-3xl border-t-[3px] border-inkBlack px-5 pt-4 pb-10 max-h-[80vh] overflow-y-auto">
             <div className="w-10 h-1 bg-inkBlack/20 rounded-full mx-auto mb-4" />
 
@@ -313,7 +299,7 @@ export default function DumplingMandje() {
               ))}
             </div>
 
-            <button onClick={() => setIsOpen(false)} className="w-full py-3 bg-epicRed text-cream font-black rounded-2xl border-2 border-inkBlack shadow-brutal-sm text-sm">
+            <button onClick={() => { setIsOpen(false); onClose?.() }} className="w-full py-3 bg-epicRed text-cream font-black rounded-2xl border-2 border-inkBlack shadow-brutal-sm text-sm">
               Sluiten
             </button>
           </div>
