@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { getAllRestaurants, getRestaurantById } from '@/lib/db'
 import StatusBadge from '@/components/StatusBadge'
 import CheckIn from '@/components/CheckIn'
+import SummaryBullets from '@/components/SummaryBullets'
 
 export const revalidate = 3600
 
@@ -57,36 +58,34 @@ export default async function RestaurantPage({ params }: PageProps) {
         <div className="w-16" />
       </header>
 
-      {/* Hero block */}
+      {/* Unified hero block */}
       <div className="bg-white border-b-[3px] border-inkBlack px-5 pt-5 pb-6">
 
-        {/* Dumpling rating — hero */}
-        <div className="flex items-center gap-3 mb-4">
-          <div>
-            <div className="flex items-center gap-1 mb-1">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Image
-                  key={i}
-                  src="/mascots/dumpling.png"
-                  alt=""
-                  width={i < dumplingCount ? 32 : 22}
-                  height={i < dumplingCount ? 32 : 22}
-                  className={`object-contain ${i < dumplingCount ? 'opacity-100' : 'opacity-15'}`}
-                />
-              ))}
-            </div>
-            <p className="text-xs font-black text-inkBlack/50">{gaoLabel}</p>
+        {/* Dumplings + name + gao label as one unit */}
+        <div className="mb-4">
+          <div className="flex items-center gap-1 mb-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Image
+                key={i}
+                src="/mascots/dumpling.png"
+                alt=""
+                width={i < dumplingCount ? 30 : 20}
+                height={i < dumplingCount ? 30 : 20}
+                className={`object-contain ${i < dumplingCount ? 'opacity-100' : 'opacity-15'}`}
+              />
+            ))}
           </div>
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h1 className="font-black text-2xl leading-tight">{name}</h1>
+              <p className="text-xs font-black text-inkBlack/50 mt-0.5">{gaoLabel}</p>
+            </div>
+            <StatusBadge status={status} />
+          </div>
+          <p className="text-xs text-inkBlack/40 mt-1">{city} · {priceRange}</p>
         </div>
 
-        {/* Name + status */}
-        <div className="flex items-start justify-between gap-3 mb-1">
-          <h1 className="font-black text-2xl leading-tight">{name}</h1>
-          <StatusBadge status={status} />
-        </div>
-        <p className="text-xs text-inkBlack/40 mb-4">{city} · {priceRange}</p>
-
-        {/* Must Order — prominent */}
+        {/* Must Order */}
         {mustOrder && (
           <div className="bg-epicGold/10 border-2 border-epicGold/40 rounded-2xl px-4 py-3 mb-4">
             <div className="flex items-center gap-2 mb-1">
@@ -97,15 +96,13 @@ export default async function RestaurantPage({ params }: PageProps) {
           </div>
         )}
 
-        {/* Why summary */}
+        {/* Why bullets */}
         {summary && (
-          <div className="space-y-2">
-            <p className="text-[10px] font-black text-inkBlack/30 uppercase tracking-wide">
+          <div>
+            <p className="text-[10px] font-black text-inkBlack/30 uppercase tracking-wide mb-2">
               Waarom Gao hier voor juicht
             </p>
-            <p className="text-sm text-inkBlack/70 leading-relaxed border-l-[3px] border-epicGreen pl-3">
-              {summary}
-            </p>
+            <SummaryBullets summary={summary} />
           </div>
         )}
       </div>
@@ -126,14 +123,16 @@ export default async function RestaurantPage({ params }: PageProps) {
         </div>
       )}
 
-      {/* Check-in */}
-      <div className="mx-4 mt-4">
-        <CheckIn
-          restaurantId={restaurant.id}
-          restaurantName={name}
-          restaurantCity={city}
-        />
-      </div>
+      {/* Review snippets — social proof before CTA */}
+      {reviewSnippets && reviewSnippets.length > 0 && (
+        <div className="mx-4 mt-4 space-y-2">
+          {reviewSnippets.slice(0, 3).map((review, i) => (
+            <div key={i} className="p-4 bg-white rounded-xl border border-inkBlack/10">
+              <p className="text-xs text-inkBlack/70 leading-relaxed italic">&ldquo;{review}&rdquo;</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Community signal */}
       {communityCheckins !== undefined && communityCheckins > 3 && (
@@ -146,16 +145,14 @@ export default async function RestaurantPage({ params }: PageProps) {
         </div>
       )}
 
-      {/* Review snippets */}
-      {reviewSnippets && reviewSnippets.length > 0 && (
-        <div className="mx-4 mt-4 space-y-2">
-          {reviewSnippets.slice(0, 3).map((review, i) => (
-            <div key={i} className="p-4 bg-white rounded-xl border border-inkBlack/10">
-              <p className="text-xs text-inkBlack/70 leading-relaxed italic">&ldquo;{review}&rdquo;</p>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Check-in — after social proof */}
+      <div className="mx-4 mt-4">
+        <CheckIn
+          restaurantId={restaurant.id}
+          restaurantName={name}
+          restaurantCity={city}
+        />
+      </div>
 
       {/* Location */}
       <div className="mx-4 mt-4 p-4 bg-white rounded-xl border border-inkBlack/10">

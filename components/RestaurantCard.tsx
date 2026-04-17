@@ -91,11 +91,11 @@ export default function RestaurantCard({ restaurant, rank, currentCity, distance
             <p className="text-[10px] font-black text-inkBlack/50">{gaoLabel}</p>
           </div>
 
-          {/* Ha Gao as small pill if available */}
+          {/* Ha Gao subtle signal */}
           {haGaoIndex > 0 && (
-            <div className="flex items-center gap-1 bg-epicGold/10 border border-epicGold/30 rounded-full px-2.5 py-1">
-              <Image src="/mascots/HaGaoIndex.png" alt="" width={14} height={14} className="object-contain" />
-              <span className="text-[10px] font-black text-epicGold">
+            <div className="flex items-center gap-1 opacity-70">
+              <Image src="/mascots/dumpling.png" alt="" width={12} height={12} className="object-contain" />
+              <span className="text-[10px] font-bold text-inkBlack/50">
                 {haGaoIndex.toFixed(1)}
               </span>
             </div>
