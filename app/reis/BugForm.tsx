@@ -1,9 +1,15 @@
 'use client'
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 
-export default function BugForm() {
-  const [message, setMessage] = useState('')
+function BugFormInner() {
+  const searchParams = useSearchParams()
+  const restaurantName = searchParams.get('restaurant')
+
+  const [message, setMessage] = useState(
+    restaurantName ? `Over ${restaurantName}: ` : ''
+  )
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -49,5 +55,13 @@ export default function BugForm() {
         {loading ? 'Gao ontvangt...' : 'Help Gao verder bouwen →'}
       </button>
     </div>
+  )
+}
+
+export default function BugForm() {
+  return (
+    <Suspense fallback={null}>
+      <BugFormInner />
+    </Suspense>
   )
 }

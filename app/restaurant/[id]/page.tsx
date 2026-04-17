@@ -193,6 +193,19 @@ export default async function RestaurantPage({ params }: PageProps) {
         </div>
       )}
 
+      {/* Help Gao — subtle, friendly */}
+      <div className="mx-4 mt-6 mb-2 text-center">
+        <p className="text-[10px] text-inkBlack/30 mb-1">
+          Klopt er iets niet aan deze plek?
+        </p>
+        <Link
+          href={`/reis?restaurant=${encodeURIComponent(restaurant.name)}#bug`}
+          className="text-[10px] font-black text-inkBlack/40 hover:text-epicGreen transition-colors"
+        >
+          Help Gao beter worden →
+        </Link>
+      </div>
+
       </div>{/* end max-w-2xl */}
     </main>
 
