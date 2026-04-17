@@ -51,7 +51,7 @@ export default function AdminSyncPage() {
 
 
   // Restaurant list filter
-  const [listFilter, setListFilter] = useState<'all' | 'verified' | 'review'>('all')
+  const [listFilter, setListFilter] = useState<'all' | 'verified' | 'review' | 'flagged'>('all')
 
   // Cleanup non-dim-sum state
   const [cleanupNonDimSumState, setCleanupNonDimSumState] = useState<{
@@ -71,6 +71,19 @@ export default function AdminSyncPage() {
       method: 'POST',
       headers: { 'x-sync-secret': secret },
     }).catch(() => {})
+  }, [secret])
+
+  // Load ALL restaurants from DB on auth
+  useEffect(() => {
+    if (!secret) return
+    fetch('/api/admin/restaurants', {
+      headers: { 'x-sync-secret': secret },
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setAdminRestaurants(data)
+      })
+      .catch(() => {})
   }, [secret])
 
   const handleAuth = (e: React.FormEvent) => {
@@ -156,38 +169,36 @@ export default function AdminSyncPage() {
     }
   }
 
-  const handleDeleteFlagged = async () => {
-    if (!window.confirm('Verwijder alle geflagde restaurants? Dit kan niet ongedaan worden.')) return
-
-    const flagged = adminRestaurants.filter(r => r.verified === false)
-
-    for (const r of flagged) {
-      await handleDelete(r.id)
+  const handleDelete = async (restaurantId: string) => {
+    if (!window.confirm('Verwijder dit restaurant permanent?')) return
+    const res = await fetch(`/api/admin/delete/${restaurantId}`, {
+      method: 'DELETE',
+      headers: { 'x-sync-secret': secret },
+    })
+    if (res.ok) {
+      setAdminRestaurants((prev) => prev.filter((r) => r.id !== restaurantId))
+    } else {
+      alert('Verwijderen mislukt')
     }
-
-    setAdminRestaurants(prev => prev.filter(r => r.verified !== false))
   }
 
-  const handleDelete = async (restaurantId: string) => {
-    if (!window.confirm('Weet je het zeker? Dit verwijdert het restaurant permanent.')) return
-    try {
-      const res = await fetch(`/api/admin/delete/${restaurantId}`, {
+  const handleDeleteFlagged = async () => {
+    const flagged = adminRestaurants.filter(r => r.verified === false)
+    if (flagged.length === 0) { alert('Geen geflagde restaurants gevonden'); return }
+    if (!window.confirm(`Verwijder ${flagged.length} geflagde restaurants? Dit kan niet ongedaan worden.`)) return
+
+    let deleted = 0
+    for (const r of flagged) {
+      const res = await fetch(`/api/admin/delete/${r.id}`, {
         method: 'DELETE',
         headers: { 'x-sync-secret': secret },
       })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(humanizeError(err.error || `HTTP ${res.status}`))
+      if (res.ok) {
+        deleted++
+        setAdminRestaurants(prev => prev.filter(x => x.id !== r.id))
       }
-      setAdminRestaurants((prev) => prev.filter((r) => r.id !== restaurantId))
-      setSyncStates((prev) => {
-        const next = { ...prev }
-        delete next[restaurantId]
-        return next
-      })
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Verwijderen mislukt')
     }
+    alert(`${deleted} van ${flagged.length} restaurants verwijderd`)
   }
 
   const handleLookupByName = async () => {
@@ -671,8 +682,8 @@ export default function AdminSyncPage() {
           </div>
 
           {/* Filter toggle */}
-          <div className="flex gap-1 mb-3">
-            {(['all', 'verified', 'review'] as const).map((f) => (
+          <div className="flex gap-1 mb-3 flex-wrap">
+            {(['all', 'verified', 'review', 'flagged'] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setListFilter(f)}
@@ -680,7 +691,13 @@ export default function AdminSyncPage() {
                   listFilter === f ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack/60 hover:text-inkBlack'
                 }`}
               >
-                {f === 'all' ? 'Alle' : f === 'verified' ? '✓ Geverifieerd' : '⚠️ Te reviewen'}
+                {f === 'all'
+                  ? `Alle (${adminRestaurants.length})`
+                  : f === 'verified'
+                  ? `✓ Geverifieerd (${adminRestaurants.filter(r => r.verified === true).length})`
+                  : f === 'review'
+                  ? `⚠️ Te reviewen (${adminRestaurants.filter(r => r.verified !== true && r.verified !== false).length})`
+                  : `🚩 Geflagged (${adminRestaurants.filter(r => r.verified === false).length})`}
               </button>
             ))}
           </div>
@@ -688,10 +705,11 @@ export default function AdminSyncPage() {
           <div className="space-y-4">
             {adminRestaurants
               .filter((r) => {
+                if (listFilter === 'flagged') return r.verified === false
                 const synced = syncStates[r.id]?.result
-                const isVerified = synced ? synced.verified === true : r.epicScore > 20 && r.haGaoIndex > 0
+                const isVerified = synced ? synced.verified === true : r.verified === true
                 if (listFilter === 'verified') return isVerified
-                if (listFilter === 'review') return !isVerified
+                if (listFilter === 'review') return r.verified !== true && r.verified !== false
                 return true
               })
               .map((restaurant) => {
@@ -739,6 +757,14 @@ export default function AdminSyncPage() {
                         )
                       })()}
                       <p className="text-xs text-inkBlack/30 mt-0.5">Laatste sync: {lastUpdated}</p>
+                      {restaurant.verified === false && (
+                        <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[10px] text-epicRed font-black">🚩 Geflagged door agent</span>
+                          {restaurant.agentReason && (
+                            <span className="text-[10px] text-inkBlack/40 italic">· {restaurant.agentReason}</span>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <div className="flex flex-col gap-1.5 shrink-0">
                       <div className="flex gap-1.5">

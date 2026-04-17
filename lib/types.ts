@@ -45,6 +45,7 @@ export interface Restaurant {
   }
   status: Status
   verified?: boolean
+  agentReason?: string
   reservationUrl?: string
   summary?: string
   reviewSnippets?: string[]
