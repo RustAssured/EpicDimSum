@@ -56,6 +56,7 @@ export default async function RestaurantPage({ params }: PageProps) {
   return (
     <>
     <main className="min-h-screen bg-cream pb-24">
+      <div className="max-w-2xl mx-auto">
 
       {/* Back header */}
       <header className="sticky top-0 z-40 bg-cream border-b-[3px] border-inkBlack px-4 py-3 flex items-center justify-between">
@@ -192,10 +193,12 @@ export default async function RestaurantPage({ params }: PageProps) {
         </div>
       )}
 
+      </div>{/* end max-w-2xl */}
     </main>
 
     {/* Sticky CTA — always visible on mobile */}
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-cream border-t-[3px] border-inkBlack px-4 py-3 flex gap-3">
+    <div className="fixed bottom-0 left-0 right-0 z-50">
+      <div className="max-w-2xl mx-auto px-4 py-3 flex gap-3 bg-cream border-t-[3px] border-inkBlack">
       <a
         href={routeUrl}
         target="_blank"
@@ -212,6 +215,7 @@ export default async function RestaurantPage({ params }: PageProps) {
       >
         Reserveer →
       </a>
+      </div>{/* end inner CTA */}
     </div>
     </>
   )
