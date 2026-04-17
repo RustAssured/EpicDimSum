@@ -20,18 +20,10 @@ interface Summary {
   total: number
 }
 
-const options: {
-  value: Rating
-  label: string
-  icon: string
-  iconAlt: string
-  gao: 'hilarischgao' | 'happy' | 'upsetsteaminggao'
-  bg: string
-  border: string
-}[] = [
-  { value: 'fire', label: 'On fire!', icon: 'flame.png', iconAlt: 'On fire', gao: 'hilarischgao', bg: 'bg-epicRed/8', border: 'border-epicRed/30' },
-  { value: 'solid', label: 'Solide', icon: 'dumpling-check.png', iconAlt: 'Solide', gao: 'happy', bg: 'bg-epicGreen/8', border: 'border-epicGreen/30' },
-  { value: 'meh', label: 'Mwah...', icon: 'dumpling-meh.png', iconAlt: 'Teleurstellend', gao: 'upsetsteaminggao', bg: 'bg-inkBlack/5', border: 'border-inkBlack/20' },
+const options: { value: Rating; label: string; icon: string; size: number }[] = [
+  { value: 'fire', label: 'On fire!', icon: 'flame.png', size: 32 },
+  { value: 'solid', label: 'Solide', icon: 'Dumpling-check.png', size: 32 },
+  { value: 'meh', label: 'Mwah...', icon: 'ha-gao.png', size: 28 },
 ]
 
 function RatingSummary({ summary }: { summary: Summary }) {
@@ -173,6 +165,7 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
   }
 
   const submittedOption = options.find(o => o.value === submitted)
+  const submittedGao = submitted === 'fire' ? 'hilarischgao' : submitted === 'solid' ? 'happy' : 'upsetsteaminggao'
 
   return (
     <div className="mx-4 mb-4 p-4 rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white">
@@ -180,7 +173,7 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
       {/* Already submitted */}
       {submitted && submittedOption ? (
         <div className="text-center">
-          <Mascot type={submittedOption.gao} size={56} className="mx-auto mb-2" />
+          <Mascot type={submittedGao} size={56} className="mx-auto mb-2" />
           <p className="font-black text-sm">Check-in opgeslagen! 🥟</p>
           <p className="text-xs text-inkBlack/40 mt-0.5">{restaurantName}</p>
           {summary && summary.total > 0 && (
@@ -297,11 +290,22 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
                 key={opt.value}
                 onClick={() => handleCheckIn(opt.value)}
                 disabled={loading}
-                className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl border-2 ${opt.bg} ${opt.border} active:scale-95 transition-transform disabled:opacity-50`}
+                className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all active:scale-95 disabled:opacity-50 ${
+                  submitted === opt.value
+                    ? 'bg-inkBlack border-inkBlack'
+                    : 'bg-cream border-inkBlack/20 hover:border-inkBlack/40'
+                }`}
               >
-                <Icon src={opt.icon} alt={opt.iconAlt} size={24} />
-                <Mascot type={opt.gao} size={32} />
-                <span className="text-[10px] font-black text-inkBlack/60 leading-none text-center">
+                <Image
+                  src={`/mascots/${opt.icon}`}
+                  alt={opt.label}
+                  width={opt.size}
+                  height={opt.size}
+                  className="object-contain"
+                />
+                <span className={`text-[9px] font-black leading-none ${
+                  submitted === opt.value ? 'text-cream' : 'text-inkBlack/50'
+                }`}>
                   {opt.label}
                 </span>
               </button>

@@ -386,27 +386,21 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
           </div>
         </>
       ) : (
-        <div className="text-center py-16 flex flex-col items-center gap-4">
+        <div className="text-center py-16 flex flex-col items-center gap-3">
           <Image
-            src="/mascots/sleepy.png"
+            src="/mascots/chopsticks.png"
             alt="Gao is aan het speuren"
-            width={72}
-            height={72}
-            className="object-contain"
+            width={56}
+            height={56}
+            className="object-contain opacity-60"
           />
-          <div>
-            <p className="font-black text-inkBlack/60">
-              Gao is hier nog aan het speuren
-            </p>
-            <p className="text-xs text-inkBlack/30 mt-1 max-w-xs mx-auto leading-relaxed">
-              Hij weet zeker dat er dim sum parels verstopt zitten.
-              Hij vindt ze. Dat beloven we.
-            </p>
-          </div>
-          <Link
-            href="/reis"
-            className="text-xs font-black text-epicGreen border border-epicGreen/30 px-3 py-1.5 rounded-full"
-          >
+          <p className="font-black text-inkBlack/50">
+            Gao is hier nog aan het speuren
+          </p>
+          <p className="text-xs text-inkBlack/30 max-w-xs mx-auto leading-relaxed">
+            Hij weet zeker dat er dim sum parels verstopt zitten.
+          </p>
+          <Link href="/reis" className="text-xs font-black text-epicGreen border border-epicGreen/30 px-3 py-1.5 rounded-full mt-1">
             Ken jij een parel? →
           </Link>
         </div>

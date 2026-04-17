@@ -23,6 +23,14 @@ function dumplingScale(score: number): { count: number; label: string } {
   return { count: 3, label: 'Gao is fan' }
 }
 
+function getMustOrderIcon(mustOrder: string): string {
+  const m = mustOrder.toLowerCase()
+  if (m.includes('siu mai') || m.includes('siew mai') || m.includes('siomay')) return 'Siew-Mai.png'
+  if (m.includes('ha gao') || m.includes('har gow') || m.includes('har gau') || m.includes('garnalen') || m.includes('prawn')) return 'ha-gao.png'
+  if (m.includes('uitzonderlijk') || m.includes('must') || m.includes('signature')) return 'Ha-Gao-star.png'
+  return 'ha-gao.png'
+}
+
 export default async function RestaurantPage({ params }: PageProps) {
   const [restaurant, allRestaurants] = await Promise.all([
     getRestaurantById(params.id),
@@ -89,7 +97,7 @@ export default async function RestaurantPage({ params }: PageProps) {
         {mustOrder && (
           <div className="bg-epicGold/10 border-2 border-epicGold/40 rounded-2xl px-4 py-3 mb-4">
             <div className="flex items-center gap-2 mb-1">
-              <Image src="/mascots/mustorder.png" alt="" width={20} height={20} className="object-contain" />
+              <Image src={`/mascots/${getMustOrderIcon(mustOrder ?? '')}`} alt="Must Order" width={22} height={22} className="object-contain" />
               <p className="text-[10px] font-black text-epicGold uppercase tracking-wide">Must Order</p>
             </div>
             <p className="text-sm font-black text-inkBlack">{mustOrder}</p>

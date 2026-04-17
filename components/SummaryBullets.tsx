@@ -4,6 +4,20 @@ interface SummaryBulletsProps {
   summary: string
 }
 
+function getBulletIcon(sentence: string): string {
+  const s = sentence.toLowerCase()
+  if (s.includes('handgemaakt') || s.includes('ambacht') || s.includes('vers') || s.includes('gevouwen') || s.includes('handmade')) {
+    return 'chopsticks.png'
+  }
+  if (s.includes('uitzonderlijk') || s.includes('bijzonder') || s.includes('outstanding') || s.includes('best')) {
+    return 'Ha-Gao-star.png'
+  }
+  if (s.includes('review') || s.includes('consistent') || s.includes('altijd') || s.includes('betrouwbaar')) {
+    return 'Dumpling-check.png'
+  }
+  return 'ha-gao.png'
+}
+
 export default function SummaryBullets({ summary }: SummaryBulletsProps) {
   const sentences = summary
     .split(/[.!;]/)
@@ -16,14 +30,14 @@ export default function SummaryBullets({ summary }: SummaryBulletsProps) {
   }
 
   return (
-    <ul className="space-y-2">
+    <ul className="space-y-2.5">
       {sentences.map((sentence, i) => (
-        <li key={i} className="flex items-start gap-2">
+        <li key={i} className="flex items-start gap-2.5">
           <Image
-            src="/mascots/dumpling-check.png"
+            src={`/mascots/${getBulletIcon(sentence)}`}
             alt=""
-            width={16}
-            height={16}
+            width={18}
+            height={18}
             className="object-contain shrink-0 mt-0.5"
           />
           <p className="text-sm text-inkBlack/70 leading-snug">{sentence}</p>

@@ -24,6 +24,14 @@ function dumplingScale(score: number): { count: number; label: string } {
   return { count: 3, label: 'Gao is fan' }
 }
 
+function getMustOrderIcon(mustOrder: string): string {
+  const m = mustOrder.toLowerCase()
+  if (m.includes('siu mai') || m.includes('siew mai') || m.includes('siomay')) return 'Siew-Mai.png'
+  if (m.includes('ha gao') || m.includes('har gow') || m.includes('har gau') || m.includes('garnalen') || m.includes('prawn')) return 'ha-gao.png'
+  if (m.includes('uitzonderlijk') || m.includes('must') || m.includes('signature')) return 'Ha-Gao-star.png'
+  return 'ha-gao.png'
+}
+
 export default function RestaurantCard({ restaurant, rank, currentCity, distance }: RestaurantCardProps) {
   const { id, name, city, priceRange, status, epicScore, mustOrder, haGaoIndex } = restaurant
 
@@ -105,7 +113,10 @@ export default function RestaurantCard({ restaurant, rank, currentCity, distance
         {/* Must Order */}
         {mustOrder && (
           <div className="mx-4 mb-3 px-3 py-2 bg-epicGold/8 border border-epicGold/20 rounded-xl">
-            <p className="text-[9px] font-black text-epicGold uppercase tracking-wide mb-0.5">Must Order</p>
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <Image src={`/mascots/${getMustOrderIcon(mustOrder)}`} alt="Must Order" width={16} height={16} className="object-contain" />
+              <p className="text-[9px] font-black text-epicGold uppercase tracking-wide">Must Order</p>
+            </div>
             <p className="text-xs font-black text-inkBlack">{mustOrder}</p>
           </div>
         )}

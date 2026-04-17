@@ -59,11 +59,11 @@ function getBadges(checkins: CheckInRecord[]): Badge[] {
   const hasOntdekker = firstCity !== null && Array.from(cities).some(c => c !== firstCity)
 
   return [
-    { id: 'first', name: 'Eerste Dumpling', description: 'De reis begint', icon: 'dumpling-sparkle.png', unlocked: total >= 1 },
+    { id: 'first', name: 'Eerste Dumpling', description: 'De reis begint', icon: 'Ha-Gao-star.png', unlocked: total >= 1 },
     { id: 'explorer', name: 'Dim Sum Explorer', description: '3 restaurants bezocht', icon: 'dumpling-group.png', unlocked: total >= 3 },
     { id: 'city_hopper', name: 'Stad Hopper', description: 'Dim sum in 2 steden', icon: 'dumpling-pin.png', unlocked: cities.size >= 2 },
     { id: 'op_smaak', name: 'Op Smaak', description: '3× On fire rating', icon: 'flame.png', unlocked: fireCount >= 3 },
-    { id: 'vaste_prik', name: 'Vaste Prik', description: '3× zelfde restaurant', icon: 'dumpling-check.png', unlocked: hasVastePrik },
+    { id: 'vaste_prik', name: 'Vaste Prik', description: '3× zelfde restaurant', icon: 'Dumpling-check.png', unlocked: hasVastePrik },
     { id: 'ontdekker', name: 'Ontdekker', description: 'Eerste stad buiten je startstad', icon: 'dumpling-pin.png', unlocked: hasOntdekker },
     { id: 'reiziger', name: 'Dim Sum Reiziger', description: '5 steden ontdekt', icon: 'dumpling-group.png', unlocked: cities.size >= 5 },
     { id: 'kenner', name: 'Echte Kenner', description: '15 restaurants bezocht', icon: 'dumpling-crown.png', unlocked: total >= 15 },
