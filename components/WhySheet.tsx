@@ -44,9 +44,10 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
             Wij laten zien wat <em>goed</em> is.
           </p>
           <p className="text-xs text-cream/60 mt-2 leading-snug">
-            Op deze lijst staan betekent dat Gao voor je juicht. En hoe hoger
-            de score, hoe harder hij juicht. Maar één ding is altijd zeker:
-            als Gao je kent, weet hij dat je dim sum de moeite waard is.
+            Gao analyseert duizenden reviews op dumplingkwaliteit.
+            Jij ziet het resultaat: hoeveel dumplings, wat je moet bestellen,
+            en waarom het de moeite waard is.
+            De rest is Gao&apos;s werk — niet jouw analyse.
           </p>
         </div>
 
