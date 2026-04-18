@@ -136,7 +136,7 @@ export default async function RestaurantPage({ params }: PageProps) {
 
       {/* Ha Gao Index — secondary expert layer */}
       {haGaoIndex > 0 && (
-        <div className="mx-4 mt-4 p-4 rounded-2xl border-2 border-inkBlack/10 bg-white">
+        <div className="mx-4 mt-5 p-4 rounded-2xl border-2 border-inkBlack/10 bg-white">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Image src="/mascots/HaGaoIndex.png" alt="" width={24} height={24} className="object-contain" />
@@ -152,7 +152,7 @@ export default async function RestaurantPage({ params }: PageProps) {
 
       {/* Review snippets — social proof before CTA */}
       {reviewSnippets && reviewSnippets.length > 0 && (
-        <div className="mx-4 mt-4 space-y-2">
+        <div className="mx-4 mt-6 space-y-2">
           {reviewSnippets.slice(0, 3).map((review, i) => (
             <div key={i} className="p-4 bg-white rounded-xl border border-inkBlack/10">
               <p className="text-xs text-inkBlack/70 leading-relaxed italic">&ldquo;{review}&rdquo;</p>
@@ -182,14 +182,14 @@ export default async function RestaurantPage({ params }: PageProps) {
       </div>
 
       {/* Location */}
-      <div className="mx-4 mt-4 p-4 bg-white rounded-xl border border-inkBlack/10">
+      <div className="mx-4 mt-5 p-4 bg-white rounded-xl border border-inkBlack/10">
         <p className="text-[10px] font-black text-inkBlack/30 uppercase tracking-wide mb-1">Locatie</p>
         <p className="text-sm text-inkBlack/70">{address}</p>
       </div>
 
       {/* Similar restaurants */}
       {similarRestaurants.length > 0 && (
-        <div className="mx-4 mt-4">
+        <div className="mx-4 mt-6">
           <p className="text-[10px] font-black text-inkBlack/30 uppercase tracking-wide mb-2">
             Vergelijkbaar
           </p>
@@ -212,7 +212,7 @@ export default async function RestaurantPage({ params }: PageProps) {
       )}
 
       {/* Help Gao — subtle, friendly */}
-      <div className="mx-4 mt-6 mb-2 text-center">
+      <div className="mx-4 mt-8 mb-2 text-center">
         <p className="text-[10px] text-inkBlack/30 mb-1">
           Klopt er iets niet aan deze plek?
         </p>

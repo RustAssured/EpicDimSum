@@ -247,7 +247,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
       </p>
 
       {/* Control bar — horizontally scrollable, never wraps */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-4 px-4">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 mb-2">
 
         {/* Sort: Beste overall */}
         <button
@@ -329,7 +329,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
       <DumplingMandje open={showMandje} onClose={() => setShowMandje(false)} />
 
       {/* Results count */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-end justify-between gap-3 mb-4 mt-2">
         <p className="text-sm font-bold text-inkBlack/50">{countText}</p>
       </div>
 
@@ -346,7 +346,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
               }}
             />
           ) : (
-          <div className="space-y-3">
+          <div className="space-y-5">
             {sortedRestaurants.map((restaurant, index) => {
               const distance = sortByDistance && userLocation && restaurant.coords
                 ? getDistance(userLocation.lat, userLocation.lng, restaurant.coords.lat, restaurant.coords.lng)

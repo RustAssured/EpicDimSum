@@ -11,7 +11,7 @@ interface JourneyCardProps {
   onOpen: () => void
 }
 
-const btnClass = "w-full text-left rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-[#fff3d6] p-4 transition-all duration-150 hover:shadow-brutal-sm hover:translate-x-[2px] hover:translate-y-[2px] active:scale-[0.98] active:shadow-none active:translate-x-[3px] active:translate-y-[3px] cursor-pointer mb-4"
+const btnClass = "w-full text-left rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-[#fff3d6] p-4 transition-all duration-150 hover:shadow-brutal-sm hover:translate-x-[2px] hover:translate-y-[2px] active:scale-[0.98] active:shadow-none active:translate-x-[3px] active:translate-y-[3px] cursor-pointer mb-5 mt-1"
 
 export default function JourneyCard({
   user,

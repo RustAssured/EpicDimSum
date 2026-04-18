@@ -59,7 +59,7 @@ export default function RestaurantCard({ restaurant, rank, currentCity, distance
         )}
 
         {/* Header */}
-        <div className="px-4 pt-4 pb-2">
+        <div className="px-4 pt-5 pb-2">
           {rank === 1 ? (
             <div className="flex items-center gap-1 mb-1">
               <Image src="/mascots/EpicScoreBrand.png" alt="#1" width={24} height={24} className="object-contain" />
@@ -80,7 +80,7 @@ export default function RestaurantCard({ restaurant, rank, currentCity, distance
         </div>
 
         {/* Dumpling rating — the only score */}
-        <div className="px-4 py-3 flex items-center justify-between">
+        <div className="px-4 py-4 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-0.5 mb-1">
               {Array.from({ length: 5 }).map((_, i) => (
