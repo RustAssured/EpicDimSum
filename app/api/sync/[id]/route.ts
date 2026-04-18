@@ -42,6 +42,8 @@ export async function POST(
       rating: forceRefresh ? 0 : restaurant.sources.googleRating,
       userRatingCount: forceRefresh ? 0 : restaurant.sources.googleReviewCount,
       reviews: [] as { text: { text: string }; rating: number }[],
+      photoReference: restaurant.photoReference ?? null,
+      photoReferences: restaurant.photoReferences ?? [],
     }
     if (forceRefresh) {
       console.log(`[Sync] Force refresh for zero-score restaurant: ${restaurant.name}`)
@@ -106,6 +108,8 @@ export async function POST(
     const updated: Restaurant = {
       ...restaurant,
       verified,
+      photoReference: googleData.photoReference,
+      photoReferences: googleData.photoReferences,
       haGaoIndex: scores.haGaoIndex,
       haGaoDetail: scores.haGaoDetail,
       rankReason: scores.rankReason,

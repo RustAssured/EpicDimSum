@@ -5,6 +5,12 @@ export interface PlacesData {
   currentOpeningHours?: {
     openNow?: boolean
   }
+  photoReference: string | null
+  photoReferences: string[]
+}
+
+export function getPlacePhotoUrl(photoReference: string, maxWidth = 800): string {
+  return `https://places.googleapis.com/v1/${photoReference}/media?maxWidthPx=${maxWidth}&key=${process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY}`
 }
 
 export async function fetchGooglePlacesData(placeId: string): Promise<PlacesData> {
@@ -17,6 +23,7 @@ export async function fetchGooglePlacesData(placeId: string): Promise<PlacesData
     'userRatingCount',
     'reviews',
     'currentOpeningHours',
+    'photos',
   ].join(',')
 
   const url = `https://places.googleapis.com/v1/places/${placeId}`
@@ -37,11 +44,15 @@ export async function fetchGooglePlacesData(placeId: string): Promise<PlacesData
 
   const data = await res.json()
 
+  const photoReferences: string[] = data.photos?.slice(0, 3).map((p: { name: string }) => p.name) ?? []
+
   return {
     rating: data.rating ?? 0,
     userRatingCount: data.userRatingCount ?? 0,
     reviews: (data.reviews ?? []).slice(0, 5),
     currentOpeningHours: data.currentOpeningHours,
+    photoReference: photoReferences[0] ?? null,
+    photoReferences,
   }
 }
 

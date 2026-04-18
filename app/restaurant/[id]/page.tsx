@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { getAllRestaurants, getRestaurantById } from '@/lib/db'
+import { getPlacePhotoUrl } from '@/lib/google-places'
 import StatusBadge from '@/components/StatusBadge'
 import CheckIn from '@/components/CheckIn'
 import SummaryBullets from '@/components/SummaryBullets'
@@ -66,6 +67,23 @@ export default async function RestaurantPage({ params }: PageProps) {
         <p className="font-black text-sm truncate max-w-[200px]">{name}</p>
         <div className="w-16" />
       </header>
+
+      {/* Photo header */}
+      {restaurant.photoReference && (
+        <div className="w-full h-52 overflow-hidden border-b-[3px] border-inkBlack relative">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={getPlacePhotoUrl(restaurant.photoReference)}
+            alt={restaurant.name}
+            className="w-full h-full object-cover"
+            loading="lazy"
+            onError={(e) => {
+              e.currentTarget.parentElement?.remove()
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
+        </div>
+      )}
 
       {/* Unified hero block */}
       <div className="bg-white border-b-[3px] border-inkBlack px-5 pt-5 pb-6">

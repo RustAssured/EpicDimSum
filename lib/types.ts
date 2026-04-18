@@ -46,6 +46,8 @@ export interface Restaurant {
   status: Status
   verified?: boolean
   agentReason?: string
+  photoReference?: string | null
+  photoReferences?: string[]
   reservationUrl?: string
   summary?: string
   reviewSnippets?: string[]
