@@ -10,6 +10,28 @@ export const metadata = {
 
 const updates = [
   {
+    id: 'fu-dumplings-moment',
+    date: '19 april 2026',
+    title: 'Gao verlaat het scherm',
+    emoji: '🥟',
+    content: [
+      {
+        type: 'paragraph' as const,
+        text: 'Vandaag gebeurde iets wat Gao niet had verwacht. Hij verliet het scherm.',
+      },
+      {
+        type: 'paragraph' as const,
+        text: 'Vandaag was het dan toch echt zover. Tijd om de nummer 1 spot van EpicDimSum eindelijk eens te bezoeken. En kon ik het niet laten om te melden dat ik via EpicDimSum.com hier terecht was gekomen. Superleuke reacties en een zeer vriendelijke eigenaar die nieuwsgierig werd naar de site. Toffe gesprekken volgden ook met een andere gast, of beter gezegd, Dim Sum fan! Met potentieel nog wat spots die Gao nog niet kent, dus die gaan zeker het mandje in. En de dumplings? Epic. Uiteraard!',
+      },
+      {
+        type: 'paragraph' as const,
+        text: 'Er komt een sticker. Voor op de deur. Want als Gao ergens voor juicht, mag de wereld dat weten.',
+      },
+    ],
+    mistake: 'Gao staat nog niet bij genoeg restaurants op de deur.',
+    fixed: false,
+  },
+  {
     id: 'crispy-clear',
     date: '17 april 2026',
     title: 'Crispy clear',
