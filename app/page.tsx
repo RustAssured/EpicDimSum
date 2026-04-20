@@ -18,7 +18,7 @@ export default async function Home() {
           <div className="flex items-center gap-2">
             <Image src="/mascots/MasterGao.png" alt="Gao" width={36} height={36} className="object-contain shrink-0" />
             <div>
-              <h1 className="font-black text-base leading-none">
+              <h1 className="font-black leading-none tracking-tight" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 900, letterSpacing: '0.01em', fontSize: '1rem' }}>
                 <span className="text-epicRed">Epic</span>
                 <span className="text-epicGreen">Dim</span>
                 <span className="text-epicGold">Sum</span>
@@ -53,7 +53,7 @@ export default async function Home() {
       {/* Footer */}
       <footer className="border-t-[3px] border-inkBlack mt-12 py-6 bg-inkBlack text-cream">
         <div className="max-w-2xl mx-auto px-4 text-center">
-          <p className="font-black text-lg">
+          <p className="font-black text-lg tracking-tight" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 900, letterSpacing: '0.01em' }}>
             <span className="text-epicRed">Epic</span>
             <span className="text-epicGreen">Dim</span>
             <span className="text-epicGold">Sum</span>

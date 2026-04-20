@@ -11,7 +11,7 @@ interface JourneyCardProps {
   onOpen: () => void
 }
 
-const btnClass = "w-full text-left rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-[#fff3d6] p-4 transition-all duration-150 hover:shadow-brutal-sm hover:translate-x-[2px] hover:translate-y-[2px] active:scale-[0.98] active:shadow-none active:translate-x-[3px] active:translate-y-[3px] cursor-pointer mb-5 mt-1"
+const btnBase = "w-full text-left rounded-2xl shadow-brutal p-4 transition-all duration-150 hover:shadow-brutal-sm hover:translate-x-[2px] hover:translate-y-[2px] active:scale-[0.98] active:shadow-none active:translate-x-[3px] active:translate-y-[3px] cursor-pointer mb-5 mt-1"
 
 export default function JourneyCard({
   user,
@@ -22,14 +22,14 @@ export default function JourneyCard({
 }: JourneyCardProps) {
   if (!user) {
     return (
-      <button onClick={signInWithGoogle} className={btnClass}>
-        <div className="flex items-center gap-2.5">
-          <Image src="/mascots/GaoMandje.png" alt="Dumpling Reis" width={44} height={44} className="object-contain shrink-0" />
+      <button onClick={signInWithGoogle} className={`${btnBase} bg-[#fff3d6] border-[3px] border-epicGreen/40`}>
+        <div className="flex items-center gap-3">
+          <Image src="/mascots/GaoMandje.png" alt="Dumpling Reis" width={64} height={64} className="object-contain shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="font-black text-sm leading-tight">Jouw Dumpling Reis</p>
-            <p className="text-xs text-inkBlack/50 mt-0.5 leading-snug">Gao wacht op je eerste plek</p>
+            <p className="font-black text-sm leading-tight">Vul jouw Dumpling Mandje 🧺</p>
+            <p className="text-xs text-inkBlack/50 mt-0.5 leading-snug">Log in en bewaar jouw dim sum reis</p>
           </div>
-          <p className="text-xs font-black text-inkBlack/30 shrink-0">Ga op reis →</p>
+          <p className="text-xs font-black text-inkBlack/30 shrink-0">Start →</p>
         </div>
       </button>
     )
@@ -37,12 +37,12 @@ export default function JourneyCard({
 
   if (checkinCount === 0) {
     return (
-      <button onClick={onOpen} className={btnClass}>
-        <div className="flex items-center gap-2.5">
-          <Image src="/mascots/GaoMandje.png" alt="Dumpling Reis" width={44} height={44} className="object-contain shrink-0" />
+      <button onClick={onOpen} className={`${btnBase} bg-[#fff3d6] border-[3px] border-inkBlack`}>
+        <div className="flex items-center gap-3">
+          <Image src="/mascots/GaoMandje.png" alt="Dumpling Reis" width={64} height={64} className="object-contain shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="font-black text-sm leading-tight">Jouw Dumpling Reis</p>
-            <p className="text-xs text-inkBlack/50 mt-0.5 leading-snug">Begin met je eerste check-in</p>
+            <p className="font-black text-sm leading-tight">Vul jouw Dumpling Mandje 🧺</p>
+            <p className="text-xs text-inkBlack/50 mt-0.5 leading-snug">Check in bij je eerste dim sum spot</p>
           </div>
           <p className="text-xs font-black text-inkBlack/30 shrink-0">Begin →</p>
         </div>
@@ -51,9 +51,9 @@ export default function JourneyCard({
   }
 
   return (
-    <button onClick={onOpen} className={btnClass}>
-      <div className="flex items-center gap-2.5">
-        <Image src="/mascots/GaoMandje.png" alt="Dumpling Reis" width={44} height={44} className="object-contain shrink-0" />
+    <button onClick={onOpen} className={`${btnBase} bg-[#fff3d6] border-[3px] border-inkBlack`}>
+      <div className="flex items-center gap-3">
+        <Image src="/mascots/GaoMandje.png" alt="Dumpling Reis" width={64} height={64} className="object-contain shrink-0" />
         <div className="flex-1 min-w-0">
           <p className="font-black text-sm leading-tight">Jouw Dumpling Reis</p>
           <p className="text-xs text-inkBlack/50 mt-0.5">

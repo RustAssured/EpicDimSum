@@ -33,6 +33,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="nl">
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet" />
+      </head>
       <body className="min-h-screen bg-cream antialiased">
         {children}
       </body>

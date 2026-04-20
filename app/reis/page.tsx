@@ -187,7 +187,7 @@ export default function ReisPage() {
           <Link href="/" className="flex items-center gap-2">
             <Image src="/mascots/MasterGao.png" alt="Gao" width={36} height={36} className="object-contain" />
             <div>
-              <p className="font-black text-sm leading-none">
+              <p className="font-black text-sm leading-none tracking-tight" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 900, letterSpacing: '0.01em' }}>
                 <span className="text-epicRed">Epic</span>
                 <span className="text-epicGreen">Dim</span>
                 <span className="text-epicGold">Sum</span>
