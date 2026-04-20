@@ -17,7 +17,7 @@ export default function Mascot({ type, size = 40, className = '', alt }: MascotP
   return (
     <Image
       src={`/mascots/${type}.png`}
-      alt={alt ?? `Gao the dumpling — ${type}`}
+      alt={alt ?? `Gao the dumpling, ${type}`}
       width={size}
       height={size}
       className={`object-contain drop-shadow-sm ${className}`}

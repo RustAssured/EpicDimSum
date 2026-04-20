@@ -60,7 +60,7 @@ function AboutSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
 
         {/* Signature */}
         <div className="mb-6">
-          <p className="text-sm text-inkBlack/60 italic mb-1">— Woo Jung, maker van EpicDimSum</p>
+          <p className="text-sm text-inkBlack/60 italic mb-1">Woo Jung, maker van EpicDimSum</p>
           <Link
             href="/reis#bug"
             className="text-[10px] font-black text-epicGreen border border-epicGreen/30 px-2.5 py-1 rounded-full hover:bg-epicGreen/5 transition-colors"

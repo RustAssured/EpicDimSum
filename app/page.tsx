@@ -59,7 +59,7 @@ export default async function Home() {
             <span className="text-epicGold">Sum</span>
           </p>
           <p className="text-xs text-cream/40 mt-1">
-            De beste dim sum in Nederland — Powered by EpicScore™
+            De beste dim sum in Nederland. Powered by EpicScore™
           </p>
         </div>
       </footer>

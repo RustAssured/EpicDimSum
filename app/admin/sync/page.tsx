@@ -15,7 +15,7 @@ interface SyncState {
 }
 
 function humanizeError(error: string): string {
-  if (error === 'Unauthorized') return 'Verkeerd wachtwoord — check je Sync Secret'
+  if (error === 'Unauthorized') return 'Verkeerd wachtwoord, check je Sync Secret'
   return error
 }
 
@@ -318,13 +318,13 @@ export default function AdminSyncPage() {
         if (res.ok) {
           const data = await res.json()
           totalAdded += data.added ?? 0
-          setFullScanResult(`${city} ✓ — ${totalAdded} nieuw totaal`)
+          setFullScanResult(`${city} ✓, ${totalAdded} nieuw totaal`)
         } else {
-          setFullScanResult(`${city} overgeslagen — doorgaan...`)
+          setFullScanResult(`${city} overgeslagen, doorgaan...`)
         }
       } catch {
         // Timeout or error — skip this city and continue
-        setFullScanResult(`${city} timeout — doorgaan...`)
+        setFullScanResult(`${city} timeout, doorgaan...`)
       }
       // Small pause between cities
       await new Promise(r => setTimeout(r, 1500))
@@ -513,7 +513,7 @@ export default function AdminSyncPage() {
                   }`}>
                     <span className="font-black">{r.name}</span>
                     {' '}({r.confidence}%)
-                    {' — '}{r.reasoning}
+                    {' '}{r.reasoning}
                   </div>
                 ))}
               </div>
@@ -709,9 +709,9 @@ export default function AdminSyncPage() {
                   onChange={(e) => setAddForm((f) => ({ ...f, priceRange: e.target.value as PriceRange }))}
                   className="w-full px-3 py-2 rounded-xl border-[2px] border-inkBlack text-sm font-medium bg-cream focus:outline-none shadow-brutal-sm"
                 >
-                  <option value="€">€ — Budget</option>
-                  <option value="€€">€€ — Midden</option>
-                  <option value="€€€">€€€ — Luxe</option>
+                  <option value="€">€ Budget</option>
+                  <option value="€€">€€ Midden</option>
+                  <option value="€€€">€€€ Luxe</option>
                 </select>
               </div>
             </div>

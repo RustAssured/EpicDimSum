@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
   if (!checkRateLimit(ip)) {
     return NextResponse.json(
-      { error: 'Te veel suggesties vandaag — probeer morgen weer' },
+      { error: 'Te veel suggesties vandaag, probeer morgen weer' },
       { status: 429 }
     )
   }

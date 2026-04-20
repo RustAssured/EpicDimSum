@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'EpicDimSum — De beste Dim Sum in Nederland',
+  title: 'EpicDimSum, de beste Dim Sum in Nederland',
   description:
     'Jouw realtime dumpling radar voor de beste dim sum restaurants in Amsterdam, Rotterdam en Den Haag. Powered by de EpicScore.',
   icons: {
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     apple: '/favicon.png',
   },
   openGraph: {
-    title: 'EpicDimSum — De beste Dim Sum in Nederland',
+    title: 'EpicDimSum, de beste Dim Sum in Nederland',
     description:
       'Realtime dim sum rankings voor heel Nederland. Ha Gao Index, EpicScore en meer.',
     type: 'website',
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'EpicDimSum — De beste Dim Sum in Nederland',
+    title: 'EpicDimSum, de beste Dim Sum in Nederland',
     description: 'Niet de populairste dim sum. De beste dumplings.',
   },
   metadataBase: new URL('https://epicdimsum.nl'),

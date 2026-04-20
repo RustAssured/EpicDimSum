@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       added,
       skipped,
       restaurants: addedNames,
-      note: 'Restaurants toegevoegd als concept — gebruik Sync alle om scores te berekenen',
+      note: 'Restaurants toegevoegd als concept, gebruik Sync alle om scores te berekenen',
     })
   } catch (err) {
     console.error('Full-scan error:', err)

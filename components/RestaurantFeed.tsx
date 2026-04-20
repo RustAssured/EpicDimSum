@@ -218,7 +218,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
       <div className="text-center pb-1">
         <p className="text-sm font-black text-inkBlack">
           Jouw persoonlijke dim sum reis{' '}
-          <span className="text-epicRed">— langs de beste dumplings</span>
+          <span className="text-epicRed">, langs de beste dumplings</span>
         </p>
       </div>
 
@@ -243,7 +243,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
 
       {/* Product promise */}
       <p className="text-xs text-inkBlack/40 font-medium text-center -mt-1">
-        Alleen geverifieerde dim sum spots — kwaliteit boven kwantiteit
+        Alleen geverifieerde dim sum spots, kwaliteit boven kwantiteit
       </p>
 
       {/* Control bar — horizontally scrollable, never wraps */}
@@ -386,7 +386,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
           {/* Suggest a restaurant */}
           <div id="suggest-form" className="mt-4 p-4 rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white">
             <p className="font-black text-sm mb-1">🥟 Ken jij een goede plek?</p>
-            <p className="text-xs text-inkBlack/50 mb-3">Plak een Google Maps link — wij doen de rest</p>
+            <p className="text-xs text-inkBlack/50 mb-3">Plak een Google Maps link, wij doen de rest</p>
             <div className="flex gap-2">
               <input
                 type="url"

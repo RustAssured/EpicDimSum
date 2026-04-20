@@ -213,8 +213,8 @@ export default function DumplingMandje({ open, onClose }: { open?: boolean; onCl
                   Bewaar je mandje permanent
                 </p>
                 <p className="text-[10px] text-inkBlack/50 mb-3 leading-snug">
-                  Log in zodat je bezoeken en badges nooit verloren gaan —
-                  ook niet als je cookies wist.
+                  Log in zodat je bezoeken en badges nooit verloren gaan.
+                  Ook niet als je cookies wist.
                 </p>
                 <button
                   onClick={signInWithGoogle}

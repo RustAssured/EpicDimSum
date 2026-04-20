@@ -90,7 +90,7 @@ export default function UpdateEntry({ update }: { update: Update }) {
         <div className="flex items-center gap-2 mb-1">
           <Image src="/mascots/lowconfidence.png" alt="" width={20} height={20} className="object-contain" />
           <p className="text-[10px] font-black text-epicRed uppercase tracking-wide">
-            {update.fixed ? 'Gao had het mis — nu gefixed!' : 'Gao zit hier mogelijk mis'}
+            {update.fixed ? 'Gao had het mis, nu gefixed!' : 'Gao zit hier mogelijk mis'}
           </p>
         </div>
         <p className="text-xs text-inkBlack/60 leading-snug italic">{update.mistake}</p>

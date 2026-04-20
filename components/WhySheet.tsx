@@ -47,7 +47,7 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
             Gao analyseert duizenden reviews op dumplingkwaliteit.
             Jij ziet het resultaat: hoeveel dumplings, wat je moet bestellen,
             en waarom het de moeite waard is.
-            De rest is Gao&apos;s werk — niet jouw analyse.
+            De rest is Gao&apos;s werk, niet jouw analyse.
           </p>
         </div>
 
@@ -61,10 +61,10 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
                 <span className="text-[9px] bg-epicGold/20 text-epicGold font-black px-2 py-0.5 rounded-full">BONUS</span>
               </div>
               <p className="text-xs text-inkBlack/50 leading-snug mt-0.5">
-                Als er voldoende dumpling reviews zijn, berekenen we een Ha Gao Index — hoe goed zijn de dumplings écht? Dit is de icing on the cake bovenop de EpicScore.
+                Als er voldoende dumpling reviews zijn, berekenen we een Ha Gao Index: hoe goed zijn de dumplings écht? Dit is de icing on the cake bovenop de EpicScore.
               </p>
               <p className="text-[10px] text-inkBlack/30 leading-snug mt-1">
-                Niet elk restaurant heeft een Ha Gao Index — maar als je hem ziet, zegt hij iets echts.
+                Niet elk restaurant heeft een Ha Gao Index, maar als je hem ziet, zegt hij iets echts.
               </p>
             </div>
           </div>
@@ -72,9 +72,9 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
           <div className="flex items-start gap-3 p-3 bg-white rounded-xl border-2 border-inkBlack/10">
             <Image src="/mascots/Epicscore.png" alt="" width={28} height={28} className="object-contain shrink-0 mt-0.5" />
             <div>
-              <p className="font-black text-sm">Reputatie — 25%</p>
+              <p className="font-black text-sm">Reputatie 25%</p>
               <p className="text-xs text-inkBlack/50 leading-snug mt-0.5">
-                Bewezen kwaliteit via reviews over tijd — niet alleen het laatste jaar.
+                Bewezen kwaliteit via reviews over tijd, niet alleen het laatste jaar.
               </p>
             </div>
           </div>
@@ -82,7 +82,7 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
           <div className="flex items-start gap-3 p-3 bg-white rounded-xl border-2 border-inkBlack/10">
             <Image src="/mascots/Epicscore.png" alt="" width={28} height={28} className="object-contain shrink-0 mt-0.5" />
             <div>
-              <p className="font-black text-sm">Online aandacht + Vibe — 35%</p>
+              <p className="font-black text-sm">Online aandacht + Vibe 35%</p>
               <p className="text-xs text-inkBlack/50 leading-snug mt-0.5">
                 Wordt er echt over gesproken? En hoe voelt het om er te eten?
               </p>
@@ -96,7 +96,7 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
             <p className="font-black text-sm">Jouw dumpling journey</p>
             <p className="text-xs text-inkBlack/50 leading-snug mt-0.5">
               Hou bij waar je bent geweest en wat je ervan vond.
-              Gao bewaart je mandje — jij ontdekt de beste plekken.
+              Gao bewaart je mandje, jij ontdekt de beste plekken.
             </p>
           </div>
         </div>
@@ -106,7 +106,7 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
           className="w-full py-3 bg-epicRed text-cream font-black rounded-2xl border-2 border-inkBlack shadow-brutal-sm text-sm flex items-center justify-center gap-2 active:translate-y-[2px] active:shadow-none transition-all"
         >
           <Mascot type="hilarischgao" size={24} />
-          Duidelijk — laat de lijst zien
+          Duidelijk, laat de lijst zien
         </button>
       </div>
     </div>

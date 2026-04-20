@@ -4,7 +4,7 @@ import UpdateEntry from './UpdateEntry'
 import BugForm from './BugForm'
 
 export const metadata = {
-  title: "Gao's Reis — EpicDimSum",
+  title: "Gao's Dagboek, EpicDimSum",
   description: 'Een eerlijk verslag van hoe EpicDimSum wordt gebouwd. Met fouten, fixes en alles daartussen.',
 }
 
@@ -78,12 +78,12 @@ const updates = [
         type: 'bullets' as const,
         icon: 'Dumpling-check.png',
         items: [
-          'De Dumpling Reis kaart staat nu tussen de controls en de lijst — eerst jij, dan Gao.',
+          'De Dumpling Reis kaart staat nu tussen de controls en de lijst, eerst jij, dan Gao.',
           'Niet ingelogd? Gao wacht op je eerste plek. Ingelogd? Je reis is zichtbaar.',
-          'De hele kaart is klikbaar — geen knopje, maar een echte ingang.',
-          'Tactiele feedback bij hover en tap — het voelt nu als bewegen, niet klikken.',
-          'Feedback tab in admin — bug reports direct zichtbaar, markeerbaar als afgehandeld.',
-          'Help Gao knop onderaan elke restaurantpagina — laagdrempelig, open, uitnodigend.',
+          'De hele kaart is klikbaar, geen knopje maar een echte ingang.',
+          'Tactiele feedback bij hover en tap, het voelt nu als bewegen, niet klikken.',
+          'Feedback tab in admin: bug reports direct zichtbaar, markeerbaar als afgehandeld.',
+          'Help Gao knop onderaan elke restaurantpagina, laagdrempelig, open, uitnodigend.',
         ],
       },
       {
@@ -94,9 +94,9 @@ const updates = [
         type: 'bullets' as const,
         icon: 'chopsticks.png',
         items: [
-          "Gao's Dagboek — van \"Reis\" naar \"Dagboek\". Want een dagboek bevat fouten, inzichten en eerlijke gedachten.",
-          'Max-width container hersteld — desktop ziet er weer netjes uit.',
-          'Geflagde restaurants verwijderbaar via admin — bulk delete plus zichtbare feedback.',
+          "Gao's Dagboek: van Reis naar Dagboek. Want een dagboek bevat fouten, inzichten en eerlijke gedachten.",
+          'Max-width container hersteld, desktop ziet er weer netjes uit.',
+          'Geflagde restaurants verwijderbaar via admin, bulk delete plus zichtbare feedback.',
         ],
       },
       {
@@ -104,7 +104,7 @@ const updates = [
         text: 'Iemand zei vandaag: "crispy clear." Dat is precies wat Gao wilde horen.',
       },
     ],
-    mistake: 'De EpicScore en Ha Gao uitlegpills stonden nog op desktop zichtbaar terwijl ze op mobiel al verborgen waren. Inconsistent — en eigenlijk overbodig nu de WHY sheet die uitleg geeft.',
+    mistake: 'De EpicScore en Ha Gao uitlegpills stonden nog op desktop zichtbaar terwijl ze op mobiel al verborgen waren. Inconsistent, en eigenlijk overbodig nu de WHY sheet die uitleg geeft.',
     fixed: true,
     fixedNote: 'Pills volledig verwijderd op alle schermen. De WHY knop doet dit werk beter.',
   },
@@ -122,11 +122,11 @@ const updates = [
         type: 'bullets' as const,
         icon: 'Dumpling-check.png',
         items: [
-          'Score bars verdwenen — Reputatie, Vibe, Online aandacht. Allemaal weg. Gao vertrouwt je om zelf te kiezen.',
+          'Score bars verdwenen. Reputatie, Vibe, Online aandacht. Allemaal weg. Gao vertrouwt je om zelf te kiezen.',
           'Dumplings zijn de score. Geen getal, geen percentage. Gewoon: hoeveel dumplings Gao uitdeelt.',
-          'Must Order staat nu bovenaan — eerste wat je ziet als je een restaurant opent.',
-          "Bullets in plaats van alinea's — waarom Gao ergens voor juicht is nu scanbaar.",
-          'Sticky Reserveer knop — altijd zichtbaar, ook als je scrolt.',
+          'Must Order staat nu bovenaan, eerste wat je ziet als je een restaurant opent.',
+          "Bullets in plaats van alinea's, waarom Gao ergens voor juicht is nu scanbaar.",
+          'Sticky Reserveer knop, altijd zichtbaar, ook als je scrolt.',
         ],
       },
       {
@@ -165,11 +165,11 @@ const updates = [
         type: 'bullets' as const,
         icon: 'ha-gao.png',
         items: [
-          'Dumpling Intelligence Engine v2 draait op drie bronnen — Iens, Tripadvisor en web search.',
-          'Nederland compleet — alle 14 provinciale hoofdsteden plus Rotterdam.',
-          'Het Dumpling Mandje is live — badges, bezoekhistorie, GaoMandje.',
-          'Google login werkt — check-ins zijn authentiek en persistent.',
-          'De score is eerlijker dan ooit — geen cijfers, alleen dumplings.',
+          'Dumpling Intelligence Engine v2 draait op drie bronnen: Iens, Tripadvisor en web search.',
+          'Nederland compleet, alle 14 provinciale hoofdsteden plus Rotterdam.',
+          'Het Dumpling Mandje is live: badges, bezoekhistorie, GaoMandje.',
+          'Google login werkt, check-ins zijn authentiek en persistent.',
+          'De score is eerlijker dan ooit, geen cijfers, alleen dumplings.',
         ],
       },
       {
@@ -195,8 +195,8 @@ const updates = [
         type: 'bullets' as const,
         icon: 'Ha-Gao-star.png',
         items: [
-          'Next.js, Supabase, Google Places API, Claude Haiku — in een paar dagen gebouwd.',
-          'De Ha Gao Index werd geboren — niet hoeveel sterren, maar hoe goed de dumplings écht zijn.',
+          'Next.js, Supabase, Google Places API, Claude Haiku. In een paar dagen gebouwd.',
+          'De Ha Gao Index werd geboren, niet hoeveel sterren maar hoe goed de dumplings écht zijn.',
           'Gao verscheen. Klein, rond, met grote ogen en een grote mening over dumplings.',
         ],
       },
