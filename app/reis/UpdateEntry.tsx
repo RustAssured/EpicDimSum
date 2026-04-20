@@ -1,10 +1,13 @@
 import Image from 'next/image'
 
 interface UpdateItem {
-  type: 'paragraph' | 'bullets'
+  type: 'paragraph' | 'bullets' | 'image'
   text?: string
   items?: string[]
   icon?: string
+  src?: string
+  alt?: string
+  caption?: string
 }
 
 interface Update {
@@ -58,6 +61,24 @@ export default function UpdateEntry({ update }: { update: Update }) {
                   </li>
                 ))}
               </ul>
+            )
+          }
+          if (item.type === 'image' && item.src) {
+            return (
+              <div key={i} className="rounded-xl overflow-hidden border border-inkBlack/10">
+                <Image
+                  src={item.src}
+                  alt={item.alt ?? ''}
+                  width={600}
+                  height={400}
+                  className="w-full object-cover"
+                />
+                {item.caption && (
+                  <p className="text-[10px] text-inkBlack/40 italic px-3 py-2 bg-inkBlack/3">
+                    {item.caption}
+                  </p>
+                )}
+              </div>
             )
           }
           return null

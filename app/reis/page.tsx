@@ -10,6 +10,39 @@ export const metadata = {
 
 const updates = [
   {
+    id: 'epicspot-sticker',
+    date: '20 april 2026',
+    title: 'Gao krijgt een stempel',
+    emoji: '🏅',
+    content: [
+      {
+        type: 'paragraph' as const,
+        text: 'Gao verlaat binnenkort het scherm. Voor het eerst. Op een sticker.',
+      },
+      {
+        type: 'bullets' as const,
+        icon: 'Ha-Gao-star.png',
+        items: [
+          'De EpicSpot sticker is klaar. Rond, met een dikke rand, EPICSPOT in rood en groen.',
+          'Aankomend weekend gaat de sticker op het raam van Fu Dumplings Amsterdam. De eerste.',
+        ],
+      },
+      {
+        type: 'image' as const,
+        src: '/mascots/sticker.png',
+        alt: 'EpicSpot sticker',
+        caption: 'De eerste EpicSpot sticker. Binnenkort op het raam van Fu Dumplings Amsterdam.',
+      },
+      {
+        type: 'paragraph' as const,
+        text: 'Als die sticker erop zit, dan is het echt.',
+      },
+    ],
+    mistake: 'Het Dumpling Mandje was te subtiel. Nieuwe gebruikers konden niet direct zien waar ze konden inloggen.',
+    fixed: true,
+    fixedNote: 'JourneyCard is prominenter gemaakt. Vul jouw Dumpling Mandje, log in en bewaar jouw dim sum reis.',
+  },
+  {
     id: 'fu-dumplings-moment',
     date: '19 april 2026',
     title: 'Gao verlaat het scherm',
