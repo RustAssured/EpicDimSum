@@ -20,6 +20,14 @@ export default function JourneyCard({
   gaoMessage = '',
   onOpen,
 }: JourneyCardProps) {
+  const ambientIcons = (
+    <div className="flex items-center justify-around mt-3 px-2">
+      {['/mascots/siew-mai.png', '/mascots/ricerolls.png', '/mascots/lotus-bun.png'].map((src) => (
+        <Image key={src} src={src} alt="" width={18} height={18} className="object-contain opacity-30" unoptimized />
+      ))}
+    </div>
+  )
+
   if (!user) {
     return (
       <button onClick={signInWithGoogle} className={`${btnBase} bg-[#fff3d6] border-[3px] border-epicGreen/40`}>
@@ -31,6 +39,7 @@ export default function JourneyCard({
           </div>
           <p className="text-xs font-black text-inkBlack/30 shrink-0">Start →</p>
         </div>
+        {ambientIcons}
       </button>
     )
   }
@@ -46,6 +55,7 @@ export default function JourneyCard({
           </div>
           <p className="text-xs font-black text-inkBlack/30 shrink-0">Begin →</p>
         </div>
+        {ambientIcons}
       </button>
     )
   }

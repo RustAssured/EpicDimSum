@@ -202,7 +202,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
   const cityLabel = selectedCity === 'Alle' ? 'Nederland' : selectedCity
 
   const countText = selectedCity === 'Alle'
-    ? `De beste dim sum spots in Nederland`
+    ? `De beste dim sum plekken, gevonden via hun dumplings`
     : filtered.length === 0
       ? `Nog geen geverifieerde spots in ${cityLabel}`
       : filtered.length === 1

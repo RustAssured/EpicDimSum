@@ -24,16 +24,22 @@ function dumplingScale(score: number): { count: number; label: string } {
   return { count: 3, label: 'Gao is fan' }
 }
 
-function getMustOrderIcon(mustOrder: string): string {
-  const m = mustOrder.toLowerCase()
-  if (m.includes('siu mai') || m.includes('siew mai') || m.includes('siomay')) return 'Siew-Mai.png'
-  if (m.includes('ha gao') || m.includes('har gow') || m.includes('har gau') || m.includes('garnalen') || m.includes('prawn')) return 'ha-gao.png'
-  if (m.includes('uitzonderlijk') || m.includes('must') || m.includes('signature')) return 'Ha-Gao-star.png'
-  return 'ha-gao.png'
+function getDimSumIcon(dish: string): string | null {
+  const d = dish.toLowerCase()
+  if (d.includes('ha gao') || d.includes('har gow') || d.includes('garnaal')) return '/mascots/dim-pin.png'
+  if (d.includes('siew mai') || d.includes('siu mai')) return '/mascots/siew-mai.png'
+  if (d.includes('cheung fun') || d.includes('rijstrol')) return '/mascots/ricerolls.png'
+  if (d.includes('bao') || d.includes('broodje') || d.includes('bun')) return '/mascots/lotus-bun.png'
+  if (d.includes('lo mai') || d.includes('lotus')) return '/mascots/leaf-rice.png'
+  if (d.includes('toast') || d.includes('garnalen toast')) return '/mascots/shrimp-toast.png'
+  if (d.includes('spons') || d.includes('sponge') || d.includes('cake')) return '/mascots/sponge-cake.png'
+  if (d.includes('water') || d.includes('chestn')) return '/mascots/water-chestnut.png'
+  if (d.includes('pens') || d.includes('tripe') || d.includes('maag')) return '/mascots/beef-stomache.png'
+  return null
 }
 
 export default function RestaurantCard({ restaurant, rank, currentCity, distance }: RestaurantCardProps) {
-  const { id, name, city, priceRange, status, epicScore, mustOrder, haGaoIndex } = restaurant
+  const { id, name, city, priceRange, status, epicScore, mustOrder, haGaoIndex, verified } = restaurant
 
   const { count: dumplingCount, label: gaoLabel } = dumplingScale(epicScore ?? 0)
   const cityParam = currentCity && currentCity !== 'Alle' ? `?city=${encodeURIComponent(currentCity)}` : ''
@@ -70,7 +76,12 @@ export default function RestaurantCard({ restaurant, rank, currentCity, distance
           ) : null}
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <h2 className="font-black text-inkBlack text-lg leading-tight truncate">{name}</h2>
+              <div className="flex items-center gap-1.5">
+                <h2 className="font-black text-inkBlack text-lg leading-tight truncate">{name}</h2>
+                {verified && (
+                  <Image src="/mascots/dim-journey.png" width={20} height={20} alt="EpicSpot" unoptimized className="object-contain shrink-0" />
+                )}
+              </div>
               <p className="text-xs text-inkBlack/50 font-medium">
                 {city} &middot; <span className={`font-bold ${priceColor[priceRange]}`}>{priceRange}</span>
               </p>
@@ -114,7 +125,9 @@ export default function RestaurantCard({ restaurant, rank, currentCity, distance
         {mustOrder && (
           <div className="mx-4 mb-3 px-3 py-2 bg-epicGold/8 border border-epicGold/20 rounded-xl">
             <div className="flex items-center gap-1.5 mb-0.5">
-              <Image src={`/mascots/${getMustOrderIcon(mustOrder)}`} alt="Must Order" width={16} height={16} className="object-contain" />
+              {getDimSumIcon(mustOrder) && (
+                <Image src={getDimSumIcon(mustOrder)!} alt="" width={16} height={16} className="object-contain" unoptimized />
+              )}
               <p className="text-[9px] font-black text-epicGold uppercase tracking-wide">Must Order</p>
             </div>
             <p className="text-xs font-black text-inkBlack">{mustOrder}</p>

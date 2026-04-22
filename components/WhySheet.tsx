@@ -51,6 +51,10 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
           </p>
         </div>
 
+        <p className="text-xs text-inkBlack/50 leading-snug mb-4">
+          Gao gebruikt dumplings als graadmeter, omdat je daaraan echte dim sum kwaliteit herkent.
+        </p>
+
         {/* 3 signal blocks */}
         <div className="space-y-2 mb-5">
           <div className="flex items-start gap-3 p-3 bg-white rounded-xl border-2 border-inkBlack/10">
@@ -70,7 +74,7 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
           </div>
 
           <div className="flex items-start gap-3 p-3 bg-white rounded-xl border-2 border-inkBlack/10">
-            <Image src="/mascots/Epicscore.png" alt="" width={28} height={28} className="object-contain shrink-0 mt-0.5" />
+            <Image src="/mascots/siew-mai.png" alt="" width={28} height={28} className="object-contain shrink-0 mt-0.5" unoptimized />
             <div>
               <p className="font-black text-sm">Reputatie 25%</p>
               <p className="text-xs text-inkBlack/50 leading-snug mt-0.5">
@@ -80,7 +84,7 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
           </div>
 
           <div className="flex items-start gap-3 p-3 bg-white rounded-xl border-2 border-inkBlack/10">
-            <Image src="/mascots/Epicscore.png" alt="" width={28} height={28} className="object-contain shrink-0 mt-0.5" />
+            <Image src="/mascots/lotus-bun.png" alt="" width={28} height={28} className="object-contain shrink-0 mt-0.5" unoptimized />
             <div>
               <p className="font-black text-sm">Online aandacht + Vibe 35%</p>
               <p className="text-xs text-inkBlack/50 leading-snug mt-0.5">
