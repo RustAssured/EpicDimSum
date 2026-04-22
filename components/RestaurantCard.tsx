@@ -107,16 +107,23 @@ export default function RestaurantCard({ restaurant, rank, currentCity, distance
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-0.5 mb-1">
-                {Array.from({ length: 5 }).map((_, i) => (
+                {[
+                  '/mascots/shrimp-toast.png',
+                  '/mascots/siew-mai.png',
+                  '/mascots/leaf-rice.png',
+                  '/mascots/ricerolls.png',
+                  '/mascots/lotus-bun.png',
+                ].map((src, i) => (
                   <Image
                     key={i}
-                    src="/mascots/dumpling.png"
+                    src={src}
                     alt=""
                     width={i < dumplingCount ? 26 : 18}
                     height={i < dumplingCount ? 26 : 18}
                     className={`object-contain transition-all ${
                       i < dumplingCount ? 'opacity-100' : 'opacity-15'
                     }`}
+                    unoptimized
                   />
                 ))}
               </div>

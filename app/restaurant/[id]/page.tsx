@@ -89,14 +89,21 @@ export default async function RestaurantPage({ params }: PageProps) {
         {/* Dumplings + name + gao label as one unit */}
         <div className="mb-4">
           <div className="flex items-center gap-1 mb-2">
-            {Array.from({ length: 5 }).map((_, i) => (
+            {[
+              '/mascots/shrimp-toast.png',
+              '/mascots/siew-mai.png',
+              '/mascots/leaf-rice.png',
+              '/mascots/ricerolls.png',
+              '/mascots/lotus-bun.png',
+            ].map((src, i) => (
               <Image
                 key={i}
-                src="/mascots/dumpling.png"
+                src={src}
                 alt=""
                 width={i < dumplingCount ? 30 : 20}
                 height={i < dumplingCount ? 30 : 20}
                 className={`object-contain ${i < dumplingCount ? 'opacity-100' : 'opacity-15'}`}
+                unoptimized
               />
             ))}
           </div>
