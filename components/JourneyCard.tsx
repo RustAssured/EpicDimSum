@@ -34,7 +34,7 @@ export default function JourneyCard({
         <div className="flex items-center gap-3">
           <Image src="/mascots/GaoMandje.png" alt="Dumpling Reis" width={64} height={64} className="object-contain shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="font-black text-sm leading-tight">Vul jouw Dumpling Mandje 🧺</p>
+            <p className="font-black text-sm leading-tight">Vul jouw Dim Sum Mandje 🧺</p>
             <p className="text-xs text-inkBlack/50 mt-0.5 leading-snug">Log in en bewaar jouw dim sum reis</p>
           </div>
           <p className="text-xs font-black text-inkBlack/30 shrink-0">Start →</p>
@@ -50,7 +50,7 @@ export default function JourneyCard({
         <div className="flex items-center gap-3">
           <Image src="/mascots/GaoMandje.png" alt="Dumpling Reis" width={64} height={64} className="object-contain shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="font-black text-sm leading-tight">Vul jouw Dumpling Mandje 🧺</p>
+            <p className="font-black text-sm leading-tight">Vul jouw Dim Sum Mandje 🧺</p>
             <p className="text-xs text-inkBlack/50 mt-0.5 leading-snug">Check in bij je eerste dim sum spot</p>
           </div>
           <p className="text-xs font-black text-inkBlack/30 shrink-0">Begin →</p>

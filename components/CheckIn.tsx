@@ -241,7 +241,7 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
             className="object-contain mx-auto mb-3"
           />
           <p className="font-black text-sm mb-1">
-            Bouw jouw Dumpling Mandje 🧺
+            Bouw jouw Dim Sum Mandje 🧺
           </p>
           <p className="text-xs text-inkBlack/50 mb-1 leading-snug">
             Check in bij dim sum spots, verzamel badges

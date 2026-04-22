@@ -6,6 +6,7 @@ import StatusBadge from '@/components/StatusBadge'
 import CheckIn from '@/components/CheckIn'
 import SummaryBullets from '@/components/SummaryBullets'
 import RestaurantPhoto from '@/components/RestaurantPhoto'
+import DimSumGraadmeter from '@/components/DimSumGraadmeter'
 
 export const revalidate = 3600
 
@@ -107,6 +108,22 @@ export default async function RestaurantPage({ params }: PageProps) {
             <StatusBadge status={status} />
           </div>
           <p className="text-xs text-inkBlack/40 mt-1">{city} · {priceRange}</p>
+          {(() => {
+            const t = (restaurant as typeof restaurant & { type?: string }).type
+            const label = t === 'dumpling_specialist' || name.toLowerCase().includes('dumpling')
+              ? 'Dumpling specialist'
+              : 'Dim sum restaurant'
+            return (
+              <span className="inline-block text-[11px] text-inkBlack/50 bg-inkBlack/5 border border-inkBlack/10 rounded-full px-2 py-0.5 mt-1">
+                {label}
+              </span>
+            )
+          })()}
+          {haGaoIndex > 0 && (
+            <div className="mt-3">
+              <DimSumGraadmeter haGaoIndex={haGaoIndex} size="detail" />
+            </div>
+          )}
         </div>
 
         {/* Must Order */}

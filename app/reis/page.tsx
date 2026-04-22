@@ -38,9 +38,9 @@ const updates = [
         text: 'Als die sticker erop zit, dan is het echt.',
       },
     ],
-    mistake: 'Het Dumpling Mandje was te subtiel. Nieuwe gebruikers konden niet direct zien waar ze konden inloggen.',
+    mistake: 'Het Dim Sum Mandje was te subtiel. Nieuwe gebruikers konden niet direct zien waar ze konden inloggen.',
     fixed: true,
-    fixedNote: 'JourneyCard is prominenter gemaakt. Vul jouw Dumpling Mandje, log in en bewaar jouw dim sum reis.',
+    fixedNote: 'JourneyCard is prominenter gemaakt. Vul jouw Dim Sum Mandje, log in en bewaar jouw dim sum reis.',
   },
   {
     id: 'fu-dumplings-moment',
@@ -167,7 +167,7 @@ const updates = [
         items: [
           'Dumpling Intelligence Engine v2 draait op drie bronnen: Iens, Tripadvisor en web search.',
           'Nederland compleet, alle 14 provinciale hoofdsteden plus Rotterdam.',
-          'Het Dumpling Mandje is live: badges, bezoekhistorie, GaoMandje.',
+          'Het Dim Sum Mandje is live: badges, bezoekhistorie, GaoMandje.',
           'Google login werkt, check-ins zijn authentiek en persistent.',
           'De score is eerlijker dan ooit, geen cijfers, alleen dumplings.',
         ],

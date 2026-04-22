@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Restaurant, City } from '@/lib/types'
 import StatusBadge from './StatusBadge'
+import DimSumGraadmeter from './DimSumGraadmeter'
 
 interface RestaurantCardProps {
   restaurant: Restaurant
@@ -85,40 +86,44 @@ export default function RestaurantCard({ restaurant, rank, currentCity, distance
               <p className="text-xs text-inkBlack/50 font-medium">
                 {city} &middot; <span className={`font-bold ${priceColor[priceRange]}`}>{priceRange}</span>
               </p>
+              {(() => {
+                const t = (restaurant as Restaurant & { type?: string }).type
+                const label = t === 'dumpling_specialist' || name.toLowerCase().includes('dumpling')
+                  ? 'Dumpling specialist'
+                  : 'Dim sum restaurant'
+                return (
+                  <span className="inline-block text-[11px] text-inkBlack/50 bg-inkBlack/5 border border-inkBlack/10 rounded-full px-2 py-0.5 mt-1">
+                    {label}
+                  </span>
+                )
+              })()}
             </div>
             <StatusBadge status={status} />
           </div>
         </div>
 
-        {/* Dumpling rating — the only score */}
-        <div className="px-4 py-4 flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-0.5 mb-1">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Image
-                  key={i}
-                  src="/mascots/dumpling.png"
-                  alt=""
-                  width={i < dumplingCount ? 26 : 18}
-                  height={i < dumplingCount ? 26 : 18}
-                  className={`object-contain transition-all ${
-                    i < dumplingCount ? 'opacity-100' : 'opacity-15'
-                  }`}
-                />
-              ))}
+        {/* Dumpling rating + graadmeter */}
+        <div className="px-4 py-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-0.5 mb-1">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Image
+                    key={i}
+                    src="/mascots/dumpling.png"
+                    alt=""
+                    width={i < dumplingCount ? 26 : 18}
+                    height={i < dumplingCount ? 26 : 18}
+                    className={`object-contain transition-all ${
+                      i < dumplingCount ? 'opacity-100' : 'opacity-15'
+                    }`}
+                  />
+                ))}
+              </div>
+              <p className="text-[10px] font-black text-inkBlack/50">{gaoLabel}</p>
             </div>
-            <p className="text-[10px] font-black text-inkBlack/50">{gaoLabel}</p>
           </div>
-
-          {/* Ha Gao subtle signal */}
-          {haGaoIndex > 0 && (
-            <div className="flex items-center gap-1 opacity-70">
-              <Image src="/mascots/dumpling.png" alt="" width={12} height={12} className="object-contain" />
-              <span className="text-[10px] font-bold text-inkBlack/50">
-                {haGaoIndex.toFixed(1)}
-              </span>
-            </div>
-          )}
+          {haGaoIndex > 0 && <DimSumGraadmeter haGaoIndex={haGaoIndex} size="card" />}
         </div>
 
         {/* Must Order */}
