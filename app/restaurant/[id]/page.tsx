@@ -126,11 +126,6 @@ export default async function RestaurantPage({ params }: PageProps) {
               </span>
             )
           })()}
-          {haGaoIndex > 0 && (
-            <div className="mt-3">
-              <DimSumGraadmeter haGaoIndex={haGaoIndex} size="detail" />
-            </div>
-          )}
         </div>
 
         {/* Must Order */}

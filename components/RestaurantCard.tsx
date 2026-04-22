@@ -130,7 +130,6 @@ export default function RestaurantCard({ restaurant, rank, currentCity, distance
               <p className="text-[10px] font-black text-inkBlack/50">{gaoLabel}</p>
             </div>
           </div>
-          {haGaoIndex > 0 && <DimSumGraadmeter haGaoIndex={haGaoIndex} size="card" />}
         </div>
 
         {/* Must Order */}
