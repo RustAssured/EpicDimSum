@@ -10,6 +10,38 @@ export const metadata = {
 
 const updates = [
   {
+    id: 'dim-sum-wereld',
+    date: '22 april 2026',
+    title: 'Dim sum is meer dan dumplings',
+    emoji: '🧺',
+    content: [
+      {
+        type: 'paragraph' as const,
+        text: 'Een dim sum kenner vroeg het simpelweg: is dit een dumpling app of een dim sum app? Die vraag bleef hangen.',
+      },
+      {
+        type: 'paragraph' as const,
+        text: 'Het antwoord: EpicDimSum is een dim sum gids die dumplings als graadmeter gebruikt. Dumplings zijn de methode, dim sum is de wereld. Maar dat moet je niet hoeven uitleggen. Dat moet je zien.',
+      },
+      {
+        type: 'bullets' as const,
+        icon: 'siew-mai.png',
+        items: [
+          'De graadmeter toont nu vijf verschillende dim sum gerechten in plaats van alleen dumplings. Shrimp toast, siew mai, rijstrolletjes, lotus bun en meer.',
+          'Het Dumpling Mandje heet nu het Dim Sum Mandje. Want je vult een mandje dim sum, niet alleen dumplings.',
+          'Restaurants krijgen een label: "Dim sum restaurant" of "Dumpling specialist". Allebei welkom, maar het verschil mag er zijn.',
+          'Onder de motorkap: Gao leert beter onderscheiden tussen restaurants die goed zijn in dim sum en restaurants die toevallig ook dumplings serveren. Dat kost tijd en eerlijkheid.',
+        ],
+      },
+      {
+        type: 'paragraph' as const,
+        text: 'Ook gefixt: een bug waardoor gesuggereerde restaurants altijd in Amsterdam terechtkwamen, ongeacht hun echte stad. Fu Dumplings Rotterdam stond in Amsterdam. Sorry daarvoor.',
+      },
+    ],
+    mistake: 'De engine is nog niet scherp genoeg. Gao werkt eraan, stap voor stap. Verwacht geen perfectie, verwacht wel eerlijkheid.',
+    fixed: false,
+  },
+  {
     id: 'epicspot-sticker',
     date: '20 april 2026',
     title: 'Gao krijgt een stempel',
