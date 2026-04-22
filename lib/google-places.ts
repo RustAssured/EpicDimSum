@@ -1,3 +1,9 @@
+export interface AddressComponent {
+  longText: string
+  shortText: string
+  types: string[]
+}
+
 export interface PlacesData {
   rating: number
   userRatingCount: number
@@ -7,6 +13,15 @@ export interface PlacesData {
   }
   photoReference: string | null
   photoReferences: string[]
+  addressComponents?: AddressComponent[]
+}
+
+export function extractCityFromAddressComponents(
+  components: AddressComponent[] | undefined
+): string | null {
+  if (!components || components.length === 0) return null
+  const locality = components.find((c) => c.types?.includes('locality'))
+  return locality?.longText ?? null
 }
 
 export function getPlacePhotoUrl(photoReference: string, maxWidth = 800): string {
@@ -24,6 +39,7 @@ export async function fetchGooglePlacesData(placeId: string): Promise<PlacesData
     'reviews',
     'currentOpeningHours',
     'photos',
+    'addressComponents',
   ].join(',')
 
   const url = `https://places.googleapis.com/v1/places/${placeId}`
@@ -53,6 +69,7 @@ export async function fetchGooglePlacesData(placeId: string): Promise<PlacesData
     currentOpeningHours: data.currentOpeningHours,
     photoReference: photoReferences[0] ?? null,
     photoReferences,
+    addressComponents: data.addressComponents,
   }
 }
 

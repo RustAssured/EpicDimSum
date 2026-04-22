@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAllRestaurants, upsertRestaurant } from '@/lib/db'
+import { getAllRestaurants, upsertRestaurant, normalizeCity, isKnownCity } from '@/lib/db'
 import { Restaurant, City, PriceRange } from '@/lib/types'
+import { fetchGooglePlacesData, extractCityFromAddressComponents } from '@/lib/google-places'
 
 // Simple in-memory rate limiter: max 5 suggestions per IP per day
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
@@ -86,12 +87,31 @@ export async function POST(request: NextRequest) {
     })
   }
 
+  // Extract real city from Google Places to avoid hardcoding Amsterdam
+  let extractedCity: City = 'Amsterdam' as City
+  try {
+    const placeData = await fetchGooglePlacesData(placeId)
+    const locality = extractCityFromAddressComponents(placeData.addressComponents)
+    if (locality) {
+      if (isKnownCity(locality)) {
+        extractedCity = normalizeCity(locality)
+      } else {
+        console.warn(`[Suggest] Unknown city "${locality}" for place ${placeId}, using raw value`)
+        extractedCity = locality as City
+      }
+    } else {
+      console.warn(`[Suggest] Could not determine city for place ${placeId}, falling back to Amsterdam`)
+    }
+  } catch (err) {
+    console.error(`[Suggest] Google Places fetch failed for ${placeId}:`, err)
+  }
+
   // Create stub — real scoring happens on next sync cycle
   const stubId = slugify(`suggest-${placeId.slice(-8)}`, 'nl')
   const stub: Restaurant = {
     id: stubId,
     name: `Suggestie (${placeId.slice(-6)})`,
-    city: 'Amsterdam' as City,
+    city: extractedCity,
     address: '',
     googlePlaceId: placeId,
     cuisine: 'Dim Sum',

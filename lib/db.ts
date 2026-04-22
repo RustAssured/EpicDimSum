@@ -24,9 +24,13 @@ const CITY_MAP: Record<string, City> = {
   'den bosch': "'s-Hertogenbosch",
 }
 
-function normalizeCity(city: string): City {
+export function normalizeCity(city: string): City {
   const key = city.toLowerCase().trim()
   return CITY_MAP[key] ?? (city as City)
+}
+
+export function isKnownCity(city: string): boolean {
+  return city.toLowerCase().trim() in CITY_MAP
 }
 
 function normalizeRestaurant(r: Restaurant): Restaurant {

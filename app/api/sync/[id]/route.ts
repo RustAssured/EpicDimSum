@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Restaurant } from '@/lib/types'
+import { Restaurant, City } from '@/lib/types'
 
 export const maxDuration = 300
 export const runtime = 'nodejs'
-import { getRestaurantById, upsertRestaurant } from '@/lib/db'
-import { fetchGooglePlacesData, normalizeGoogleScore } from '@/lib/google-places'
+import { getRestaurantById, upsertRestaurant, normalizeCity, isKnownCity } from '@/lib/db'
+import { fetchGooglePlacesData, normalizeGoogleScore, extractCityFromAddressComponents } from '@/lib/google-places'
 import { fetchIensData } from '@/lib/iens-scraper'
 import { fetchTripadvisorData } from '@/lib/tripadvisor-scraper'
 import { searchWebMentions } from '@/lib/web-search'
@@ -38,7 +38,7 @@ export async function POST(
     }
 
     const forceRefresh = restaurant.epicScore === 0
-    let googleData = {
+    let googleData: import('@/lib/google-places').PlacesData = {
       rating: forceRefresh ? 0 : restaurant.sources.googleRating,
       userRatingCount: forceRefresh ? 0 : restaurant.sources.googleReviewCount,
       reviews: [] as { text: { text: string }; rating: number }[],
@@ -105,8 +105,20 @@ export async function POST(
 
     const verified = epicScore > 20 && scores.haGaoIndex > 0
 
+    // Detect city correction from Google Places addressComponents
+    let cityCorrection: { city: City } | Record<string, never> = {}
+    const locality = extractCityFromAddressComponents(googleData.addressComponents)
+    if (locality) {
+      const newCity: City = isKnownCity(locality) ? normalizeCity(locality) : (locality as City)
+      if (newCity && newCity !== restaurant.city) {
+        console.log(`[Sync] City corrected: ${restaurant.city} → ${newCity} for ${restaurant.name}`)
+        cityCorrection = { city: newCity }
+      }
+    }
+
     const updated: Restaurant = {
       ...restaurant,
+      ...cityCorrection,
       verified,
       photoReference: googleData.photoReference,
       photoReferences: googleData.photoReferences,
