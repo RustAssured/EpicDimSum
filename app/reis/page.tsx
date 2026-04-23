@@ -10,6 +10,33 @@ export const metadata = {
 
 const updates = [
   {
+    id: 'labels-weg',
+    date: '23 april 2026',
+    title: 'Minder labels, meer eerlijkheid',
+    emoji: '🔍',
+    content: [
+      {
+        type: 'paragraph' as const,
+        text: 'Gisteren introduceerde Gao labels voor restaurants. "Dim sum restaurant" of "Dumpling specialist". Leek logisch. Was het niet.',
+      },
+      {
+        type: 'paragraph' as const,
+        text: 'Want wat doe je met een restaurant dat noedels als basis heeft maar uitstekende wontons serveert? Of een breed Chinees restaurant waar dim sum gewoon een categorie is? Die passen niet in een label van twee woorden.',
+      },
+      {
+        type: 'bullets' as const,
+        icon: 'dim-pin.png',
+        items: [
+          'Labels verwijderd. Ze waren te bot en zeiden niks over kwaliteit.',
+          'De rankReason per restaurant vertelt het echte verhaal. Die is specifiek, eerlijk en per restaurant anders.',
+        ],
+      },
+    ],
+    mistake: 'Labels te snel toegevoegd. Categoriseren is makkelijk, nuance is moeilijker.',
+    fixed: true,
+    fixedNote: 'Labels weg. Nuance terug.',
+  },
+  {
     id: 'dim-sum-wereld',
     date: '22 april 2026',
     title: 'Dim sum is meer dan dumplings',
