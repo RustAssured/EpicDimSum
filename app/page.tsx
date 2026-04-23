@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { getPublicRestaurants } from '@/lib/db'
 import RestaurantFeed from '@/components/RestaurantFeed'
 import About from '@/components/About'
+import ReisNavItem from '@/components/ReisNavItem'
+import { DAGBOEK_COUNT } from '@/lib/dagboek'
 
 export const revalidate = 3600
 
@@ -30,13 +32,7 @@ export default async function Home() {
           </div>
           <nav className="flex items-center gap-3">
             <About />
-            <Link
-              href="/reis"
-              className="flex items-center gap-1 text-xs font-bold text-inkBlack/40 hover:text-inkBlack/70 transition-colors"
-            >
-              <Image src="/mascots/dumpling-pin.png" alt="" width={12} height={12} className="object-contain" />
-              Reis
-            </Link>
+            <ReisNavItem count={DAGBOEK_COUNT} />
             <a href="/admin/sync" className="text-xs text-inkBlack/30 hover:text-inkBlack/60 transition-colors">
               Admin
             </a>

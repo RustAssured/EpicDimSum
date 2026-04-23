@@ -2,6 +2,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import UpdateEntry from './UpdateEntry'
 import BugForm from './BugForm'
+import DagboekMarkSeen from '@/components/DagboekMarkSeen'
+import { DAGBOEK_COUNT } from '@/lib/dagboek'
 
 export const metadata = {
   title: "Gao's Dagboek, EpicDimSum",
@@ -273,6 +275,7 @@ const updates = [
 export default function ReisPage() {
   return (
     <main className="min-h-screen bg-cream">
+      <DagboekMarkSeen count={DAGBOEK_COUNT} />
       {/* Header */}
       <header className="sticky top-0 z-50 bg-cream border-b-[3px] border-inkBlack">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
