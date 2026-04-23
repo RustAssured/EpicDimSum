@@ -12,6 +12,20 @@ export const metadata = {
 
 const updates = [
   {
+    id: 'reis-notificatie',
+    date: '23 april 2026',
+    title: 'Gao tikt op je schouder',
+    emoji: '🔴',
+    content: [
+      {
+        type: 'paragraph' as const,
+        text: 'Vanaf nu zie je een klein rood bolletje bij Reis als er iets nieuws in het dagboek staat. Niet opdringerig bedoeld uiteraard. Gewoon een teken dat Gao iets te melden heeft.',
+      },
+    ],
+    mistake: null,
+    fixed: false,
+  },
+  {
     id: 'labels-weg',
     date: '23 april 2026',
     title: 'Minder labels, meer eerlijkheid',
