@@ -86,17 +86,6 @@ export default function RestaurantCard({ restaurant, rank, currentCity, distance
               <p className="text-xs text-inkBlack/50 font-medium">
                 {city} &middot; <span className={`font-bold ${priceColor[priceRange]}`}>{priceRange}</span>
               </p>
-              {(() => {
-                const t = (restaurant as Restaurant & { type?: string }).type
-                const label = t === 'dumpling_specialist' || name.toLowerCase().includes('dumpling')
-                  ? 'Dumpling specialist'
-                  : 'Dim sum restaurant'
-                return (
-                  <span className="inline-block text-[11px] text-inkBlack/50 bg-inkBlack/5 border border-inkBlack/10 rounded-full px-2 py-0.5 mt-1">
-                    {label}
-                  </span>
-                )
-              })()}
             </div>
             <StatusBadge status={status} />
           </div>
@@ -128,6 +117,7 @@ export default function RestaurantCard({ restaurant, rank, currentCity, distance
                 ))}
               </div>
               <p className="text-[10px] font-black text-inkBlack/50">{gaoLabel}</p>
+              <p className="text-[10px] text-inkBlack/40 opacity-70 mt-1">Gao&apos;s graadmeter, niet het menu</p>
             </div>
           </div>
         </div>

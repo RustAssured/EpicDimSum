@@ -110,7 +110,7 @@ const updates = [
         type: 'bullets' as const,
         icon: 'Dumpling-check.png',
         items: [
-          'De Dumpling Reis kaart staat nu tussen de controls en de lijst, eerst jij, dan Gao.',
+          'De Dim Sum Reis kaart staat nu tussen de controls en de lijst, eerst jij, dan Gao.',
           'Niet ingelogd? Gao wacht op je eerste plek. Ingelogd? Je reis is zichtbaar.',
           'De hele kaart is klikbaar, geen knopje maar een echte ingang.',
           'Tactiele feedback bij hover en tap, het voelt nu als bewegen, niet klikken.',

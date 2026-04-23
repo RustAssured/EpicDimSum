@@ -107,6 +107,7 @@ export default async function RestaurantPage({ params }: PageProps) {
               />
             ))}
           </div>
+          <p className="text-[10px] text-inkBlack/40 opacity-70 mb-2">Gao&apos;s graadmeter, niet het menu</p>
           <div className="flex items-start justify-between gap-3">
             <div>
               <h1 className="font-black text-2xl leading-tight">{name}</h1>
@@ -115,17 +116,6 @@ export default async function RestaurantPage({ params }: PageProps) {
             <StatusBadge status={status} />
           </div>
           <p className="text-xs text-inkBlack/40 mt-1">{city} · {priceRange}</p>
-          {(() => {
-            const t = (restaurant as typeof restaurant & { type?: string }).type
-            const label = t === 'dumpling_specialist' || name.toLowerCase().includes('dumpling')
-              ? 'Dumpling specialist'
-              : 'Dim sum restaurant'
-            return (
-              <span className="inline-block text-[11px] text-inkBlack/50 bg-inkBlack/5 border border-inkBlack/10 rounded-full px-2 py-0.5 mt-1">
-                {label}
-              </span>
-            )
-          })()}
         </div>
 
         {/* Must Order */}

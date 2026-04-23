@@ -32,7 +32,7 @@ export default function JourneyCard({
     return (
       <button onClick={signInWithGoogle} className={`${btnBase} bg-[#fff3d6] border-[3px] border-epicGreen/40`}>
         <div className="flex items-center gap-3">
-          <Image src="/mascots/GaoMandje.png" alt="Dumpling Reis" width={64} height={64} className="object-contain shrink-0" />
+          <Image src="/mascots/GaoMandje.png" alt="Dim Sum Reis" width={64} height={64} className="object-contain shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="font-black text-sm leading-tight">Vul jouw Dim Sum Mandje 🧺</p>
             <p className="text-xs text-inkBlack/50 mt-0.5 leading-snug">Log in en bewaar jouw dim sum reis</p>
@@ -48,7 +48,7 @@ export default function JourneyCard({
     return (
       <button onClick={onOpen} className={`${btnBase} bg-[#fff3d6] border-[3px] border-inkBlack`}>
         <div className="flex items-center gap-3">
-          <Image src="/mascots/GaoMandje.png" alt="Dumpling Reis" width={64} height={64} className="object-contain shrink-0" />
+          <Image src="/mascots/GaoMandje.png" alt="Dim Sum Reis" width={64} height={64} className="object-contain shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="font-black text-sm leading-tight">Vul jouw Dim Sum Mandje 🧺</p>
             <p className="text-xs text-inkBlack/50 mt-0.5 leading-snug">Check in bij je eerste dim sum spot</p>
@@ -63,9 +63,9 @@ export default function JourneyCard({
   return (
     <button onClick={onOpen} className={`${btnBase} bg-[#fff3d6] border-[3px] border-inkBlack`}>
       <div className="flex items-center gap-3">
-        <Image src="/mascots/GaoMandje.png" alt="Dumpling Reis" width={64} height={64} className="object-contain shrink-0" />
+        <Image src="/mascots/GaoMandje.png" alt="Dim Sum Reis" width={64} height={64} className="object-contain shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="font-black text-sm leading-tight">Jouw Dumpling Reis</p>
+          <p className="font-black text-sm leading-tight">Jouw Dim Sum Reis</p>
           <p className="text-xs text-inkBlack/50 mt-0.5">
             {checkinCount} {checkinCount === 1 ? 'plek' : 'plekken'} · {cityCount} {cityCount === 1 ? 'stad' : 'steden'}
           </p>
