@@ -16,7 +16,7 @@ interface Update {
   title: string
   emoji: string
   content: UpdateItem[]
-  mistake: string
+  mistake: string | null
   fixed: boolean
   fixedNote?: string
 }
@@ -86,7 +86,7 @@ export default function UpdateEntry({ update }: { update: Update }) {
       </div>
 
       {/* Mistake block */}
-      <div className="mx-5 mb-5 p-3 rounded-xl bg-epicRed/5 border-2 border-epicRed/20">
+      {update.mistake !== null && <div className="mx-5 mb-5 p-3 rounded-xl bg-epicRed/5 border-2 border-epicRed/20">
         <div className="flex items-center gap-2 mb-1">
           <Image src="/mascots/lowconfidence.png" alt="" width={20} height={20} className="object-contain" />
           <p className="text-[10px] font-black text-epicRed uppercase tracking-wide">
@@ -100,7 +100,7 @@ export default function UpdateEntry({ update }: { update: Update }) {
             <p className="text-[10px] font-black text-epicGreen">{update.fixedNote}</p>
           </div>
         )}
-      </div>
+      </div>}
 
       <div className="h-2 bg-epicRed" />
     </div>
