@@ -12,6 +12,38 @@ export const metadata = {
 
 const updates = [
   {
+    id: 'eerste-stap',
+    date: '24 april 2026',
+    title: 'De eerste stap wordt makkelijker',
+    emoji: '👣',
+    content: [
+      {
+        type: 'paragraph' as const,
+        text: 'Een collega en absolute dim sum kenner probeerde de site en vond het lastig om erin te komen. Niet omdat het er niet goed uitzag, maar omdat het niet duidelijk was waar je moest beginnen.',
+      },
+      {
+        type: 'paragraph' as const,
+        text: 'Dat is een belangrijk signaal. Als iemand die van dim sum houdt niet meteen snapt wat de bedoeling is, dan is dat geen gebruikersprobleem. Dan is dat een Gao-probleem.',
+      },
+      {
+        type: 'bullets' as const,
+        icon: 'dim-journey.png',
+        items: [
+          'Nieuwe bezoekers zien nu een zachte welkomstkaart. Gao wijst je de weg, geen handleiding.',
+          'Het Dim Sum Mandje laat zien wat je kunt doen als het nog leeg is. Niet leeg en stil, maar leeg en uitnodigend.',
+          'Op de detailpagina staat nu een subtiele hint boven de check-in. Ben je hier geweest? Bewaar deze plek.',
+        ],
+      },
+      {
+        type: 'paragraph' as const,
+        text: 'Het doel is niet uitleggen hoe het werkt. Het doel is iemand helpen de eerste stap te zetten. De rest volgt vanzelf.',
+      },
+    ],
+    mistake: 'Gao ging ervan uit dat iedereen het meteen zou snappen. Dat was naief.',
+    fixed: true,
+    fixedNote: 'Begeleiding toegevoegd. Niet opdringerig, wel aanwezig.',
+  },
+  {
     id: 'reis-notificatie',
     date: '23 april 2026',
     title: 'Gao tikt op je schouder',
