@@ -60,6 +60,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
   const [checkinCount, setCheckinCount] = useState(0)
   const [cityCount, setCityCount] = useState(0)
   const [journeyMessage, setJourneyMessage] = useState('')
+  const [introDismissed, setIntroDismissed] = useState(true)
 
   useEffect(() => {
     const supabase = createClient()
@@ -94,6 +95,9 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
     else if (records.length < 5) setJourneyMessage('Gao begint je te kennen')
     else if (cities.size >= 3) setJourneyMessage('Gao ziet dat je op ontdekkingstocht bent')
     else setJourneyMessage('Gao ziet dat je serieus bent')
+    if (localStorage.getItem('gao-intro-dismissed') !== 'true') {
+      setIntroDismissed(false)
+    }
   }, [])
 
   const handleSuggest = async () => {
@@ -318,6 +322,47 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
 
       </div>
 
+      {/* Intro card — first-use guidance */}
+      {checkinCount === 0 && !introDismissed && (
+        <div className="bg-[#fff3d6] border-[3px] border-inkBlack shadow-brutal rounded-2xl p-4">
+          <div className="flex items-center gap-3">
+            <Image
+              src="/mascots/MasterGao.png"
+              alt="Master Gao"
+              width={40}
+              height={40}
+              className="object-contain shrink-0"
+            />
+            <div className="flex-1 min-w-0">
+              <p className="font-black text-sm leading-tight">Welkom bij EpicDimSum</p>
+              <p className="text-xs text-inkBlack/60 mt-0.5 leading-snug">
+                Gao heeft de beste dim sum plekken van Nederland gevonden
+              </p>
+            </div>
+          </div>
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={() => {
+                setIntroDismissed(true)
+                document.getElementById('restaurant-list')?.scrollIntoView({ behavior: 'smooth' })
+              }}
+              className="flex-1 bg-inkBlack text-cream text-xs font-black px-3 py-2 rounded-full border-2 border-inkBlack shadow-brutal-sm"
+            >
+              Bekijk plekken
+            </button>
+            <button
+              onClick={() => {
+                localStorage.setItem('gao-intro-dismissed', 'true')
+                setIntroDismissed(true)
+              }}
+              className="flex-1 bg-white text-inkBlack text-xs font-black px-3 py-2 rounded-full border-2 border-inkBlack shadow-brutal-sm"
+            >
+              Ik kijk eerst rond
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Journey card — personal, between controls and list */}
       <JourneyCard
         user={user}
@@ -346,7 +391,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
               }}
             />
           ) : (
-          <div className="space-y-5">
+          <div id="restaurant-list" className="space-y-5">
             {sortedRestaurants.map((restaurant, index) => {
               const distance = sortByDistance && userLocation && restaurant.coords
                 ? getDistance(userLocation.lat, userLocation.lng, restaurant.coords.lat, restaurant.coords.lng)
