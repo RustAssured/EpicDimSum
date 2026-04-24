@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import Mascot from './Mascot'
 
 interface CheckInRecord {
@@ -94,7 +95,20 @@ export default function DumplingMandje() {
   const unlockedCount = badges.filter(b => b.unlocked).length
   const cities = new Set(checkins.map(c => c.city))
 
-  if (checkins.length === 0) return null
+  if (checkins.length === 0) {
+    return (
+      <div className="w-full rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-[#fff3d6] p-4 mb-1">
+        <div className="flex items-center gap-3">
+          <Image src="/mascots/GaoMandje.png" alt="Dim Sum Reis" width={48} height={48} className="object-contain shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="font-black text-sm leading-tight">Je mandje is nog leeg</p>
+            <p className="text-xs text-inkBlack/50 mt-0.5 leading-snug">Eet eerst, check dan in bij je favoriete spot</p>
+          </div>
+          <p className="text-xs font-black text-inkBlack/30 shrink-0">Bekijk Gao's plekken →</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <>

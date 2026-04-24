@@ -7,6 +7,7 @@ import HaGaoIndex from '@/components/HaGaoIndex'
 import ShareButton from '@/components/ShareButton'
 import Mascot from '@/components/Mascot'
 import CheckIn from '@/components/CheckIn'
+import CheckInHint from '@/components/CheckInHint'
 
 export const revalidate = 3600
 
@@ -175,6 +176,7 @@ export default async function RestaurantPage({ params }: PageProps) {
         </div>
 
         {/* Check-in */}
+        <CheckInHint restaurantId={restaurant.id} />
         <CheckIn restaurantId={restaurant.id} restaurantName={name} restaurantCity={city} />
 
         {/* Review snippets */}

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Restaurant, City } from '@/lib/types'
 import RestaurantCard from '@/components/RestaurantCard'
@@ -36,6 +37,19 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
   const [suggestUrl, setSuggestUrl] = useState('')
   const [suggestState, setSuggestState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [suggestMessage, setSuggestMessage] = useState('')
+  const [introDismissed, setIntroDismissed] = useState(true)
+  const [hasCheckins, setHasCheckins] = useState(false)
+
+  useEffect(() => {
+    let found = false
+    for (let i = 0; i < localStorage.length; i++) {
+      if (localStorage.key(i)?.startsWith('checkin_')) { found = true; break }
+    }
+    setHasCheckins(found)
+    if (localStorage.getItem('gao-intro-dismissed') !== 'true') {
+      setIntroDismissed(false)
+    }
+  }, [])
 
   const handleSuggest = async () => {
     if (!suggestUrl.trim()) return
@@ -172,6 +186,39 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
         </div>
       </div>
 
+      {/* Intro card — first-time visitors only */}
+      {!hasCheckins && !introDismissed && (
+        <div className="rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-[#fff3d6] p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <Image src="/mascots/MasterGao.png" alt="" width={40} height={40} className="object-contain shrink-0" />
+            <div>
+              <p className="font-black text-sm leading-tight">Welkom bij EpicDimSum</p>
+              <p className="text-xs text-inkBlack/50 mt-0.5 leading-snug">Gao heeft de beste dim sum plekken van Nederland gevonden</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                setIntroDismissed(true)
+                document.getElementById('restaurant-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }}
+              className="flex-1 text-xs font-black bg-inkBlack text-cream py-2 rounded-full border-2 border-inkBlack"
+            >
+              Bekijk plekken
+            </button>
+            <button
+              onClick={() => {
+                localStorage.setItem('gao-intro-dismissed', 'true')
+                setIntroDismissed(true)
+              }}
+              className="flex-1 text-xs font-black bg-white text-inkBlack py-2 rounded-full border-2 border-inkBlack"
+            >
+              Ik kijk eerst rond
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Dumpling Mandje */}
       <DumplingMandje />
 
@@ -186,7 +233,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
       {/* Restaurant cards */}
       {filtered.length > 0 ? (
         <>
-          <div className="space-y-3">
+          <div id="restaurant-list" className="space-y-3">
             {filtered.map((restaurant, index) => (
               <RestaurantCard key={restaurant.id} restaurant={restaurant} rank={index + 1} currentCity={selectedCity} />
             ))}
