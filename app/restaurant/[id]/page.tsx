@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { getAllRestaurants, getRestaurantById } from '@/lib/db'
 import StatusBadge from '@/components/StatusBadge'
 import CheckIn from '@/components/CheckIn'
+import CheckInHint from '@/components/CheckInHint'
 import SummaryBullets from '@/components/SummaryBullets'
 import RestaurantPhoto from '@/components/RestaurantPhoto'
 import DimSumGraadmeter from '@/components/DimSumGraadmeter'
@@ -182,6 +183,7 @@ export default async function RestaurantPage({ params }: PageProps) {
 
       {/* Check-in — after social proof */}
       <div className="mx-4 mt-4">
+        <CheckInHint restaurantId={restaurant.id} />
         <CheckIn
           restaurantId={restaurant.id}
           restaurantName={name}
