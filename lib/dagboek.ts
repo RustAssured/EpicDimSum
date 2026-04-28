@@ -1,1 +1,1 @@
-export const DAGBOEK_COUNT = 10
+export const DAGBOEK_COUNT = 11

@@ -12,6 +12,29 @@ export const metadata = {
 
 const updates = [
   {
+    id: 'privacy-klaar',
+    date: '28 april 2026',
+    title: 'Gao speelt volgens de regels',
+    emoji: '🔒',
+    content: [
+      {
+        type: 'paragraph' as const,
+        text: 'EpicDimSum heeft een privacybeleid. Niet omdat het spannend is, maar omdat het hoort. Geen tracking, geen cookies, geen advertenties. Gewoon dim sum.',
+      },
+      {
+        type: 'bullets' as const,
+        icon: 'dim-pin.png',
+        items: [
+          'Privacybeleid live op epicdimsum.com/privacy. Kort, eerlijk, in het Nederlands.',
+          'Geen Google Analytics, geen tracking cookies. We volgen je niet over het internet.',
+          'De sticker is goedgekeurd door de drukker. Vrijdag 1 mei in huis.',
+        ],
+      },
+    ],
+    mistake: null,
+    fixed: false,
+  },
+  {
     id: 'eerste-stap',
     date: '24 april 2026',
     title: 'De eerste stap wordt makkelijker',
