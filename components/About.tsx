@@ -75,6 +75,16 @@ function AboutSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
         >
           Sluiten
         </button>
+
+        <div className="text-center mt-4">
+          <Link
+            href="/privacy"
+            onClick={onClose}
+            className="text-xs text-inkBlack/30 hover:text-inkBlack/60 transition-colors"
+          >
+            Privacy
+          </Link>
+        </div>
       </div>
     </div>
   )

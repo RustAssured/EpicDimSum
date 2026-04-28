@@ -57,6 +57,12 @@ export default async function Home() {
           <p className="text-xs text-cream/40 mt-1">
             De beste dim sum in Nederland. Powered by EpicScore™
           </p>
+          <Link
+            href="/privacy"
+            className="text-xs text-cream/40 hover:text-cream/70 transition-colors mt-2 inline-block"
+          >
+            Privacy
+          </Link>
         </div>
       </footer>
     </main>
