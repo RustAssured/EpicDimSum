@@ -13,8 +13,28 @@ export type City =
   | 'Middelburg'
   | 'Lelystad'
   | "'s-Hertogenbosch"
+
+// Canonical list of cities — used by the dropdown in the suggest form.
+// Keep in sync with the City union and CITY_MAP in lib/db.ts.
+export const CITY_LIST: City[] = [
+  'Amsterdam',
+  'Rotterdam',
+  'Den Haag',
+  'Utrecht',
+  'Eindhoven',
+  'Groningen',
+  'Leeuwarden',
+  'Assen',
+  'Zwolle',
+  'Arnhem',
+  'Maastricht',
+  'Middelburg',
+  'Lelystad',
+  "'s-Hertogenbosch",
+]
+
 export type PriceRange = '€' | '€€' | '€€€'
-export type Status = 'open' | 'busy' | 'closed' | 'pending'
+export type Status = 'open' | 'busy' | 'closed' | 'pending' | 'suggested'
 
 export interface Restaurant {
   id: string

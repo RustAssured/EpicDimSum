@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Restaurant, City } from '@/lib/types'
+import { Restaurant, City, CITY_LIST } from '@/lib/types'
 import RestaurantCard from '@/components/RestaurantCard'
 import CityFilter from '@/components/CityFilter'
 import Mascot from '@/components/Mascot'
@@ -48,9 +48,10 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState<'epic' | 'hagao'>('epic')
   const [showWhySheet, setShowWhySheet] = useState(false)
-  const [suggestUrl, setSuggestUrl] = useState('')
+  const [suggestName, setSuggestName] = useState('')
+  const [suggestCity, setSuggestCity] = useState('')
+  const [suggestNote, setSuggestNote] = useState('')
   const [suggestState, setSuggestState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [suggestMessage, setSuggestMessage] = useState('')
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [locationLoading, setLocationLoading] = useState(false)
   const [sortByDistance, setSortByDistance] = useState(false)
@@ -101,23 +102,35 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
   }, [])
 
   const handleSuggest = async () => {
-    if (!suggestUrl.trim()) return
+    const name = suggestName.trim()
+    const city = suggestCity.trim()
+    if (!name || !city) return
     setSuggestState('loading')
     try {
       const res = await fetch('/api/suggest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mapsUrl: suggestUrl }),
+        body: JSON.stringify({
+          name,
+          city,
+          note: suggestNote.trim() || undefined,
+        }),
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Fout')
+      if (!res.ok) throw new Error('network')
       setSuggestState('success')
-      setSuggestMessage(data.message)
-      setSuggestUrl('')
-    } catch (err) {
+      setSuggestName('')
+      setSuggestCity('')
+      setSuggestNote('')
+    } catch {
       setSuggestState('error')
-      setSuggestMessage(err instanceof Error ? err.message : 'Er ging iets mis')
     }
+  }
+
+  const resetSuggest = () => {
+    setSuggestState('idle')
+    setSuggestName('')
+    setSuggestCity('')
+    setSuggestNote('')
   }
 
   const handleLocation = () => {
@@ -429,29 +442,103 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
           </div>
 
           {/* Suggest a restaurant */}
-          <div id="suggest-form" className="mt-4 p-4 rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white">
-            <p className="font-black text-sm mb-1">🥟 Ken jij een goede plek?</p>
-            <p className="text-xs text-inkBlack/50 mb-3">Plak een Google Maps link, wij doen de rest</p>
-            <div className="flex gap-2">
-              <input
-                type="url"
-                value={suggestUrl}
-                onChange={(e) => { setSuggestUrl(e.target.value); setSuggestState('idle') }}
-                placeholder="https://maps.google.com/..."
-                className="flex-1 text-xs px-3 py-2 rounded-full border-2 border-inkBlack focus:outline-none"
-              />
-              <button
-                onClick={handleSuggest}
-                disabled={suggestState === 'loading' || !suggestUrl.trim()}
-                className="text-xs font-black px-3 py-2 rounded-full bg-epicGreen text-cream border-2 border-inkBlack shadow-brutal-sm disabled:opacity-50 transition-colors"
-              >
-                {suggestState === 'loading' ? '…' : 'Voeg toe →'}
-              </button>
-            </div>
-            {suggestMessage && (
-              <p className={`text-xs mt-2 font-medium ${suggestState === 'error' ? 'text-epicRed' : 'text-epicGreen'}`}>
-                {suggestMessage}
-              </p>
+          <div id="suggest-form" className="mt-4 rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white p-4">
+            {suggestState === 'success' ? (
+              <div className="flex flex-col items-center text-center py-4 gap-3">
+                <Image
+                  src="/mascots/GaoMandje.png"
+                  alt="Gao bedankt je"
+                  width={64}
+                  height={64}
+                  className="object-contain"
+                />
+                <p className="font-black text-sm text-inkBlack">
+                  Dank je! Gao gaat deze plek bekijken. 🥟
+                </p>
+                <button
+                  onClick={resetSuggest}
+                  className="text-xs font-black px-4 py-2 rounded-full bg-white text-inkBlack border-2 border-inkBlack shadow-brutal-sm"
+                >
+                  Nog een plek toevoegen
+                </button>
+              </div>
+            ) : (
+              <>
+                <p className="font-black text-sm mb-1">🥟 Ken jij een goede plek?</p>
+                <p className="text-xs text-inkBlack/50 mb-4">Geef Gao een naam en een stad — hij doet de rest.</p>
+                <div className="space-y-3">
+                  <div>
+                    <label htmlFor="suggest-name" className="block text-xs font-black uppercase tracking-wide text-inkBlack/60 mb-1">
+                      Restaurant naam
+                    </label>
+                    <input
+                      id="suggest-name"
+                      type="text"
+                      value={suggestName}
+                      onChange={(e) => setSuggestName(e.target.value)}
+                      placeholder="bijv. Gao's Dim Sum Paleis"
+                      required
+                      maxLength={120}
+                      disabled={suggestState === 'loading'}
+                      className="w-full text-base px-4 py-3 rounded-xl border-2 border-inkBlack bg-white focus:outline-none focus:shadow-brutal-sm disabled:opacity-60"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="suggest-city" className="block text-xs font-black uppercase tracking-wide text-inkBlack/60 mb-1">
+                      Stad
+                    </label>
+                    <select
+                      id="suggest-city"
+                      value={suggestCity}
+                      onChange={(e) => setSuggestCity(e.target.value)}
+                      required
+                      disabled={suggestState === 'loading'}
+                      className="w-full text-base px-4 py-3 rounded-xl border-2 border-inkBlack bg-white focus:outline-none focus:shadow-brutal-sm disabled:opacity-60"
+                    >
+                      <option value="" disabled>Kies een stad...</option>
+                      {CITY_LIST.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="suggest-note" className="block text-xs font-black uppercase tracking-wide text-inkBlack/60 mb-1">
+                      Waarom is deze plek goed? <span className="text-inkBlack/40 normal-case font-medium">(optioneel)</span>
+                    </label>
+                    <textarea
+                      id="suggest-note"
+                      value={suggestNote}
+                      onChange={(e) => setSuggestNote(e.target.value)}
+                      maxLength={200}
+                      rows={3}
+                      disabled={suggestState === 'loading'}
+                      className="w-full text-base px-4 py-3 rounded-xl border-2 border-inkBlack bg-white focus:outline-none focus:shadow-brutal-sm disabled:opacity-60 resize-none"
+                    />
+                    {suggestNote.length > 0 && (
+                      <p className="text-xs text-inkBlack/40 mt-1 text-right">
+                        {suggestNote.length}/200
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    onClick={handleSuggest}
+                    disabled={
+                      suggestState === 'loading' ||
+                      !suggestName.trim() ||
+                      !suggestCity.trim()
+                    }
+                    style={{ minHeight: 48 }}
+                    className="w-full text-sm font-black px-4 py-3 rounded-full bg-epicGreen text-cream border-2 border-inkBlack shadow-brutal-sm disabled:opacity-50 transition-colors"
+                  >
+                    {suggestState === 'loading' ? 'Gao zoekt...' : 'Voeg toe →'}
+                  </button>
+                  {suggestState === 'error' && (
+                    <p className="text-xs font-medium text-epicRed text-center">
+                      Iets ging mis. Probeer het zo nog eens.
+                    </p>
+                  )}
+                </div>
+              </>
             )}
           </div>
         </>

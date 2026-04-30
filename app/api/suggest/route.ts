@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAllRestaurants, upsertRestaurant, normalizeCity, isKnownCity } from '@/lib/db'
-import { Restaurant, City, PriceRange } from '@/lib/types'
-import { fetchGooglePlacesData, extractCityFromAddressComponents } from '@/lib/google-places'
+import { upsertRestaurant, normalizeCity, isKnownCity } from '@/lib/db'
+import { Restaurant, City, PriceRange, CITY_LIST } from '@/lib/types'
+import {
+  searchPlacesByText,
+  extractCityFromAddressComponents,
+  type PlacesSearchCandidate,
+} from '@/lib/google-places'
 
 // Simple in-memory rate limiter: max 5 suggestions per IP per day
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
@@ -23,24 +27,60 @@ function checkRateLimit(ip: string): boolean {
   return true
 }
 
-function extractPlaceId(url: string): string | null {
-  // Direct ChIJ... pattern anywhere in the URL
-  const directMatch = url.match(/ChIJ[a-zA-Z0-9_-]{10,}/)
-  if (directMatch) return directMatch[0]
-
-  // Encoded in data param: !1sChIJ...
-  const dataMatch = url.match(/!1s(ChIJ[a-zA-Z0-9_-]+)/)
-  if (dataMatch) return dataMatch[1]
-
-  return null
-}
-
-function slugify(name: string, city: string): string {
-  return `${name} ${city}`
+function slugify(input: string): string {
+  return input
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
     .trim()
     .replace(/\s+/g, '-')
+    .slice(0, 60)
+}
+
+function isValidCity(city: string): city is City {
+  return (CITY_LIST as string[]).includes(city)
+}
+
+const FRIENDLY_SUCCESS = 'Dank je! Gao gaat deze plek bekijken.'
+
+function successResponse() {
+  return NextResponse.json({ ok: true, message: FRIENDLY_SUCCESS })
+}
+
+function buildStub(args: {
+  name: string
+  city: City
+  placeId: string
+  note?: string
+}): Restaurant {
+  const { name, city, placeId, note } = args
+  const idSeed = placeId
+    ? `suggest-${placeId.slice(-8)}`
+    : `suggest-${slugify(name)}-${Date.now().toString(36)}`
+  const stubId = slugify(`${idSeed}-${city}`)
+
+  return {
+    id: stubId,
+    name,
+    city,
+    address: '',
+    googlePlaceId: placeId,
+    cuisine: 'Dim Sum',
+    priceRange: '€€' as PriceRange,
+    coords: { lat: 0, lng: 0 },
+    mustOrder: '',
+    epicScore: 0,
+    haGaoIndex: 0,
+    scores: { google: 0, haGao: 0, buzz: 0, vibe: 0 },
+    status: 'suggested',
+    verified: false,
+    summary: note?.trim() ? `Suggestie van bezoeker: ${note.trim()}` : undefined,
+    sources: {
+      googleRating: 0,
+      googleReviewCount: 0,
+      blogMentions: 0,
+      lastUpdated: new Date().toISOString(),
+    },
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -51,89 +91,127 @@ export async function POST(request: NextRequest) {
 
   if (!checkRateLimit(ip)) {
     return NextResponse.json(
-      { error: 'Te veel suggesties vandaag, probeer morgen weer' },
+      { error: 'Te veel suggesties vandaag, probeer het morgen opnieuw.' },
       { status: 429 }
     )
   }
 
-  let body: { mapsUrl?: string }
+  let body: { name?: unknown; city?: unknown; note?: unknown }
   try {
     body = await request.json()
   } catch {
     return NextResponse.json({ error: 'Ongeldige invoer' }, { status: 400 })
   }
 
-  const { mapsUrl } = body
-  if (!mapsUrl || typeof mapsUrl !== 'string' || mapsUrl.length > 2048) {
-    return NextResponse.json({ error: 'Ongeldige URL' }, { status: 400 })
-  }
+  const rawName = typeof body.name === 'string' ? body.name.trim() : ''
+  const rawCity = typeof body.city === 'string' ? body.city.trim() : ''
+  const rawNote = typeof body.note === 'string' ? body.note.trim() : ''
 
-  const placeId = extractPlaceId(mapsUrl)
-  if (!placeId) {
+  if (!rawName || rawName.length > 120) {
     return NextResponse.json(
-      { error: 'Geen Google Place ID gevonden in deze link. Kopieer de link direct vanuit Google Maps.' },
-      { status: 422 }
+      { error: 'Geef een geldige restaurantnaam op.' },
+      { status: 400 }
     )
   }
 
-  // Check if already in DB
-  const existing = await getAllRestaurants()
-  const alreadyExists = existing.find((r) => r.googlePlaceId === placeId)
-  if (alreadyExists) {
-    return NextResponse.json({
-      success: true,
-      message: `${alreadyExists.name} staat al in EpicDimSum! EpicScore: ${alreadyExists.epicScore}`,
-      existing: true,
-    })
+  if (!isValidCity(rawCity)) {
+    return NextResponse.json(
+      { error: 'Kies een stad uit de lijst.' },
+      { status: 400 }
+    )
   }
 
-  // Extract real city from Google Places to avoid hardcoding Amsterdam
-  let extractedCity: City = 'Amsterdam' as City
-  try {
-    const placeData = await fetchGooglePlacesData(placeId)
-    const locality = extractCityFromAddressComponents(placeData.addressComponents)
-    if (locality) {
-      if (isKnownCity(locality)) {
-        extractedCity = normalizeCity(locality)
-      } else {
-        console.warn(`[Suggest] Unknown city "${locality}" for place ${placeId}, using raw value`)
-        extractedCity = locality as City
-      }
-    } else {
-      console.warn(`[Suggest] Could not determine city for place ${placeId}, falling back to Amsterdam`)
+  if (rawNote.length > 200) {
+    return NextResponse.json(
+      { error: 'Notitie mag maximaal 200 tekens zijn.' },
+      { status: 400 }
+    )
+  }
+
+  const userCity: City = rawCity
+  const note = rawNote.length > 0 ? rawNote : undefined
+
+  // If no API key is configured, save the suggestion without lookup.
+  if (!process.env.GOOGLE_PLACES_API_KEY) {
+    try {
+      await upsertRestaurant(
+        buildStub({ name: rawName, city: userCity, placeId: '', note })
+      )
+    } catch (err) {
+      console.error('[Suggest] Failed to save suggestion (no API key path):', err)
     }
+    return successResponse()
+  }
+
+  let candidates: PlacesSearchCandidate[] = []
+  try {
+    candidates = await searchPlacesByText(rawName, userCity)
   } catch (err) {
-    console.error(`[Suggest] Google Places fetch failed for ${placeId}:`, err)
+    console.warn('[Suggest] Places searchText failed:', err)
   }
 
-  // Create stub — real scoring happens on next sync cycle
-  const stubId = slugify(`suggest-${placeId.slice(-8)}`, 'nl')
-  const stub: Restaurant = {
-    id: stubId,
-    name: `Suggestie (${placeId.slice(-6)})`,
-    city: extractedCity,
-    address: '',
-    googlePlaceId: placeId,
-    cuisine: 'Dim Sum',
-    priceRange: '€€' as PriceRange,
-    coords: { lat: 0, lng: 0 },
-    mustOrder: '',
-    epicScore: 0,
-    haGaoIndex: 0,
-    scores: { google: 0, haGao: 0, buzz: 0, vibe: 0 },
-    status: 'pending',
-    sources: {
-      googleRating: 0,
-      googleReviewCount: 0,
-      blogMentions: 0,
-      lastUpdated: new Date().toISOString(),
-    },
+  // Resolve final city using Places address components when available; else user's choice.
+  function resolveCity(candidate: PlacesSearchCandidate | undefined): City {
+    if (!candidate) return userCity
+    const locality = extractCityFromAddressComponents(candidate.addressComponents)
+    if (locality && isKnownCity(locality)) return normalizeCity(locality)
+    if (locality) {
+      console.warn(
+        `[Suggest] Unknown locality "${locality}" for placeId ${candidate.placeId}, using user-selected city`
+      )
+    }
+    return userCity
   }
 
-  await upsertRestaurant(stub)
+  // Branch 1: 0 results — save suggestion record without placeId, respond success
+  if (candidates.length === 0) {
+    try {
+      await upsertRestaurant(
+        buildStub({ name: rawName, city: userCity, placeId: '', note })
+      )
+    } catch (err) {
+      console.error('[Suggest] Failed to save 0-result suggestion:', err)
+    }
+    return successResponse()
+  }
 
-  return NextResponse.json({
-    success: true,
-    message: 'Bedankt! We beoordelen dit restaurant binnenkort.',
+  const top = candidates[0]
+  const highConfidence =
+    candidates.length === 1 && (top.userRatingCount ?? 0) >= 5
+
+  // Branch 2: exactly 1 high-confidence result — create stub with placeId, normal pipeline
+  if (highConfidence) {
+    const finalCity = resolveCity(top)
+    const stub = buildStub({
+      name: top.name || rawName,
+      city: finalCity,
+      placeId: top.placeId,
+      note,
+    })
+    // High-confidence stubs go through the normal pending pipeline so the
+    // sync/scoring job picks them up and verifies them.
+    stub.status = 'pending'
+    try {
+      await upsertRestaurant(stub)
+    } catch (err) {
+      console.error('[Suggest] Failed to upsert high-confidence stub:', err)
+    }
+    return successResponse()
+  }
+
+  // Branch 3: multiple results OR 1 low-confidence result —
+  // save suggestion record marked for admin review with the top candidate's placeId.
+  const finalCity = resolveCity(top)
+  const stub = buildStub({
+    name: rawName,
+    city: finalCity,
+    placeId: top.placeId ?? '',
+    note,
   })
+  try {
+    await upsertRestaurant(stub)
+  } catch (err) {
+    console.error('[Suggest] Failed to upsert review-needed suggestion:', err)
+  }
+  return successResponse()
 }

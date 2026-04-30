@@ -106,6 +106,83 @@ export async function searchGooglePlaceByText(
   }
 }
 
+export interface PlacesSearchCandidate {
+  placeId: string
+  name: string
+  formattedAddress: string
+  addressComponents?: AddressComponent[]
+  location?: { latitude: number; longitude: number }
+  types?: string[]
+  rating?: number
+  userRatingCount?: number
+}
+
+// Richer search used by the user-facing suggest flow.
+// Returns up to maxResultCount candidates so the route can decide on confidence.
+export async function searchPlacesByText(
+  name: string,
+  city: string,
+  maxResultCount = 5
+): Promise<PlacesSearchCandidate[]> {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY
+  if (!apiKey) throw new Error('GOOGLE_PLACES_API_KEY not set')
+
+  const fieldMask = [
+    'places.id',
+    'places.displayName',
+    'places.formattedAddress',
+    'places.addressComponents',
+    'places.location',
+    'places.types',
+    'places.rating',
+    'places.userRatingCount',
+  ].join(',')
+
+  const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': apiKey,
+      'X-Goog-FieldMask': fieldMask,
+    },
+    body: JSON.stringify({
+      textQuery: `${name} ${city} dim sum restaurant Netherlands`,
+      languageCode: 'nl',
+      regionCode: 'NL',
+      maxResultCount,
+    }),
+    cache: 'no-store',
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`Google Places API error ${res.status}: ${text}`)
+  }
+
+  const data = await res.json()
+  const places = (data.places ?? []) as Array<{
+    id: string
+    displayName?: { text?: string }
+    formattedAddress?: string
+    addressComponents?: AddressComponent[]
+    location?: { latitude: number; longitude: number }
+    types?: string[]
+    rating?: number
+    userRatingCount?: number
+  }>
+
+  return places.map((p) => ({
+    placeId: p.id,
+    name: p.displayName?.text ?? name,
+    formattedAddress: p.formattedAddress ?? '',
+    addressComponents: p.addressComponents,
+    location: p.location,
+    types: p.types,
+    rating: p.rating,
+    userRatingCount: p.userRatingCount,
+  }))
+}
+
 export function normalizeGoogleScore(rating: number, reviewCount: number): number {
   // rating is 0-5, normalize to 0-100
   // Apply a slight boost for high review counts (social proof)

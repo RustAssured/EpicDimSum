@@ -25,6 +25,12 @@ const statusConfig: Record<Status, { label: string; bg: string; text: string; do
     text: 'text-epicPurple',
     dot: 'bg-epicPurple',
   },
+  suggested: {
+    label: 'Suggestie',
+    bg: 'bg-epicPurple/10',
+    text: 'text-epicPurple',
+    dot: 'bg-epicPurple',
+  },
 }
 
 interface StatusBadgeProps {
