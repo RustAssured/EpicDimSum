@@ -12,6 +12,38 @@ export const metadata = {
 
 const updates = [
   {
+    id: 'suggesties-en-community',
+    date: '30 april 2026',
+    title: 'Gao luistert',
+    emoji: '🧺',
+    content: [
+      {
+        type: 'paragraph' as const,
+        text: 'Een dim sum liefhebber wilde twee restaurants melden. Het lukte niet. Te technisch, te veel gedoe. Dat is precies het tegenovergestelde van wat EpicDimSum moet zijn.',
+      },
+      {
+        type: 'paragraph' as const,
+        text: 'Als iemand de moeite neemt om een plek te delen, moet dat voelen als een gesprek. Niet als een formulier.',
+      },
+      {
+        type: 'bullets' as const,
+        icon: 'dim-journey.png',
+        items: [
+          'Restaurant suggereren kan nu met alleen een naam en een stad. Geen technische links meer, geen Place IDs. Gao zoekt de rest zelf uit.',
+          'Suggesties van gebruikers krijgen een eigen plek in de admin. Dat is goud en verdient aandacht.',
+          'Restaurants waar 3 of meer dim sum liefhebbers zijn geweest laten dat nu zien. Subtiel, maar het maakt de reis een stukje minder alleen.',
+        ],
+      },
+      {
+        type: 'paragraph' as const,
+        text: 'De beste plekken komen niet alleen uit data. Ze komen van mensen die net zo van dim sum houden als Gao.',
+      },
+    ],
+    mistake: 'De suggestie flow was te technisch. Mensen haakten af voordat ze hun tip konden delen.',
+    fixed: true,
+    fixedNote: 'Naam en stad is genoeg. Gao doet de rest.',
+  },
+  {
     id: 'privacy-klaar',
     date: '28 april 2026',
     title: 'Gao speelt volgens de regels',
