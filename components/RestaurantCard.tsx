@@ -135,6 +135,13 @@ export default function RestaurantCard({ restaurant, rank, currentCity, distance
           </div>
         )}
 
+        {/* Community check-in counter — only when ≥ 3 visitors */}
+        {(restaurant.communityCheckins ?? 0) >= 3 && (
+          <p className="px-4 pb-2 text-[11px] text-inkBlack/40">
+            🥟 {restaurant.communityCheckins} dim sum liefhebbers zijn hier geweest
+          </p>
+        )}
+
         {/* CTA row */}
         <div className="px-4 pb-4 flex gap-2">
           <a

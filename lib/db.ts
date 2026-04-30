@@ -99,9 +99,37 @@ export function isTrustedForPublicFeed(r: Restaurant): boolean {
   return true
 }
 
+// Fetch check-in counts per restaurant in a single query.
+// Returns a Map of restaurant_id -> count. Falls back to empty map on error.
+async function getCheckinCounts(): Promise<Map<string, number>> {
+  try {
+    const { data, error } = await getSupabaseAdmin()
+      .from('checkins')
+      .select('restaurant_id')
+
+    if (error || !data) return new Map()
+
+    const counts = new Map<string, number>()
+    for (const row of data as { restaurant_id: string }[]) {
+      counts.set(row.restaurant_id, (counts.get(row.restaurant_id) ?? 0) + 1)
+    }
+    return counts
+  } catch {
+    return new Map()
+  }
+}
+
 export async function getPublicRestaurants(): Promise<Restaurant[]> {
-  const all = await getAllRestaurants()
-  return all.filter(isTrustedForPublicFeed)
+  const [all, checkinCounts] = await Promise.all([
+    getAllRestaurants(),
+    getCheckinCounts(),
+  ])
+  return all
+    .filter(isTrustedForPublicFeed)
+    .map((r) => ({
+      ...r,
+      communityCheckins: checkinCounts.get(r.id) ?? r.communityCheckins ?? 0,
+    }))
 }
 
 // Read single restaurant

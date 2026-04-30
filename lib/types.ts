@@ -71,6 +71,10 @@ export interface Restaurant {
   reservationUrl?: string
   summary?: string
   reviewSnippets?: string[]
+  source?: 'engine' | 'user' | 'seed'
+  note?: string
+  submittedBy?: string
+  communityCheckins?: number
   sources: {
     googleRating: number
     googleReviewCount: number

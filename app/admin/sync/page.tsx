@@ -54,6 +54,9 @@ export default function AdminSyncPage() {
   // Restaurant list filter
   const [listFilter, setListFilter] = useState<'all' | 'verified' | 'review' | 'flagged'>('all')
 
+  // Source filter (engine vs user vs seed)
+  const [sourceFilter, setSourceFilter] = useState<'alle' | 'gebruiker' | 'engine' | 'seed'>('alle')
+
   // Cleanup non-dim-sum state
   const [cleanupNonDimSumState, setCleanupNonDimSumState] = useState<{
     loading: boolean
@@ -773,6 +776,37 @@ export default function AdminSyncPage() {
             ))}
           </div>
 
+          {/* Source filter (engine vs gebruiker vs seed) */}
+          <div className="flex gap-1 mb-3 flex-wrap">
+            {(['alle', 'gebruiker', 'engine', 'seed'] as const).map((f) => {
+              const matchesSource = (r: Restaurant): boolean => {
+                if (f === 'alle') return true
+                if (f === 'gebruiker') {
+                  return r.source === 'user' || (r.source === undefined && r.status === 'suggested')
+                }
+                if (f === 'engine') return r.source === 'engine' || r.source === undefined
+                return r.source === 'seed' || r.source === undefined
+              }
+              const count = adminRestaurants.filter(matchesSource).length
+              const label =
+                f === 'alle' ? 'Alle'
+                : f === 'gebruiker' ? '🧺 Gebruiker'
+                : f === 'engine' ? '⚙️ Engine'
+                : '🌱 Seed'
+              return (
+                <button
+                  key={f}
+                  onClick={() => setSourceFilter(f)}
+                  className={`text-xs font-black px-3 py-1 rounded-full border-2 border-inkBlack transition-colors ${
+                    sourceFilter === f ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack/60 hover:text-inkBlack'
+                  }`}
+                >
+                  {label} ({count})
+                </button>
+              )
+            })}
+          </div>
+
           <div className="space-y-4">
             {adminRestaurants
               .filter((r) => {
@@ -782,6 +816,14 @@ export default function AdminSyncPage() {
                 if (listFilter === 'verified') return isVerified
                 if (listFilter === 'review') return r.verified !== true && r.verified !== false
                 return true
+              })
+              .filter((r) => {
+                if (sourceFilter === 'alle') return true
+                if (sourceFilter === 'gebruiker') {
+                  return r.source === 'user' || (r.source === undefined && r.status === 'suggested')
+                }
+                if (sourceFilter === 'engine') return r.source === 'engine' || r.source === undefined
+                return r.source === 'seed' || r.source === undefined
               })
               .map((restaurant) => {
               const state = syncStates[restaurant.id]
@@ -798,6 +840,11 @@ export default function AdminSyncPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-black text-inkBlack">{restaurant.name}</h3>
+                        {restaurant.source === 'user' && (
+                          <span className="text-[10px] font-black bg-epicPurple/15 text-epicPurple border border-epicPurple/30 rounded-full px-2 py-0.5">
+                            🧺 Gebruiker
+                          </span>
+                        )}
                         {restaurant.epicScore === 0 && (
                           <span className="text-[10px] font-black bg-epicGold/20 text-epicGold border border-epicGold/40 rounded-full px-2 py-0.5">
                             ⚠️ Sync nodig
@@ -815,6 +862,18 @@ export default function AdminSyncPage() {
                         )}
                       </div>
                       <p className="text-xs text-inkBlack/50">{restaurant.city} &middot; EpicScore: {state?.result?.epicScore ?? restaurant.epicScore}</p>
+                      {sourceFilter === 'gebruiker' && (
+                        <div className="mt-1 space-y-0.5">
+                          {restaurant.note && (
+                            <p className="text-[11px] text-inkBlack/70 italic">&ldquo;{restaurant.note}&rdquo;</p>
+                          )}
+                          {restaurant.submittedBy && (
+                            <p className="text-[10px] text-inkBlack/40">
+                              Ingestuurd door <span className="font-bold">{restaurant.submittedBy}</span>
+                            </p>
+                          )}
+                        </div>
+                      )}
                       {(() => {
                         const r = state?.result ?? restaurant
                         if (isTrustedForPublicFeed(r)) return null

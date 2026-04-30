@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { upsertRestaurant, normalizeCity, isKnownCity } from '@/lib/db'
 import { Restaurant, City, PriceRange, CITY_LIST } from '@/lib/types'
+import { getSupabaseAdmin } from '@/lib/supabase'
 import {
   searchPlacesByText,
   extractCityFromAddressComponents,
@@ -51,8 +52,9 @@ function buildStub(args: {
   city: City
   placeId: string
   note?: string
+  submittedBy?: string
 }): Restaurant {
-  const { name, city, placeId, note } = args
+  const { name, city, placeId, note, submittedBy } = args
   const idSeed = placeId
     ? `suggest-${placeId.slice(-8)}`
     : `suggest-${slugify(name)}-${Date.now().toString(36)}`
@@ -73,6 +75,9 @@ function buildStub(args: {
     scores: { google: 0, haGao: 0, buzz: 0, vibe: 0 },
     status: 'suggested',
     verified: false,
+    source: 'user',
+    note: note?.trim() ? note.trim() : undefined,
+    submittedBy,
     summary: note?.trim() ? `Suggestie van bezoeker: ${note.trim()}` : undefined,
     sources: {
       googleRating: 0,
@@ -131,11 +136,24 @@ export async function POST(request: NextRequest) {
   const userCity: City = rawCity
   const note = rawNote.length > 0 ? rawNote : undefined
 
+  // Resolve submitter email from Bearer token if present
+  let submittedBy: string | undefined
+  const authHeader = request.headers.get('authorization')
+  if (authHeader?.startsWith('Bearer ')) {
+    try {
+      const token = authHeader.replace('Bearer ', '')
+      const { data: { user } } = await getSupabaseAdmin().auth.getUser(token)
+      submittedBy = user?.email ?? undefined
+    } catch {
+      // Skip gracefully — anonymous suggestion
+    }
+  }
+
   // If no API key is configured, save the suggestion without lookup.
   if (!process.env.GOOGLE_PLACES_API_KEY) {
     try {
       await upsertRestaurant(
-        buildStub({ name: rawName, city: userCity, placeId: '', note })
+        buildStub({ name: rawName, city: userCity, placeId: '', note, submittedBy })
       )
     } catch (err) {
       console.error('[Suggest] Failed to save suggestion (no API key path):', err)
@@ -167,7 +185,7 @@ export async function POST(request: NextRequest) {
   if (candidates.length === 0) {
     try {
       await upsertRestaurant(
-        buildStub({ name: rawName, city: userCity, placeId: '', note })
+        buildStub({ name: rawName, city: userCity, placeId: '', note, submittedBy })
       )
     } catch (err) {
       console.error('[Suggest] Failed to save 0-result suggestion:', err)
@@ -187,6 +205,7 @@ export async function POST(request: NextRequest) {
       city: finalCity,
       placeId: top.placeId,
       note,
+      submittedBy,
     })
     // High-confidence stubs go through the normal pending pipeline so the
     // sync/scoring job picks them up and verifies them.
@@ -207,6 +226,7 @@ export async function POST(request: NextRequest) {
     city: finalCity,
     placeId: top.placeId ?? '',
     note,
+    submittedBy,
   })
   try {
     await upsertRestaurant(stub)

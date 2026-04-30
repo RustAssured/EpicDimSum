@@ -59,7 +59,10 @@ export default async function RestaurantPage({ params }: PageProps) {
     .sort((a, b) => b.epicScore - a.epicScore)
     .slice(0, 2)
 
-  const communityCheckins = (sources as Record<string, unknown>).communityCheckins as number | undefined
+  const communityCheckins =
+    restaurant.communityCheckins ??
+    ((sources as Record<string, unknown>).communityCheckins as number | undefined) ??
+    0
   const communityFirePct = (sources as Record<string, unknown>).communityFirePct as number | undefined
 
   return (
@@ -171,11 +174,11 @@ export default async function RestaurantPage({ params }: PageProps) {
       )}
 
       {/* Community signal */}
-      {communityCheckins !== undefined && communityCheckins > 3 && (
-        <div className="mx-4 mt-3 flex items-center gap-2 p-3 bg-epicGreen/8 rounded-xl border border-epicGreen/20">
-          <Image src="/mascots/dumpling-sparkle.png" alt="" width={18} height={18} className="object-contain" />
-          <p className="text-xs font-black text-epicGreen">
-            {communityCheckins} EpicDimSum bezoekers waren hier
+      {communityCheckins >= 3 && (
+        <div className="mx-4 mt-3 flex items-center gap-2">
+          <Image src="/mascots/GaoMandje.png" alt="" width={16} height={16} className="object-contain" />
+          <p className="text-[13px] text-inkBlack/50">
+            {communityCheckins} dim sum liefhebbers zijn hier geweest
             {communityFirePct !== undefined && communityFirePct >= 70 && ' · merendeel vond het on fire!'}
           </p>
         </div>
