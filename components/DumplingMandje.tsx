@@ -7,7 +7,7 @@ interface CheckInRecord {
   restaurantId: string
   restaurantName: string
   city: string
-  rating: 'fire' | 'solid' | 'meh'
+  rating: 'fire' | 'solid' | 'epic'
   date: string
   journalNote?: string
 }
@@ -168,7 +168,7 @@ export default function DumplingMandje() {
               {checkins.slice(-5).reverse().map((c, i) => (
                 <div key={i} className="p-2.5 bg-white rounded-xl border border-inkBlack/10">
                   <div className="flex items-center gap-2">
-                    <span className="text-base">{c.rating === 'fire' ? '🔥' : c.rating === 'solid' ? '👍' : '😐'}</span>
+                    <span className="text-base">{c.rating === 'epic' ? '🥟' : c.rating === 'fire' ? '🔥' : '👍'}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-black truncate">{c.restaurantName}</p>
                       <p className="text-[10px] text-inkBlack/40">{c.city}</p>

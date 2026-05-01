@@ -23,7 +23,7 @@ async function getCounts(restaurantId: string) {
   return {
     fire: data?.filter(c => c.rating === 'fire').length ?? 0,
     solid: data?.filter(c => c.rating === 'solid').length ?? 0,
-    meh: data?.filter(c => c.rating === 'meh').length ?? 0,
+    epic: data?.filter(c => c.rating === 'epic').length ?? 0,
     total: data?.length ?? 0,
   }
 }
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
   try {
     const { restaurantId, rating } = await request.json()
 
-    if (!restaurantId || !['fire', 'solid', 'meh'].includes(rating)) {
+    if (!restaurantId || !['fire', 'solid', 'epic'].includes(rating)) {
       return NextResponse.json({ error: 'Ongeldige invoer' }, { status: 400 })
     }
 

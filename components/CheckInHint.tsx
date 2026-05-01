@@ -14,7 +14,7 @@ export default function CheckInHint({ restaurantId }: { restaurantId: string }) 
 
   return (
     <p className="text-xs text-inkBlack/40 mb-2">
-      Ben je hier geweest? Bewaar deze plek in je Dim Sum Mandje.
+      Geweest? Check in en bewaar deze plek! 🥟
     </p>
   )
 }

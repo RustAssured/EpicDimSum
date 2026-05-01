@@ -9,12 +9,12 @@ interface CheckInProps {
   restaurantCity: string
 }
 
-type Rating = 'fire' | 'solid' | 'meh'
+type Rating = 'solid' | 'fire' | 'epic'
 
 interface Summary {
   fire: number
   solid: number
-  meh: number
+  epic: number
   total: number
 }
 
@@ -26,9 +26,9 @@ const options: {
   bg: string
   border: string
 }[] = [
-  { value: 'fire', label: 'On fire!', emoji: '🔥', gao: 'hilarischgao', bg: 'bg-epicRed/8', border: 'border-epicRed/30' },
-  { value: 'solid', label: 'Solide', emoji: '👍', gao: 'happy', bg: 'bg-epicGreen/8', border: 'border-epicGreen/30' },
-  { value: 'meh', label: 'Mwah...', emoji: '😐', gao: 'upsetsteaminggao', bg: 'bg-inkBlack/5', border: 'border-inkBlack/20' },
+  { value: 'solid', label: 'Solide 👍', emoji: '👍', gao: 'happy', bg: 'bg-epicGreen/8', border: 'border-epicGreen/30' },
+  { value: 'fire', label: 'Top 🔥', emoji: '🔥', gao: 'hilarischgao', bg: 'bg-epicRed/8', border: 'border-epicRed/30' },
+  { value: 'epic', label: 'Episch 🥟', emoji: '🥟', gao: 'hilarischgao', bg: 'bg-epicGold/10', border: 'border-epicGold/40' },
 ]
 
 export default function CheckIn({ restaurantId, restaurantName, restaurantCity }: CheckInProps) {
@@ -54,8 +54,15 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
     if (stored) {
       try {
         const parsed = JSON.parse(stored)
-        setSubmitted(parsed.rating ?? stored as Rating)
-        if (parsed.extrasDone) setExtrasDone(true)
+        const storedRating = parsed.rating ?? (stored as Rating)
+        if (storedRating) {
+          setSubmitted(storedRating)
+          if (parsed.extrasDone) {
+            setExtrasDone(true)
+          } else {
+            setShowExtras(true)
+          }
+        }
       } catch {
         setSubmitted(stored as Rating) // backwards compat
       }
@@ -167,9 +174,9 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
             {summary && summary.total > 0 && (
               <p className="text-xs text-inkBlack/50 mt-2">
                 {summary.total} {summary.total === 1 ? 'bezoeker' : 'bezoekers'} via EpicDimSum
+                {summary.epic > 0 && ` · ${summary.epic}🥟`}
                 {summary.fire > 0 && ` · ${summary.fire}🔥`}
                 {summary.solid > 0 && ` · ${summary.solid}👍`}
-                {summary.meh > 0 && ` · ${summary.meh}😐`}
               </p>
             )}
           </div>
@@ -184,7 +191,7 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
                   value={compliment}
                   onChange={(e) => setCompliment(e.target.value.slice(0, 140))}
                   maxLength={140}
-                  placeholder="Vertel het andere dim sum liefhebbers..."
+                  placeholder="bijv: perfecte ha gao, super dun velletje"
                   className="w-full p-3 rounded-2xl border-2 border-inkBlack/20 bg-cream text-sm focus:border-inkBlack focus:outline-none resize-none"
                   rows={2}
                 />
@@ -193,13 +200,13 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
 
               <div>
                 <label className="block text-xs font-black uppercase tracking-wide text-inkBlack/60 mb-1.5">
-                  📝 Notitie voor jezelf
+                  📝 Notitie voor jezelf (alleen voor jou)
                 </label>
                 <textarea
                   value={journalNote}
                   onChange={(e) => setJournalNote(e.target.value.slice(0, 280))}
                   maxLength={280}
-                  placeholder="Onthoud wat je at, hoe het smaakte..."
+                  placeholder="bijv: volgende keer die rice rolls proberen"
                   className="w-full p-3 rounded-2xl border-2 border-inkBlack/20 bg-cream text-sm focus:border-inkBlack focus:outline-none resize-none"
                   rows={3}
                 />
@@ -251,9 +258,9 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
               className="object-contain shrink-0"
             />
             <div>
-              <p className="font-black text-sm leading-tight">Ben je hier geweest?</p>
+              <p className="font-black text-sm leading-tight">Geweest? Check in!</p>
               <p className="text-xs text-inkBlack/40 leading-tight mt-0.5">
-                Jouw oordeel helpt andere dim sum liefhebbers
+                Vond je het goed? Zeg het!
               </p>
             </div>
           </div>
@@ -279,9 +286,9 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
           {summary && summary.total > 0 && (
             <p className="text-[10px] text-inkBlack/30 text-center mt-3">
               {summary.total} {summary.total === 1 ? 'bezoeker' : 'bezoekers'} checkte al in
+              {summary.epic > 0 && ` · ${summary.epic}🥟`}
               {summary.fire > 0 && ` · ${summary.fire}🔥`}
               {summary.solid > 0 && ` · ${summary.solid}👍`}
-              {summary.meh > 0 && ` · ${summary.meh}😐`}
             </p>
           )}
         </>
