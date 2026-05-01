@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
           epicScore: 0,
           haGaoIndex: 0,
           verified: false,
+          source: 'engine',
           scores: { google: 0, haGao: 0, buzz: 0, vibe: 0 },
           status: 'open',
           sources: {

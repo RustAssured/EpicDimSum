@@ -103,7 +103,9 @@ export async function POST(
       ? epicScoreFallback(googleData.rating, googleData.userRatingCount)
       : scores.epicScore
 
-    const verified = epicScore > 20 && scores.haGaoIndex > 0
+    // verified is owned by the admin (curator model). Sync only updates scores;
+    // it never publishes or unpublishes a restaurant.
+    const verified = restaurant.verified ?? false
 
     // Detect city correction from Google Places addressComponents
     let cityCorrection: { city: City } | Record<string, never> = {}
