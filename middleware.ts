@@ -6,21 +6,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  const { pathname } = request.nextUrl
-
-  // Admin and privacy always accessible during maintenance
-  if (
-    pathname.startsWith('/admin') ||
-    pathname.startsWith('/privacy') ||
-    pathname.startsWith('/maintenance')
-  ) {
-    return NextResponse.next()
-  }
-
   return NextResponse.rewrite(new URL('/maintenance', request.url))
 }
 
 export const config = {
-  // Run on all routes except Next.js internals and static assets
-  matcher: ['/((?!_next/static|_next/image|favicon|mascots|api).*)'],
+  // Only intercept public-facing pages.
+  // /admin, /privacy, /api, and all static assets are never matched,
+  // so they remain accessible during maintenance.
+  matcher: ['/', '/restaurant/:path*', '/reis/:path*'],
 }
