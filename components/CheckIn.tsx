@@ -11,24 +11,29 @@ interface CheckInProps {
   restaurantCity: string
 }
 
-type Rating = 'fire' | 'solid' | 'meh'
+type Rating = 'solid' | 'fire' | 'epic'
 
 interface Summary {
   fire: number
   solid: number
-  meh: number
+  epic: number
   total: number
 }
 
 const options: { value: Rating; label: string; icon: string; size: number }[] = [
-  { value: 'fire', label: 'On fire!', icon: 'flame.png', size: 32 },
-  { value: 'solid', label: 'Solide', icon: 'Dumpling-check.png', size: 32 },
-  { value: 'meh', label: 'Mwah...', icon: 'ha-gao.png', size: 28 },
+  { value: 'solid', label: 'Solide 👍', icon: 'Dumpling-check.png', size: 32 },
+  { value: 'fire', label: 'Top 🔥', icon: 'flame.png', size: 32 },
+  { value: 'epic', label: 'Episch 🥟', icon: 'Ha-Gao-star.png', size: 32 },
 ]
 
 function RatingSummary({ summary }: { summary: Summary }) {
   return (
     <span className="inline-flex items-center gap-1 flex-wrap justify-center">
+      {summary.epic > 0 && (
+        <span className="inline-flex items-center gap-0.5">
+          · <Icon src="Ha-Gao-star.png" alt="episch" size={14} /> {summary.epic}
+        </span>
+      )}
       {summary.fire > 0 && (
         <span className="inline-flex items-center gap-0.5">
           · <Icon src="flame.png" alt="fire" size={14} /> {summary.fire}
@@ -37,11 +42,6 @@ function RatingSummary({ summary }: { summary: Summary }) {
       {summary.solid > 0 && (
         <span className="inline-flex items-center gap-0.5">
           · <Icon src="dumpling-check.png" alt="solid" size={14} /> {summary.solid}
-        </span>
-      )}
-      {summary.meh > 0 && (
-        <span className="inline-flex items-center gap-0.5">
-          · <Icon src="dumpling-meh.png" alt="meh" size={14} /> {summary.meh}
         </span>
       )}
     </span>
@@ -54,11 +54,7 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
   const [summary, setSummary] = useState<Summary | null>(null)
   const [loading, setLoading] = useState(false)
   const [user, setUser] = useState<{ id: string } | null>(null)
-  const [showNote, setShowNote] = useState(false)
-  const [note, setNote] = useState('')
-  const [noteSaved, setNoteSaved] = useState(false)
 
-  // Auth state — getSession reads from cookie, no network call
   useEffect(() => {
     const supabase = createClient()
 
@@ -74,6 +70,13 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
     return () => subscription.unsubscribe()
   }, [])
 
+  const [showExtras, setShowExtras] = useState(false)
+  const [compliment, setCompliment] = useState('')
+  const [journalNote, setJournalNote] = useState('')
+  const [savingExtras, setSavingExtras] = useState(false)
+  const [extrasDone, setExtrasDone] = useState(false)
+  const [extrasThanked, setExtrasThanked] = useState(false)
+
   useEffect(() => {
     fetch(`/api/checkin?restaurantId=${restaurantId}`)
       .then(r => r.json())
@@ -84,9 +87,17 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
     if (stored) {
       try {
         const parsed = JSON.parse(stored)
-        setSubmitted(parsed.rating ?? stored as Rating)
+        const storedRating = parsed.rating ?? (stored as Rating)
+        if (storedRating) {
+          setSubmitted(storedRating)
+          if (parsed.extrasDone) {
+            setExtrasDone(true)
+          } else {
+            setShowExtras(true)
+          }
+        }
       } catch {
-        setSubmitted(stored as Rating) // backwards compat
+        setSubmitted(stored as Rating)
       }
     }
   }, [restaurantId])
@@ -118,6 +129,7 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
       if (data.success) {
         setSubmitted(rating)
         setSummary(data.summary)
+        setShowExtras(true)
         localStorage.setItem(`checkin_${restaurantId}`, JSON.stringify({
           restaurantId,
           restaurantName,
@@ -131,95 +143,138 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
     }
   }
 
-  const handleSaveNote = async () => {
-    if (!note.trim()) return
-
+  const persistExtrasDone = (note: string) => {
     const stored = localStorage.getItem(`checkin_${restaurantId}`)
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored)
-        parsed.note = note.trim()
-        parsed.noteAddedAt = new Date().toISOString()
-        localStorage.setItem(`checkin_${restaurantId}`, JSON.stringify(parsed))
-      } catch { /* skip */ }
+    if (!stored) return
+    try {
+      const parsed = JSON.parse(stored)
+      parsed.extrasDone = true
+      if (note) parsed.journalNote = note
+      localStorage.setItem(`checkin_${restaurantId}`, JSON.stringify(parsed))
+    } catch { /* ignore */ }
+  }
+
+  const handleSaveExtras = async () => {
+    const trimmedCompliment = compliment.trim()
+    const trimmedNote = journalNote.trim()
+    const hasContent = trimmedCompliment.length > 0 || trimmedNote.length > 0
+
+    if (!hasContent) {
+      setShowExtras(false)
+      setExtrasDone(true)
+      persistExtrasDone('')
+      return
     }
 
-    // If logged in, also save to Supabase
-    if (user) {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        await fetch('/api/checkin/note', {
+    setSavingExtras(true)
+    try {
+      const tasks: Promise<unknown>[] = []
+      if (trimmedCompliment) {
+        tasks.push(fetch('/api/compliment', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({ restaurantId, note: note.trim() }),
-        }).catch(() => {})
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ restaurantId, text: trimmedCompliment }),
+        }))
       }
+      if (trimmedNote) {
+        tasks.push(fetch(`/api/checkin/${restaurantId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ journalNote: trimmedNote }),
+        }))
+      }
+      await Promise.all(tasks)
+      persistExtrasDone(trimmedNote)
+      setExtrasThanked(true)
+      setShowExtras(false)
+      setExtrasDone(true)
+    } finally {
+      setSavingExtras(false)
     }
+  }
 
-    setNoteSaved(true)
-    setShowNote(false)
+  const handleSkipExtras = () => {
+    setShowExtras(false)
+    setExtrasDone(true)
+    persistExtrasDone('')
   }
 
   const submittedOption = options.find(o => o.value === submitted)
-  const submittedGao = submitted === 'fire' ? 'hilarischgao' : submitted === 'solid' ? 'happy' : 'upsetsteaminggao'
+  const submittedGao = submitted === 'solid' ? 'happy' : 'hilarischgao'
 
   return (
     <div className="mx-4 mb-4 p-4 rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white">
 
-      {/* Already submitted */}
       {submitted && submittedOption ? (
-        <div className="text-center">
-          <Mascot type={submittedGao} size={56} className="mx-auto mb-2" />
-          <p className="font-black text-sm">Check-in opgeslagen! 🥟</p>
-          <p className="text-xs text-inkBlack/40 mt-0.5">{restaurantName}</p>
-          {summary && summary.total > 0 && (
-            <p className="text-xs text-inkBlack/50 mt-2">
-              {summary.total} {summary.total === 1 ? 'bezoeker' : 'bezoekers'} via EpicDimSum
-              <RatingSummary summary={summary} />
-            </p>
-          )}
-          {!noteSaved && (
-            <div className="mt-3">
-              {!showNote ? (
+        <div>
+          <div className="text-center">
+            <Mascot type={submittedGao} size={56} className="mx-auto mb-2" />
+            <p className="font-black text-sm">🥟 Je bent hier geweest!</p>
+            <p className="text-xs text-inkBlack/40 mt-0.5">{restaurantName}</p>
+            {summary && summary.total > 0 && (
+              <p className="text-xs text-inkBlack/50 mt-2">
+                {summary.total} {summary.total === 1 ? 'bezoeker' : 'bezoekers'} via EpicDimSum
+                {summary.epic > 0 && ` · ${summary.epic}🥟`}
+                {summary.fire > 0 && ` · ${summary.fire}🔥`}
+                {summary.solid > 0 && ` · ${summary.solid}👍`}
+              </p>
+            )}
+          </div>
+
+          {showExtras && !extrasDone && (
+            <div className="mt-4 pt-4 border-t-2 border-inkBlack/10 space-y-3">
+              <div>
+                <label className="block text-xs font-black uppercase tracking-wide text-inkBlack/60 mb-1.5">
+                  Wat was epic?
+                </label>
+                <textarea
+                  value={compliment}
+                  onChange={(e) => setCompliment(e.target.value.slice(0, 140))}
+                  maxLength={140}
+                  placeholder="bijv: perfecte ha gao, super dun velletje"
+                  className="w-full p-3 rounded-2xl border-2 border-inkBlack/20 bg-cream text-sm focus:border-inkBlack focus:outline-none resize-none"
+                  rows={2}
+                />
+                <p className="text-[10px] text-inkBlack/40 text-right mt-0.5">{compliment.length}/140 · zichtbaar voor iedereen</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-black uppercase tracking-wide text-inkBlack/60 mb-1.5">
+                  📝 Notitie voor jezelf (alleen voor jou)
+                </label>
+                <textarea
+                  value={journalNote}
+                  onChange={(e) => setJournalNote(e.target.value.slice(0, 280))}
+                  maxLength={280}
+                  placeholder="bijv: volgende keer die rice rolls proberen"
+                  className="w-full p-3 rounded-2xl border-2 border-inkBlack/20 bg-cream text-sm focus:border-inkBlack focus:outline-none resize-none"
+                  rows={3}
+                />
+                <p className="text-[10px] text-inkBlack/40 text-right mt-0.5">{journalNote.length}/280 · alleen voor jou</p>
+              </div>
+
+              <div className="flex items-center justify-between gap-3">
                 <button
-                  onClick={() => setShowNote(true)}
-                  className="w-full text-[10px] font-black text-inkBlack/30 hover:text-inkBlack/60 transition-colors py-1"
+                  onClick={handleSkipExtras}
+                  disabled={savingExtras}
+                  className="text-xs font-bold text-inkBlack/50 underline underline-offset-2 disabled:opacity-50"
                 >
-                  Wil je Gao nog iets meegeven? →
+                  Sla over
                 </button>
-              ) : (
-                <div className="space-y-2 text-left">
-                  <textarea
-                    value={note}
-                    onChange={(e) => setNote(e.target.value.slice(0, 280))}
-                    placeholder="Bijv: velletje perfect dun, vulling iets te zout..."
-                    rows={2}
-                    className="w-full text-xs p-2.5 rounded-xl border-2 border-inkBlack/20 bg-white focus:outline-none focus:border-epicGreen/40 resize-none leading-relaxed"
-                    autoFocus
-                  />
-                  <div className="flex items-center justify-between">
-                    <p className="text-[9px] text-inkBlack/30">
-                      {note.length}/280 · alleen zichtbaar voor jou
-                    </p>
-                    <button
-                      onClick={handleSaveNote}
-                      disabled={!note.trim()}
-                      className="text-[10px] font-black text-epicGreen disabled:opacity-30"
-                    >
-                      Opslaan →
-                    </button>
-                  </div>
-                </div>
-              )}
+                <button
+                  onClick={handleSaveExtras}
+                  disabled={savingExtras}
+                  className="px-5 py-2 bg-epicRed text-cream font-black rounded-2xl border-2 border-inkBlack shadow-brutal-sm text-sm active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-50"
+                >
+                  {savingExtras ? 'Opslaan…' : 'Bewaar'}
+                </button>
+              </div>
             </div>
           )}
-          {noteSaved && (
-            <p className="text-[10px] text-epicGreen font-black text-center mt-2">
-              Gao heeft je notitie ontvangen 🥟
+
+          {extrasDone && extrasThanked && (
+            <p className="mt-3 text-center text-xs text-inkBlack/50 italic">
+              Dank je! Gao onthoudt het. 🥟
             </p>
           )}
         </div>
@@ -266,7 +321,6 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
 
       ) : (
         <>
-          {/* Header with votegao */}
           <div className="flex items-center gap-3 mb-4">
             <Image
               src="/mascots/votegao.png"
@@ -276,14 +330,13 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
               className="object-contain shrink-0"
             />
             <div>
-              <p className="font-black text-sm leading-tight">Ben je hier geweest?</p>
+              <p className="font-black text-sm leading-tight">Geweest? Check in!</p>
               <p className="text-xs text-inkBlack/40 leading-tight mt-0.5">
-                Jouw oordeel helpt andere dim sum liefhebbers
+                Vond je het goed? Zeg het!
               </p>
             </div>
           </div>
 
-          {/* Rating buttons */}
           <div className="grid grid-cols-3 gap-2">
             {options.map((opt) => (
               <button
@@ -312,7 +365,6 @@ export default function CheckIn({ restaurantId, restaurantName, restaurantCity }
             ))}
           </div>
 
-          {/* Existing summary */}
           {summary && summary.total > 0 && (
             <p className="text-[10px] text-inkBlack/30 text-center mt-3 inline-flex items-center gap-1 w-full justify-center flex-wrap">
               {summary.total} {summary.total === 1 ? 'bezoeker' : 'bezoekers'} checkte al in

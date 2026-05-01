@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { getAllRestaurants, getRestaurantById } from '@/lib/db'
+import { getAllRestaurants, getRestaurantById, getCompliments } from '@/lib/db'
 import StatusBadge from '@/components/StatusBadge'
 import CheckIn from '@/components/CheckIn'
 import CheckInHint from '@/components/CheckInHint'
@@ -41,9 +41,10 @@ function getDimSumIcon(dish: string): string | null {
 }
 
 export default async function RestaurantPage({ params }: PageProps) {
-  const [restaurant, allRestaurants] = await Promise.all([
+  const [restaurant, allRestaurants, compliments] = await Promise.all([
     getRestaurantById(params.id),
     getAllRestaurants(),
+    getCompliments(params.id),
   ])
   if (!restaurant) notFound()
 
@@ -181,6 +182,23 @@ export default async function RestaurantPage({ params }: PageProps) {
             {communityCheckins} dim sum liefhebbers zijn hier geweest
             {communityFirePct !== undefined && communityFirePct >= 70 && ' · merendeel vond het on fire!'}
           </p>
+        </div>
+      )}
+
+      {/* Compliments — public, anonymous */}
+      {compliments.length > 0 && (
+        <div className="mx-4 mt-4">
+          <p className="text-[10px] font-black text-inkBlack/30 uppercase tracking-wide mb-2">
+            Wat dim sum liefhebbers zeiden
+          </p>
+          <ul className="space-y-2">
+            {compliments.map((c) => (
+              <li key={c.id} className="flex gap-2 items-start p-3 bg-white rounded-xl border border-inkBlack/10">
+                <span className="shrink-0 leading-tight">🥟</span>
+                <p className="text-[12px] text-inkBlack/60 italic leading-snug">{c.text}</p>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
