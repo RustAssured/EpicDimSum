@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import Icon from './Icon'
 import { createClient, signInWithGoogle, signOut } from '@/lib/auth'
 import type { User } from '@supabase/supabase-js'
@@ -71,10 +72,35 @@ function getBadges(checkins: CheckInRecord[]): Badge[] {
   ]
 }
 
+type MandjeView = 'plekken' | 'notities'
+
+function RatingBadge({ rating }: { rating: CheckInRecord['rating'] }) {
+  if (rating === 'epic') return (
+    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-epicGreen/15 text-epicGreen">
+      Episch 🥟
+    </span>
+  )
+  if (rating === 'fire') return (
+    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-epicRed/10 text-epicRed">
+      Top 🔥
+    </span>
+  )
+  return (
+    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-inkBlack/8 text-inkBlack/50">
+      Solide 👍
+    </span>
+  )
+}
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
 export default function DumplingMandje({ open, onClose }: { open?: boolean; onClose?: () => void }) {
   const [checkins, setCheckins] = useState<CheckInRecord[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [user, setUser] = useState<User | null>(null)
+  const [view, setView] = useState<MandjeView>('plekken')
 
   // Sync external open prop
   useEffect(() => {
@@ -276,30 +302,77 @@ export default function DumplingMandje({ open, onClose }: { open?: boolean; onCl
               ))}
             </div>
 
-            {/* Recent visits */}
-            <p className="font-black text-xs uppercase tracking-wide text-inkBlack/40 mb-2">Recente bezoeken uit jouw mandje</p>
-            <div className="space-y-2 mb-4">
-              {checkins.slice(-5).reverse().map((c, i) => (
-                <div key={i} className="p-2.5 bg-white rounded-xl border border-inkBlack/10">
-                  <div className="flex items-center gap-2">
-                    <Icon
-                      src={c.rating === 'epic' ? 'Ha-Gao-star.png' : c.rating === 'fire' ? 'flame.png' : 'Dumpling-check.png'}
-                      alt={c.rating}
-                      size={18}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-black truncate">{c.restaurantName}</p>
-                      <p className="text-[10px] text-inkBlack/40">{c.city}</p>
-                    </div>
-                  </div>
-                  {c.journalNote && c.journalNote.trim() !== '' && (
-                    <p className="mt-1.5 pl-7 text-[12px] text-inkBlack/50 italic leading-snug">
-                      📝 {c.journalNote}
-                    </p>
-                  )}
-                </div>
-              ))}
+            {/* View toggle */}
+            <div className="flex items-center gap-4 mb-3">
+              <button
+                onClick={() => setView('plekken')}
+                className={`text-[13px] transition-colors ${view === 'plekken' ? 'font-bold underline decoration-epicGreen underline-offset-2 text-inkBlack' : 'text-inkBlack/40'}`}
+              >
+                Mijn plekken
+              </button>
+              <button
+                onClick={() => setView('notities')}
+                className={`text-[13px] transition-colors ${view === 'notities' ? 'font-bold underline decoration-epicGreen underline-offset-2 text-inkBlack' : 'text-inkBlack/40'}`}
+              >
+                Mijn notities
+              </button>
             </div>
+
+            {view === 'plekken' && (
+              <div className="space-y-2 mb-4">
+                {checkins.slice(-5).reverse().map((c, i) => (
+                  <div key={i} className="p-2.5 bg-white rounded-xl border border-inkBlack/10">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <p className="text-xs font-black truncate">{c.restaurantName}</p>
+                          <RatingBadge rating={c.rating} />
+                        </div>
+                        <p className="text-[10px] text-inkBlack/40">{c.city}</p>
+                      </div>
+                    </div>
+                    {c.journalNote && c.journalNote.trim() !== '' && (
+                      <p className="mt-1.5 text-[12px] text-inkBlack/50 italic leading-snug">
+                        📝 {c.journalNote}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {view === 'notities' && (() => {
+              const withNotes = checkins.filter(c => c.journalNote && c.journalNote.trim() !== '').reverse()
+              if (withNotes.length === 0) return (
+                <p className="text-[13px] text-inkBlack/40 italic mb-4">
+                  Nog geen notities. Schrijf er een na je volgende bezoek!
+                </p>
+              )
+              return (
+                <div className="space-y-2 mb-4">
+                  {withNotes.map((c, i) => (
+                    <div key={i} className="p-3 bg-white rounded-xl border border-inkBlack/10">
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <Link
+                          href={`/restaurant/${c.restaurantId}`}
+                          className="text-xs font-black hover:underline underline-offset-2 leading-tight"
+                          onClick={() => { setIsOpen(false); onClose?.() }}
+                        >
+                          {c.restaurantName}
+                        </Link>
+                        <RatingBadge rating={c.rating} />
+                      </div>
+                      {c.date && (
+                        <p className="text-[10px] text-inkBlack/30 mb-1.5">{formatDate(c.date)}</p>
+                      )}
+                      <p className="text-[12px] text-inkBlack/60 italic leading-snug">
+                        📝 {c.journalNote}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )
+            })()}
 
             <button onClick={() => { setIsOpen(false); onClose?.() }} className="w-full py-3 bg-epicRed text-cream font-black rounded-2xl border-2 border-inkBlack shadow-brutal-sm text-sm">
               Sluiten
