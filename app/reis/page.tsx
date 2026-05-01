@@ -12,6 +12,22 @@ export const metadata = {
 
 const updates = [
   {
+    id: 'gao-kiest-zelf',
+    date: '2 mei 2026',
+    title: 'Gao kiest nu zelf',
+    emoji: '🎯',
+    content: [
+      { type: 'paragraph' as const, text: 'Dit was de grootste verandering tot nu toe. Niet in hoe de site eruitziet, maar in hoe de lijst werkt.' },
+      { type: 'paragraph' as const, text: 'Tot vandaag bepaalde de engine welke restaurants op de lijst verschenen. Als de score hoog genoeg was, stond je erin. Automatisch. Maar dat betekende ook: restaurants waar niemand echt achter stond. Plekken die technisch goed scoorden maar geen echte dim sum bestemming waren. Dat voelde niet goed.' },
+      { type: 'paragraph' as const, text: 'Vanaf nu werkt het anders. De engine speurt nog steeds. Zoekt reviews, analyseert signalen, berekent scores. Maar de publieke lijst bestaat alleen uit plekken die bewust zijn goedgekeurd. Elk restaurant op epicdimsum.com staat er omdat iemand heeft gezegd: hier sta ik achter.' },
+      { type: 'bullets' as const, icon: 'dim-journey.png', items: ['De publieke lijst is opgeschoond. Alleen restaurants die bewust zijn gepubliceerd verschijnen nog.', 'De engine is nu research assistent, niet meer curator. Hij levert het dossier, de mens tekent af.', 'Verwijderde restaurants komen niet meer terug. Een blocklist voorkomt dat de engine ze opnieuw vindt.', 'De admin is opgeschoond. Inbox voor nieuwe suggesties, stad-filter, directe publiceer en verberg knoppen.', 'Een bug waardoor de publieke site minder restaurants toonde dan de admin is gefixt. Caching en database-rechten.'] },
+      { type: 'paragraph' as const, text: 'De engine helpt Gao speuren. Maar waar Gao voor juicht, dat bepaalt Gao zelf.' },
+    ],
+    mistake: 'Te lang vertrouwd op automatische curation. De lijst bevatte restaurants waar niemand echt achter stond.',
+    fixed: true,
+    fixedNote: 'Schone lei. Elke EpicSpot staat er nu met reden.',
+  },
+  {
     id: 'stickers-en-dagboek',
     date: '1 mei 2026',
     title: 'Gao gaat op avontuur',
