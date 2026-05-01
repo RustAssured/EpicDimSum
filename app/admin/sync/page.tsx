@@ -2,405 +2,74 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
-import { Restaurant, City, PriceRange } from '@/lib/types'
-import { isTrustedForPublicFeed } from '@/lib/db'
+import { Restaurant } from '@/lib/types'
 import restaurantsData from '@/data/restaurants.json'
-import Mascot from '@/components/Mascot'
+import InboxSection, { getInboxCount } from '@/components/admin/InboxSection'
+import RestaurantsSection from '@/components/admin/RestaurantsSection'
+import BeheerSection from '@/components/admin/BeheerSection'
 
-interface SyncState {
-  loading: boolean
-  result: Restaurant | null
-  error: string | null
-}
+type Tab = 'inbox' | 'restaurants' | 'beheer'
 
-function humanizeError(error: string): string {
-  if (error === 'Unauthorized') return 'Verkeerd wachtwoord, check je Sync Secret'
-  return error
-}
+const DISMISS_KEY_PREFIX = 'inbox_dismissed_'
 
 export default function AdminSyncPage() {
   const [secret, setSecret] = useState('')
   const [authed, setAuthed] = useState(false)
-  const [syncStates, setSyncStates] = useState<Record<string, SyncState>>({})
-  const [adminRestaurants, setAdminRestaurants] = useState<Restaurant[]>(restaurantsData as Restaurant[])
-
-  // Sync-all state
-  const [syncAllState, setSyncAllState] = useState<{ loading: boolean; result: string | null; error: string | null }>({ loading: false, result: null, error: null })
-
-  // Add restaurant form
-  const [addForm, setAddForm] = useState({
-    placeId: '',
-    name: '',
-    city: 'Amsterdam' as City,
-    priceRange: '€€' as PriceRange,
-  })
-  const [addState, setAddState] = useState<{ loading: boolean; result: Restaurant | null; error: string | null }>({
-    loading: false, result: null, error: null,
-  })
-  const [lookupState, setLookupState] = useState<{ loading: boolean; error: string | null }>({
-    loading: false, error: null,
-  })
-
-  // Per-city scan state
-  const [scanning, setScanning] = useState<string | null>(null)
-  const [cityScanResults, setCityScanResults] = useState<Record<string, string>>({})
-
-  // Grote NL scan state
-  const [fullScanRunning, setFullScanRunning] = useState(false)
-  const [fullScanResult, setFullScanResult] = useState<string | null>(null)
-
-
-  // Restaurant list filter
-  const [listFilter, setListFilter] = useState<'all' | 'verified' | 'review' | 'flagged'>('all')
-
-  // Source filter (engine vs user vs seed)
-  const [sourceFilter, setSourceFilter] = useState<'alle' | 'gebruiker' | 'engine' | 'seed'>('alle')
-
-  // Cleanup non-dim-sum state
-  const [cleanupNonDimSumState, setCleanupNonDimSumState] = useState<{
-    loading: boolean
-    result: { removed: string[]; count: number } | null
-    error: string | null
-  }>({ loading: false, result: null, error: null })
-
-  // Agent state
-  const [agentRunning, setAgentRunning] = useState(false)
-  const [agentResult, setAgentResult] = useState<any>(null)
-
-  // Tab + feedback state
-  const [activeTab, setActiveTab] = useState<'restaurants' | 'feedback'>('restaurants')
-  const [feedback, setFeedback] = useState<{
-    id: string
-    message: string
-    status: string
-    created_at: string
-  }[]>([])
-  const [feedbackLoading, setFeedbackLoading] = useState(false)
-
-  // Silent seed cleanup on mount
-  useEffect(() => {
-    if (!secret) return
-    fetch('/api/admin/cleanup-seeds', {
-      method: 'POST',
-      headers: { 'x-sync-secret': secret },
-    }).catch(() => {})
-  }, [secret])
+  const [adminRestaurants, setAdminRestaurants] = useState<Restaurant[]>(
+    restaurantsData as Restaurant[]
+  )
+  const [activeTab, setActiveTab] = useState<Tab>('inbox')
+  const [inboxCount, setInboxCount] = useState(0)
 
   // Load ALL restaurants from DB on auth
   useEffect(() => {
-    if (!secret) return
+    if (!secret || !authed) return
     fetch('/api/admin/restaurants', {
       headers: { 'x-sync-secret': secret },
     })
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (Array.isArray(data)) setAdminRestaurants(data)
       })
       .catch(() => {})
-  }, [secret])
+  }, [secret, authed])
+
+  // Recalculate inbox count when restaurants change. Reads dismissed-set
+  // from localStorage so the badge stays in sync with InboxSection.
+  useEffect(() => {
+    setInboxCount(getInboxCount(adminRestaurants))
+    const onStorage = () => setInboxCount(getInboxCount(adminRestaurants))
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', onStorage)
+      return () => window.removeEventListener('storage', onStorage)
+    }
+  }, [adminRestaurants])
 
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault()
     if (secret.trim()) setAuthed(true)
   }
 
-  const handleSync = async (restaurantId: string) => {
-    setSyncStates((prev) => ({
-      ...prev,
-      [restaurantId]: { loading: true, result: null, error: null },
-    }))
-
-    try {
-      const res = await fetch(`/api/sync/${restaurantId}`, {
-        method: 'POST',
-        headers: { 'x-sync-secret': secret },
-      })
-
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(humanizeError(err.error || `HTTP ${res.status}`))
-      }
-
-      const json = await res.json()
-      const data: Restaurant = json.restaurant ?? json
-      setSyncStates((prev) => ({
-        ...prev,
-        [restaurantId]: { loading: false, result: data, error: null },
-      }))
-    } catch (err) {
-      setSyncStates((prev) => ({
-        ...prev,
-        [restaurantId]: {
-          loading: false,
-          result: null,
-          error: err instanceof Error ? err.message : 'Onbekende fout',
-        },
-      }))
-    }
+  const handleUpdate = (id: string, patch: Partial<Restaurant>) => {
+    setAdminRestaurants((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, ...patch } : r))
+    )
   }
 
-  const handleSyncAll = async () => {
-    if (!secret) return
-    setSyncAllState({ loading: true, result: null, error: null })
-
-    try {
-      // Fetch ALL restaurants including unverified — use admin endpoint
-      const res = await fetch('/api/admin/restaurants', {
-        headers: { 'x-sync-secret': secret },
-      })
-
-      const allRestaurants: Restaurant[] = res.ok ? await res.json() : adminRestaurants
-
-      setAdminRestaurants(allRestaurants)
-      setSyncAllState({
-        loading: false,
-        result: `Syncing ${allRestaurants.length} restaurants...`,
-        error: null,
-      })
-
-      // Sync each one
-      for (let i = 0; i < allRestaurants.length; i++) {
-        await handleSync(allRestaurants[i].id)
-        setSyncAllState({
-          loading: true,
-          result: `Syncing ${i + 1}/${allRestaurants.length}...`,
-          error: null,
-        })
-      }
-
-      setSyncAllState({
-        loading: false,
-        result: `✓ Alle ${allRestaurants.length} restaurants gesyncet`,
-        error: null,
-      })
-    } catch (err) {
-      setSyncAllState({
-        loading: false,
-        result: null,
-        error: err instanceof Error ? err.message : 'Fout',
-      })
+  const handleRemove = (id: string) => {
+    setAdminRestaurants((prev) => prev.filter((r) => r.id !== id))
+    // also clear any dismiss key so badge stays accurate
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(`${DISMISS_KEY_PREFIX}${id}`)
     }
+    setInboxCount(getInboxCount(adminRestaurants.filter((r) => r.id !== id)))
   }
 
-  const handleDelete = async (restaurantId: string) => {
-    if (!window.confirm('Verwijder dit restaurant permanent?')) return
-    const res = await fetch(`/api/admin/delete/${restaurantId}`, {
-      method: 'DELETE',
-      headers: { 'x-sync-secret': secret },
+  const handleAdd = (r: Restaurant) => {
+    setAdminRestaurants((prev) => {
+      const exists = prev.some((p) => p.id === r.id)
+      return exists ? prev.map((p) => (p.id === r.id ? r : p)) : [r, ...prev]
     })
-    if (res.ok) {
-      setAdminRestaurants((prev) => prev.filter((r) => r.id !== restaurantId))
-    } else {
-      alert('Verwijderen mislukt')
-    }
-  }
-
-  const handleDeleteFlagged = async () => {
-    const flagged = adminRestaurants.filter(r => r.verified === false)
-    if (flagged.length === 0) { alert('Geen geflagde restaurants gevonden'); return }
-    if (!window.confirm(`Verwijder ${flagged.length} geflagde restaurants? Dit kan niet ongedaan worden.`)) return
-
-    let deleted = 0
-    for (const r of flagged) {
-      const res = await fetch(`/api/admin/delete/${r.id}`, {
-        method: 'DELETE',
-        headers: { 'x-sync-secret': secret },
-      })
-      if (res.ok) {
-        deleted++
-        setAdminRestaurants(prev => prev.filter(x => x.id !== r.id))
-      }
-    }
-    alert(`${deleted} van ${flagged.length} restaurants verwijderd`)
-  }
-
-  const handleLookupByName = async () => {
-    if (!addForm.name || !addForm.city) return
-    setLookupState({ loading: true, error: null })
-    try {
-      const res = await fetch('/api/admin/lookup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-sync-secret': secret },
-        body: JSON.stringify({ name: addForm.name, city: addForm.city }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(humanizeError(data.error || `HTTP ${res.status}`))
-      setAddForm((f) => ({ ...f, placeId: data.placeId, name: data.name }))
-      setLookupState({ loading: false, error: null })
-    } catch (err) {
-      setLookupState({ loading: false, error: err instanceof Error ? err.message : 'Lookup mislukt' })
-    }
-  }
-
-  const handleAddRestaurant = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!addForm.placeId) {
-      setAddState({ loading: false, result: null, error: 'Zoek eerst een Place ID op via de knop' })
-      return
-    }
-    setAddState({ loading: true, result: null, error: null })
-
-    try {
-      const res = await fetch('/api/admin/add-restaurant', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-sync-secret': secret,
-        },
-        body: JSON.stringify(addForm),
-      })
-
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(humanizeError(err.error || `HTTP ${res.status}`))
-      }
-
-      const data: Restaurant = await res.json()
-      setAddState({ loading: false, result: data, error: null })
-      setAddForm({ placeId: '', name: '', city: 'Amsterdam', priceRange: '€€' })
-    } catch (err) {
-      setAddState({
-        loading: false,
-        result: null,
-        error: err instanceof Error ? err.message : 'Onbekende fout',
-      })
-    }
-  }
-
-  const handleCityScan = async (city: string) => {
-    setScanning(city)
-    try {
-      const res = await fetch(`/api/admin/full-scan?city=${encodeURIComponent(city)}`, {
-        method: 'POST',
-        headers: { 'x-sync-secret': secret },
-      })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(humanizeError(err.error || `HTTP ${res.status}`))
-      }
-      const data = await res.json()
-      setCityScanResults((prev) => ({
-        ...prev,
-        [city]: `✓ ${data.added} nieuw, ${data.found} gevonden`,
-      }))
-    } catch (err) {
-      setCityScanResults((prev) => ({
-        ...prev,
-        [city]: `⚠️ ${err instanceof Error ? err.message : 'Fout'}`,
-      }))
-    } finally {
-      setScanning(null)
-    }
-  }
-
-  const handleFullScan = async () => {
-    if (!secret) return
-    setFullScanRunning(true)
-    setFullScanResult('Gestart...')
-
-    const cities = [
-      'Amsterdam', 'Rotterdam', 'Den Haag', 'Utrecht', 'Eindhoven',
-      'Groningen', 'Leeuwarden', 'Assen', 'Zwolle', 'Arnhem',
-      'Maastricht', 'Middelburg', 'Lelystad', "'s-Hertogenbosch"
-    ]
-
-    let totalAdded = 0
-
-    for (const city of cities) {
-      setFullScanResult(`Scanning ${city}...`)
-      try {
-        const res = await fetch(
-          `/api/admin/full-scan?city=${encodeURIComponent(city)}`,
-          {
-            method: 'POST',
-            headers: { 'x-sync-secret': secret },
-            signal: AbortSignal.timeout(30000), // 30s per city max
-          }
-        )
-        if (res.ok) {
-          const data = await res.json()
-          totalAdded += data.added ?? 0
-          setFullScanResult(`${city} ✓, ${totalAdded} nieuw totaal`)
-        } else {
-          setFullScanResult(`${city} overgeslagen, doorgaan...`)
-        }
-      } catch {
-        // Timeout or error — skip this city and continue
-        setFullScanResult(`${city} timeout, doorgaan...`)
-      }
-      // Small pause between cities
-      await new Promise(r => setTimeout(r, 1500))
-    }
-
-    setFullScanResult(`✓ Klaar! ${totalAdded} nieuwe restaurants gevonden`)
-    setFullScanRunning(false)
-  }
-
-  const handleCleanupNonDimSum = async () => {
-    if (!window.confirm('Verwijder alle non-dim-sum restaurants? Dit kan niet ongedaan worden gemaakt.')) return
-    setCleanupNonDimSumState({ loading: true, result: null, error: null })
-    try {
-      const res = await fetch('/api/admin/cleanup?mode=non-dim-sum', {
-        method: 'POST',
-        headers: { 'x-sync-secret': secret },
-      })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(humanizeError(err.error || `HTTP ${res.status}`))
-      }
-      const data = await res.json()
-      setCleanupNonDimSumState({ loading: false, result: data, error: null })
-    } catch (err) {
-      setCleanupNonDimSumState({ loading: false, result: null, error: err instanceof Error ? err.message : 'Fout' })
-    }
-  }
-
-  const handleRunAgent = async () => {
-    if (!secret) return
-    setAgentRunning(true)
-    try {
-      const res = await fetch('/api/agent/audit', {
-        method: 'POST',
-        headers: { 'x-sync-secret': secret },
-      })
-      const data = await res.json()
-      setAgentResult(data)
-    } finally {
-      setAgentRunning(false)
-    }
-  }
-
-  const loadFeedback = async () => {
-    if (!secret) return
-    setFeedbackLoading(true)
-    try {
-      const res = await fetch('/api/admin/feedback', {
-        headers: { 'x-sync-secret': secret },
-      })
-      if (res.ok) {
-        const data = await res.json()
-        setFeedback(data)
-      }
-    } finally {
-      setFeedbackLoading(false)
-    }
-  }
-
-  const markFeedbackDone = async (id: string) => {
-    try {
-      await fetch('/api/admin/feedback', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-sync-secret': secret,
-        },
-        body: JSON.stringify({ id, status: 'done' }),
-      })
-      setFeedback(prev =>
-        prev.map(f => f.id === id ? { ...f, status: 'done' } : f)
-      )
-    } catch { /* skip */ }
   }
 
   if (!authed) {
@@ -436,7 +105,10 @@ export default function AdminSyncPage() {
     <main className="min-h-screen bg-cream">
       <header className="sticky top-0 z-50 bg-cream border-b-[3px] border-inkBlack">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-          <Link href="/" className="text-sm font-black text-inkBlack/60 hover:text-inkBlack transition-colors">
+          <Link
+            href="/"
+            className="text-sm font-black text-inkBlack/60 hover:text-inkBlack transition-colors"
+          >
             ← Home
           </Link>
           <h1 className="font-black text-inkBlack flex-1">Admin Sync Panel</h1>
@@ -447,578 +119,54 @@ export default function AdminSyncPage() {
       </header>
 
       <div className="max-w-2xl mx-auto px-4 py-6">
-
-        {/* Tab toggle */}
+        {/* Tabs */}
         <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setActiveTab('inbox')}
+            className={`flex-1 py-2.5 rounded-xl border-2 border-inkBlack text-xs font-black transition-all ${
+              activeTab === 'inbox' ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack'
+            }`}
+          >
+            Inbox ({inboxCount})
+          </button>
           <button
             onClick={() => setActiveTab('restaurants')}
             className={`flex-1 py-2.5 rounded-xl border-2 border-inkBlack text-xs font-black transition-all ${
               activeTab === 'restaurants' ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack'
             }`}
           >
-            🥟 Restaurants
+            Restaurants
           </button>
           <button
-            onClick={() => { setActiveTab('feedback'); loadFeedback() }}
+            onClick={() => setActiveTab('beheer')}
             className={`flex-1 py-2.5 rounded-xl border-2 border-inkBlack text-xs font-black transition-all ${
-              activeTab === 'feedback' ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack'
+              activeTab === 'beheer' ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack'
             }`}
           >
-            💬 Feedback
-            {feedback.filter(f => f.status === 'open').length > 0 && (
-              <span className="ml-1.5 bg-epicRed text-cream text-[9px] font-black px-1.5 py-0.5 rounded-full">
-                {feedback.filter(f => f.status === 'open').length}
-              </span>
-            )}
+            Beheer
           </button>
         </div>
 
-        {/* Restaurants tab */}
-        {activeTab === 'restaurants' && <div className="space-y-6">
-
-        {/* Agent Status */}
-        <div className="p-4 rounded-2xl border-[3px] border-epicPurple/40 bg-epicPurple/5 shadow-[4px_4px_0px_rgba(83,74,183,0.3)]">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Mascot type="judge" size={32} />
-              <div>
-                <p className="font-black text-sm">Kwaliteitsagent</p>
-                <p className="text-[10px] text-inkBlack/40">
-                  {agentResult?.mode
-                    ? `Mode: ${agentResult.mode}`
-                    : 'Dagelijkse dim sum verificatie'}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleRunAgent}
-              disabled={agentRunning}
-              className="text-xs font-black px-3 py-2 rounded-full bg-epicPurple text-cream border-2 border-inkBlack shadow-brutal-sm disabled:opacity-50"
-            >
-              {agentRunning ? '🔍 Bezig...' : '▶ Run nu'}
-            </button>
-          </div>
-
-          {agentResult && !agentResult.skipped && (
-            <div className="mt-2 space-y-1">
-              <p className="text-xs font-bold">
-                Mode: <span className="text-epicPurple">{agentResult.mode}</span>
-                {' · '}Gecheckt: {agentResult.checked}
-                {' · '}Geflagged: {agentResult.flagged}
-                {agentResult.removed > 0 && ` · Verwijderd: ${agentResult.removed}`}
-              </p>
-              <div className="max-h-32 overflow-y-auto space-y-1 mt-2">
-                {agentResult.results?.map((r: { name: string; verdict: string; confidence: number; reasoning: string }, i: number) => (
-                  <div key={i} className={`text-[10px] px-2 py-1 rounded-lg ${
-                    r.verdict === 'remove' ? 'bg-red-50 text-red-600' :
-                    r.verdict === 'flag' ? 'bg-yellow-50 text-yellow-700' :
-                    'bg-green-50 text-green-700'
-                  }`}>
-                    <span className="font-black">{r.name}</span>
-                    {' '}({r.confidence}%)
-                    {' '}{r.reasoning}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          {agentResult?.skipped && (
-            <p className="text-xs text-inkBlack/40 mt-1">{agentResult.reason}</p>
-          )}
-        </div>
-
-        {/* Sync */}
-        <div className="rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-black text-inkBlack text-sm">Sync</p>
-              {syncAllState.result && (
-                <p className={`text-xs font-bold mt-0.5 ${syncAllState.error ? 'text-epicRed' : 'text-epicGold'}`}>
-                  {syncAllState.result}
-                </p>
-              )}
-              {syncAllState.error && (
-                <p className="text-xs text-epicRed font-bold mt-0.5">{syncAllState.error}</p>
-              )}
-            </div>
-            <button
-              onClick={handleSyncAll}
-              disabled={syncAllState.loading}
-              className={`px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
-                ${syncAllState.loading
-                  ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
-                  : 'bg-epicGold text-cream active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
-                }`}
-            >
-              {syncAllState.loading ? `⏳ ${syncAllState.result ?? '...'}` : 'Sync alle restaurants'}
-            </button>
-            <button
-              onClick={handleDeleteFlagged}
-              className="text-xs font-black px-3 py-2 rounded-full bg-epicRed text-cream border-2 border-inkBlack shadow-brutal-sm"
-            >
-              🗑️ Verwijder alle geflagde
-            </button>
-          </div>
-
-          {/* Per-city scan */}
-          <div className="border-t border-inkBlack/10 pt-3 flex flex-wrap gap-2">
-            <p className="text-xs font-bold text-inkBlack/50 w-full uppercase tracking-wide">Scan per stad:</p>
-            {[
-              'Amsterdam', 'Rotterdam', 'Den Haag', 'Utrecht', 'Arnhem',
-              'Eindhoven', 'Groningen', 'Leeuwarden', 'Lelystad', 'Maastricht',
-              'Middelburg', 'Assen', 'Zwolle', "'s-Hertogenbosch",
-            ].map((city) => (
-              <div key={city} className="flex flex-col items-start gap-0.5">
-                <button
-                  onClick={() => handleCityScan(city)}
-                  disabled={!!scanning}
-                  className="text-xs font-black px-3 py-1.5 rounded-full border-2 border-inkBlack shadow-brutal-sm bg-cream active:bg-epicRed/10 disabled:opacity-50 transition-all"
-                >
-                  {scanning === city ? '⏳ Scanning...' : `🔍 ${city}`}
-                </button>
-                {cityScanResults[city] && (
-                  <span className="text-[10px] text-inkBlack/50 pl-1">{cityScanResults[city]}</span>
-                )}
-              </div>
-            ))}
-            {/* Grote NL scan */}
-            <div className="border-t border-inkBlack/10 pt-3 w-full flex items-center gap-3">
-              <button
-                onClick={handleFullScan}
-                disabled={fullScanRunning || !!scanning}
-                className={`px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
-                  ${fullScanRunning || !!scanning
-                    ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
-                    : 'bg-epicGreen text-cream active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
-                  }`}
-              >
-                {fullScanRunning ? '⏳ Alle steden scannen...' : '🌍 Grote NL scan'}
-              </button>
-              {fullScanResult && (
-                <span className="text-xs font-bold text-inkBlack/60">{fullScanResult}</span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Opruimen */}
-        <div className="rounded-2xl border-[3px] border-epicRed/40 bg-epicRed/5 shadow-brutal p-4">
-          <p className="font-black text-sm text-epicRed mb-3">Opruimen</p>
-          <button
-            onClick={handleCleanupNonDimSum}
-            disabled={cleanupNonDimSumState.loading}
-            className={`px-4 py-2 rounded-full border-2 border-epicRed font-black text-sm shadow-brutal-sm transition-all
-              ${cleanupNonDimSumState.loading
-                ? 'bg-epicRed/10 text-epicRed/40 cursor-not-allowed shadow-none'
-                : 'bg-epicRed text-cream active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
-              }`}
-          >
-            {cleanupNonDimSumState.loading ? '⏳ Bezig...' : '🗑️ Verwijder non-dim-sum'}
-          </button>
-          {cleanupNonDimSumState.error && (
-            <p className="text-xs text-epicRed font-medium mt-2">{cleanupNonDimSumState.error}</p>
-          )}
-          {cleanupNonDimSumState.result && (
-            <p className="text-xs text-epicGreen font-bold mt-2">
-              {cleanupNonDimSumState.result.count === 0
-                ? '✓ Geen non-dim-sum restaurants gevonden'
-                : `🗑️ ${cleanupNonDimSumState.result.count} verwijderd: ${cleanupNonDimSumState.result.removed.join(' · ')}`}
-            </p>
-          )}
-        </div>
-
-        {/* Add restaurant form */}
-        <div className="rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white overflow-hidden">
-          <div className="p-4 border-b-[2px] border-inkBlack/10 bg-epicGreen/5">
-            <h2 className="font-black text-inkBlack">Voeg restaurant toe</h2>
-            <p className="text-xs text-inkBlack/50 mt-0.5">
-              Voert automatisch een volledige sync uit na toevoeging
-            </p>
-          </div>
-          <form onSubmit={handleAddRestaurant} className="p-4 space-y-3">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div>
-                <label className="text-xs font-black uppercase tracking-wide text-inkBlack/50 mb-1 block">
-                  Restaurant naam
-                </label>
-                <input
-                  type="text"
-                  value={addForm.name}
-                  onChange={(e) => setAddForm((f) => ({ ...f, name: e.target.value }))}
-                  placeholder="Naam"
-                  required
-                  className="w-full px-3 py-2 rounded-xl border-[2px] border-inkBlack text-sm font-medium bg-cream focus:outline-none shadow-brutal-sm"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-black uppercase tracking-wide text-inkBlack/50 mb-1 block">
-                  Google Place ID <span className="text-inkBlack/30 normal-case font-medium">(optioneel)</span>
-                </label>
-                <input
-                  type="text"
-                  value={addForm.placeId}
-                  onChange={(e) => setAddForm((f) => ({ ...f, placeId: e.target.value }))}
-                  placeholder="ChIJ... of gebruik opzoeken ↓"
-                  className="w-full px-3 py-2 rounded-xl border-[2px] border-inkBlack text-sm font-medium bg-cream focus:outline-none shadow-brutal-sm"
-                />
-                {!addForm.placeId && addForm.name && (
-                  <button
-                    type="button"
-                    onClick={handleLookupByName}
-                    disabled={lookupState.loading}
-                    className="mt-1.5 text-xs font-black px-3 py-1.5 rounded-full border-2 border-epicGold text-epicGold hover:bg-epicGold/10 disabled:opacity-50 transition-colors"
-                  >
-                    {lookupState.loading ? '⏳ Zoeken...' : '🔍 Zoek Place ID op naam'}
-                  </button>
-                )}
-                {lookupState.error && (
-                  <p className="text-[10px] text-epicRed mt-1">{lookupState.error}</p>
-                )}
-                {addForm.placeId && (
-                  <p className="text-[10px] text-epicGreen mt-1 font-medium">✓ Place ID gevonden</p>
-                )}
-              </div>
-              <div>
-                <label className="text-xs font-black uppercase tracking-wide text-inkBlack/50 mb-1 block">
-                  Stad
-                </label>
-                <select
-                  value={addForm.city}
-                  onChange={(e) => setAddForm((f) => ({ ...f, city: e.target.value as City }))}
-                  className="w-full px-3 py-2 rounded-xl border-[2px] border-inkBlack text-sm font-medium bg-cream focus:outline-none shadow-brutal-sm"
-                >
-                  <option>Amsterdam</option>
-                  <option>Rotterdam</option>
-                  <option>Den Haag</option>
-                  <option>Utrecht</option>
-                  <option>Arnhem</option>
-                  <option>Eindhoven</option>
-                  <option>Groningen</option>
-                  <option>Leeuwarden</option>
-                  <option>Lelystad</option>
-                  <option>Maastricht</option>
-                  <option>Middelburg</option>
-                  <option>Assen</option>
-                  <option>Zwolle</option>
-                  <option>{"'s-Hertogenbosch"}</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-black uppercase tracking-wide text-inkBlack/50 mb-1 block">
-                  Prijs
-                </label>
-                <select
-                  value={addForm.priceRange}
-                  onChange={(e) => setAddForm((f) => ({ ...f, priceRange: e.target.value as PriceRange }))}
-                  className="w-full px-3 py-2 rounded-xl border-[2px] border-inkBlack text-sm font-medium bg-cream focus:outline-none shadow-brutal-sm"
-                >
-                  <option value="€">€ Budget</option>
-                  <option value="€€">€€ Midden</option>
-                  <option value="€€€">€€€ Luxe</option>
-                </select>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={addState.loading}
-              className={`w-full py-2.5 rounded-full border-[3px] border-inkBlack font-black text-sm transition-all
-                ${addState.loading
-                  ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
-                  : 'bg-epicGreen text-cream shadow-brutal hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none'
-                }`}
-            >
-              {addState.loading ? '⏳ Bezig met toevoegen...' : '➕ Voeg toe & sync'}
-            </button>
-
-            {addState.error && (
-              <div className="p-3 rounded-xl bg-epicRed/10 border border-epicRed/30 text-xs text-epicRed font-medium">
-                Fout: {addState.error}
-              </div>
-            )}
-            {addState.result && (
-              <div className="p-3 rounded-xl bg-epicGreen/10 border border-epicGreen/30">
-                <p className="text-xs font-black text-epicGreen mb-1">
-                  ✓ {addState.result.name} toegevoegd! EpicScore: {addState.result.epicScore}
-                </p>
-                <p className="text-xs text-inkBlack/50">{addState.result.mustOrder}</p>
-              </div>
-            )}
-          </form>
-        </div>
-
-        {/* Sync existing restaurants */}
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Mascot type="judge" size={36} alt="Gao de dumpling judge" />
-            <h2 className="font-black text-lg text-inkBlack">Bestaande restaurants</h2>
-            <p className="text-sm text-inkBlack/50">Sync individuele restaurants...</p>
-          </div>
-
-          {/* Filter toggle */}
-          <div className="flex gap-1 mb-3 flex-wrap">
-            {(['all', 'verified', 'review', 'flagged'] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setListFilter(f)}
-                className={`text-xs font-black px-3 py-1 rounded-full border-2 border-inkBlack transition-colors ${
-                  listFilter === f ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack/60 hover:text-inkBlack'
-                }`}
-              >
-                {f === 'all'
-                  ? `Alle (${adminRestaurants.length})`
-                  : f === 'verified'
-                  ? `✓ Geverifieerd (${adminRestaurants.filter(r => r.verified === true).length})`
-                  : f === 'review'
-                  ? `⚠️ Te reviewen (${adminRestaurants.filter(r => r.verified !== true && r.verified !== false).length})`
-                  : `🚩 Geflagged (${adminRestaurants.filter(r => r.verified === false).length})`}
-              </button>
-            ))}
-          </div>
-
-          {/* Source filter (engine vs gebruiker vs seed) */}
-          <div className="flex gap-1 mb-3 flex-wrap">
-            {(['alle', 'gebruiker', 'engine', 'seed'] as const).map((f) => {
-              const matchesSource = (r: Restaurant): boolean => {
-                if (f === 'alle') return true
-                if (f === 'gebruiker') {
-                  return r.source === 'user' || (r.source === undefined && r.status === 'suggested')
-                }
-                if (f === 'engine') return r.source === 'engine' || r.source === undefined
-                return r.source === 'seed' || r.source === undefined
-              }
-              const count = adminRestaurants.filter(matchesSource).length
-              const label =
-                f === 'alle' ? 'Alle'
-                : f === 'gebruiker' ? '🧺 Gebruiker'
-                : f === 'engine' ? '⚙️ Engine'
-                : '🌱 Seed'
-              return (
-                <button
-                  key={f}
-                  onClick={() => setSourceFilter(f)}
-                  className={`text-xs font-black px-3 py-1 rounded-full border-2 border-inkBlack transition-colors ${
-                    sourceFilter === f ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack/60 hover:text-inkBlack'
-                  }`}
-                >
-                  {label} ({count})
-                </button>
-              )
-            })}
-          </div>
-
-          <div className="space-y-4">
-            {adminRestaurants
-              .filter((r) => {
-                if (listFilter === 'flagged') return r.verified === false
-                const synced = syncStates[r.id]?.result
-                const isVerified = synced ? synced.verified === true : r.verified === true
-                if (listFilter === 'verified') return isVerified
-                if (listFilter === 'review') return r.verified !== true && r.verified !== false
-                return true
-              })
-              .filter((r) => {
-                if (sourceFilter === 'alle') return true
-                if (sourceFilter === 'gebruiker') {
-                  return r.source === 'user' || (r.source === undefined && r.status === 'suggested')
-                }
-                if (sourceFilter === 'engine') return r.source === 'engine' || r.source === undefined
-                return r.source === 'seed' || r.source === undefined
-              })
-              .map((restaurant) => {
-              const state = syncStates[restaurant.id]
-              const lastUpdated = new Date(restaurant.sources.lastUpdated).toLocaleDateString('nl-NL', {
-                day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
-              })
-
-              return (
-                <div
-                  key={restaurant.id}
-                  className="rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white p-4"
-                >
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-black text-inkBlack">{restaurant.name}</h3>
-                        {restaurant.source === 'user' && (
-                          <span className="text-[10px] font-black bg-epicPurple/15 text-epicPurple border border-epicPurple/30 rounded-full px-2 py-0.5">
-                            🧺 Gebruiker
-                          </span>
-                        )}
-                        {restaurant.epicScore === 0 && (
-                          <span className="text-[10px] font-black bg-epicGold/20 text-epicGold border border-epicGold/40 rounded-full px-2 py-0.5">
-                            ⚠️ Sync nodig
-                          </span>
-                        )}
-                        {state?.result && state.result.verified !== true && (
-                          <span className="text-[10px] font-black bg-epicRed/10 text-epicRed border border-epicRed/30 rounded-full px-2 py-0.5">
-                            ⚠️ Niet geverifieerd
-                          </span>
-                        )}
-                        {state?.result && state.result.verified === true && (
-                          <span className="text-[10px] font-black bg-epicGreen/20 text-epicGreen border border-epicGreen/40 rounded-full px-2 py-0.5">
-                            ✓ Geverifieerd
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-inkBlack/50">{restaurant.city} &middot; EpicScore: {state?.result?.epicScore ?? restaurant.epicScore}</p>
-                      {sourceFilter === 'gebruiker' && (
-                        <div className="mt-1 space-y-0.5">
-                          {restaurant.note && (
-                            <p className="text-[11px] text-inkBlack/70 italic">&ldquo;{restaurant.note}&rdquo;</p>
-                          )}
-                          {restaurant.submittedBy && (
-                            <p className="text-[10px] text-inkBlack/40">
-                              Ingestuurd door <span className="font-bold">{restaurant.submittedBy}</span>
-                            </p>
-                          )}
-                        </div>
-                      )}
-                      {(() => {
-                        const r = state?.result ?? restaurant
-                        if (isTrustedForPublicFeed(r)) return null
-                        const gates: string[] = []
-                        if ((r.dumplingMentionScore ?? 0) < 15) gates.push('geen dumpling mentions')
-                        if ((r.haGaoIndex ?? 0) < 2.0) gates.push('Ha Gao te laag')
-                        if (r.epicScore < 20) gates.push('score te laag')
-                        if (gates.length === 0) return null
-                        return (
-                          <p className="text-[10px] text-inkBlack/30 mt-0.5">{gates.join(' · ')}</p>
-                        )
-                      })()}
-                      <p className="text-xs text-inkBlack/30 mt-0.5">Laatste sync: {lastUpdated}</p>
-                      {restaurant.verified === false && (
-                        <div className="mt-1 flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[10px] text-epicRed font-black">🚩 Geflagged door agent</span>
-                          {restaurant.agentReason && (
-                            <span className="text-[10px] text-inkBlack/40 italic">· {restaurant.agentReason}</span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-col gap-1.5 shrink-0">
-                      <div className="flex gap-1.5">
-                        <button
-                          onClick={() => handleSync(restaurant.id)}
-                          disabled={state?.loading}
-                          className={`px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
-                            ${state?.loading
-                              ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
-                              : 'bg-epicRed text-cream hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none'
-                            }`}
-                        >
-                          {state?.loading ? '⏳' : '🔄 Sync'}
-                        </button>
-                        <button
-                          onClick={() => handleDelete(restaurant.id)}
-                          className="text-xs font-black px-2 py-1 rounded-lg border-2 border-red-300 text-red-400 hover:bg-red-50 transition-colors"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                      {state?.result && state.result.verified !== true && (
-                        <button
-                          onClick={async () => {
-                            await fetch(`/api/admin/verify/${restaurant.id}`, {
-                              method: 'POST',
-                              headers: { 'x-sync-secret': secret },
-                            })
-                            setSyncStates((prev) => ({
-                              ...prev,
-                              [restaurant.id]: {
-                                ...prev[restaurant.id],
-                                result: prev[restaurant.id]?.result
-                                  ? { ...prev[restaurant.id].result!, verified: true }
-                                  : null,
-                              },
-                            }))
-                          }}
-                          className="px-3 py-1.5 rounded-full border-2 border-inkBlack font-black text-xs bg-epicGreen text-cream shadow-brutal-sm hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
-                        >
-                          ✓ Verifieer
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {state?.error && (
-                    <div className="flex items-center gap-2 mt-2 p-2 bg-red-50 rounded-lg">
-                      <Mascot type="angrygao" size={28} />
-                      <p className="text-xs text-red-600 font-bold">{state.error}</p>
-                    </div>
-                  )}
-                  {state?.result && (
-                    <div className="mt-2 p-3 rounded-xl bg-epicGreen/10 border border-epicGreen/30">
-                      <p className="text-xs font-black text-epicGreen mb-2">✓ Sync geslaagd!</p>
-                      <pre className="text-xs text-inkBlack/60 overflow-x-auto whitespace-pre-wrap break-words">
-                        {JSON.stringify(
-                          {
-                            epicScore: state.result.epicScore,
-                            haGaoIndex: state.result.haGaoIndex,
-                            scores: state.result.scores,
-                            mustOrder: state.result.mustOrder,
-                            verified: state.result.verified,
-                          },
-                          null,
-                          2
-                        )}
-                      </pre>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        </div>}{/* end restaurants tab */}
-
-        {/* Feedback tab */}
-        {activeTab === 'feedback' && (
-          <div className="space-y-3">
-            {feedbackLoading && (
-              <p className="text-center text-xs text-inkBlack/40 py-8">Gao laadt feedback...</p>
-            )}
-
-            {!feedbackLoading && feedback.length === 0 && (
-              <div className="text-center py-12">
-                <Image src="/mascots/sleepy.png" alt="" width={48} height={48} className="object-contain mx-auto mb-3 opacity-40" />
-                <p className="text-xs text-inkBlack/40">Nog geen feedback ontvangen</p>
-              </div>
-            )}
-
-            {!feedbackLoading && feedback.map(item => (
-              <div
-                key={item.id}
-                className={`p-4 rounded-2xl border-2 ${
-                  item.status === 'open'
-                    ? 'border-epicRed/30 bg-epicRed/5'
-                    : 'border-inkBlack/10 bg-white opacity-60'
-                }`}
-              >
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <p className="text-xs text-inkBlack/70 leading-relaxed flex-1">{item.message}</p>
-                  <button
-                    onClick={() => markFeedbackDone(item.id)}
-                    className={`shrink-0 text-[10px] font-black px-2.5 py-1 rounded-full border transition-all ${
-                      item.status === 'open'
-                        ? 'border-epicGreen/40 text-epicGreen hover:bg-epicGreen/10'
-                        : 'border-inkBlack/20 text-inkBlack/30'
-                    }`}
-                  >
-                    {item.status === 'open' ? '✓ Afgehandeld' : 'Gedaan'}
-                  </button>
-                </div>
-                <p className="text-[9px] text-inkBlack/30">
-                  {new Date(item.created_at).toLocaleDateString('nl-NL', {
-                    day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
-                  })}
-                </p>
-              </div>
-            ))}
-          </div>
+        {activeTab === 'inbox' && (
+          <InboxSection
+            secret={secret}
+            restaurants={adminRestaurants}
+            onRemove={handleRemove}
+            onUpdate={handleUpdate}
+          />
         )}
 
+        {activeTab === 'restaurants' && (
+          <RestaurantsSection
+            secret={secret}
+            restaurants={adminRestaurants}
+            onUpdate={handleUpdate}
+            onRemove={handleRemove}
+            onAdd={handleAdd}
+          />
+        )}
+
+        {activeTab === 'beheer' && <BeheerSection secret={secret} />}
       </div>
     </main>
   )
