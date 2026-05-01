@@ -12,6 +12,22 @@ export const metadata = {
 
 const updates = [
   {
+    id: 'stickers-en-dagboek',
+    date: '1 mei 2026',
+    title: 'Gao gaat op avontuur',
+    emoji: '📦',
+    content: [
+      { type: 'paragraph' as const, text: 'Soms gaat het niet zoals gepland. De stickers werden naar een verkeerd adres gestuurd. Oud account, oud leveradres. Klassieke fout.' },
+      { type: 'paragraph' as const, text: 'Dus zaten we daar. Met een collega en dim sum fan, op een terrasje op de hoek van een straat in Amsterdam, wachtend op een pakketbezorger. Koffie in de zon. Om 12 uur kwam hij. Stickers geintercepteerd. Missie geslaagd.' },
+      { type: 'image' as const, src: '/images/Epicstickers.jpg', alt: 'De eerste EpicSpot stickers', caption: '36 stickers. De eerste batch. Nu nog plakken.' },
+      { type: 'paragraph' as const, text: 'Daarna samen naar Fu Dumplings. De derde keer al. De sticker laten zien aan het team, enthousiaste reacties. Volgende keer gaat hij op het raam.' },
+      { type: 'bullets' as const, icon: 'dim-journey.png', items: ['Check-in opties zijn nu alleen positief. Solide, Top of Episch. Gao juicht altijd.', 'Na het inchecken kun je een compliment achterlaten: "Wat was epic?" Kort, positief, zichtbaar voor iedereen.', 'En een notitie voor jezelf. Een persoonlijk dim sum dagboekje in je mandje.', 'Alle vage teksten op de site zijn directer gemaakt. Gao vraagt niet meer of je misschien wellicht iets zou willen. Gao zegt: doe het!'] },
+    ],
+    mistake: 'Stickers naar het verkeerde adres. Soms is de grootste bug niet in de code maar in je eigen bestelgeschiedenis.',
+    fixed: true,
+    fixedNote: 'Stakeout met koffie. Probleem opgelost.',
+  },
+  {
     id: 'suggesties-en-community',
     date: '30 april 2026',
     title: 'Gao luistert',
