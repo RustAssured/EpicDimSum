@@ -120,6 +120,9 @@ export async function GET(request: NextRequest) {
           vibe: scores.vibeScore,
         },
         status: 'open',
+        // Curator model: discoveries land in the inbox, never published automatically.
+        verified: false,
+        source: 'engine',
         sources: {
           googleRating: googleData.rating,
           googleReviewCount: googleData.userRatingCount,

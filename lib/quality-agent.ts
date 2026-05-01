@@ -80,22 +80,6 @@ Return ONLY valid JSON:
   }
 }
 
-// Determine agent mode based on launch date
-export async function getAgentMode(): Promise<'flag' | 'autonomous'> {
-  const { data } = await getSupabaseAdmin()
-    .from('agent_runs')
-    .select('started_at')
-    .order('started_at', { ascending: true })
-    .limit(1)
-
-  if (!data || data.length === 0) return 'flag'
-
-  const firstRun = new Date(data[0].started_at)
-  const daysSinceFirst = (Date.now() - firstRun.getTime()) / (1000 * 60 * 60 * 24)
-
-  return daysSinceFirst >= 7 ? 'autonomous' : 'flag'
-}
-
 // Determine cron schedule based on launch
 export async function shouldRunToday(): Promise<boolean> {
   const { data } = await getSupabaseAdmin()

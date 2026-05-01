@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAllRestaurants, upsertRestaurant } from '@/lib/db'
-import { verifyRestaurant, getAgentMode, shouldRunToday } from '@/lib/quality-agent'
+import { verifyRestaurant, shouldRunToday } from '@/lib/quality-agent'
 import { getSupabaseAdmin } from '@/lib/supabase'
 
 export const runtime = 'nodejs'
@@ -23,7 +23,8 @@ async function runAudit(request: NextRequest) {
     return NextResponse.json({ skipped: true, reason: 'Not scheduled for today' })
   }
 
-  const mode = await getAgentMode()
+  // Curator model: agent only flags, never deletes, never changes verified.
+  const mode = 'flag' as const
   const restaurants = await getAllRestaurants()
 
   // Log run start
@@ -40,7 +41,7 @@ async function runAudit(request: NextRequest) {
   const runId = runData?.id
 
   let flagged = 0
-  let removed = 0
+  const removed = 0
   const results = []
 
   for (const restaurant of restaurants) {
@@ -48,27 +49,11 @@ async function runAudit(request: NextRequest) {
       const result = await verifyRestaurant(restaurant)
       results.push(result)
 
-      if (result.verdict === 'remove') {
-        if (mode === 'autonomous') {
-          await getSupabaseAdmin()
-            .from('restaurants')
-            .delete()
-            .eq('id', restaurant.id)
-          removed++
-        } else {
-          // Flag mode — mark as unverified so it disappears from public feed
-          await upsertRestaurant({
-            ...restaurant,
-            verified: false,
-            summary: `[AGENT FLAGGED] ${result.reasoning}`,
-          })
-          flagged++
-        }
-      } else if (result.verdict === 'flag') {
+      if (result.verdict === 'remove' || result.verdict === 'flag') {
+        // Surface the concern in the inbox without touching public visibility.
         await upsertRestaurant({
           ...restaurant,
-          verified: false,
-          summary: `[AGENT REVIEW] ${result.reasoning} | Confidence: ${result.confidence}%`,
+          agentReason: `[${result.verdict.toUpperCase()}] ${result.reasoning} (confidence: ${result.confidence}%)`,
         })
         flagged++
       }

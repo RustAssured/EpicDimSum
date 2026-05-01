@@ -30,8 +30,6 @@ interface FeedbackItem {
   created_at: string
 }
 
-const AGENT_MODE_PREF_KEY = 'admin_agent_mode_preference'
-
 const NL_CITIES = [
   'Amsterdam', 'Rotterdam', 'Den Haag', 'Utrecht', 'Eindhoven',
   'Groningen', 'Leeuwarden', 'Assen', 'Zwolle', 'Arnhem',
@@ -47,25 +45,21 @@ export default function BeheerSection({ secret }: BeheerSectionProps) {
   // Agent state
   const [agentRunning, setAgentRunning] = useState(false)
   const [agentResult, setAgentResult] = useState<AgentResult | null>(null)
-  const [agentModePref, setAgentModePref] = useState<'flag' | 'autonomous'>('flag')
-  const [pendingMode, setPendingMode] = useState<'flag' | 'autonomous' | null>(null)
 
   // NL scan
   const [scanRunning, setScanRunning] = useState(false)
   const [scanStatus, setScanStatus] = useState<string | null>(null)
 
+  // Schone Lei (reset all to not-public)
+  const [resetOpen, setResetOpen] = useState(false)
+  const [resetInput, setResetInput] = useState('')
+  const [resetBusy, setResetBusy] = useState(false)
+  const [resetResult, setResetResult] = useState<{ unverified: number } | null>(null)
+  const [resetError, setResetError] = useState<string | null>(null)
+
   // Feedback
   const [feedback, setFeedback] = useState<FeedbackItem[]>([])
   const [feedbackLoading, setFeedbackLoading] = useState(false)
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stored = window.localStorage.getItem(AGENT_MODE_PREF_KEY)
-      if (stored === 'flag' || stored === 'autonomous') {
-        setAgentModePref(stored)
-      }
-    }
-  }, [])
 
   useEffect(() => {
     if (!secret) return
@@ -95,22 +89,6 @@ export default function BeheerSection({ secret }: BeheerSectionProps) {
       setAgentRunning(false)
     }
   }
-
-  const requestModeChange = (next: 'flag' | 'autonomous') => {
-    if (next === agentModePref) return
-    setPendingMode(next)
-  }
-
-  const confirmModeChange = () => {
-    if (!pendingMode) return
-    setAgentModePref(pendingMode)
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(AGENT_MODE_PREF_KEY, pendingMode)
-    }
-    setPendingMode(null)
-  }
-
-  const cancelModeChange = () => setPendingMode(null)
 
   const handleFullScan = async () => {
     if (!secret) return
@@ -143,8 +121,44 @@ export default function BeheerSection({ secret }: BeheerSectionProps) {
       await new Promise((r) => setTimeout(r, 1500))
     }
 
-    setScanStatus(`✓ Klaar! ${totalAdded} nieuwe restaurants gevonden`)
+    setScanStatus(`✓ Klaar! ${totalAdded} nieuwe restaurants gevonden (niet publiek tot je publiceert)`)
     setScanRunning(false)
+  }
+
+  const startReset = () => {
+    setResetOpen(true)
+    setResetInput('')
+    setResetResult(null)
+    setResetError(null)
+  }
+
+  const cancelReset = () => {
+    setResetOpen(false)
+    setResetInput('')
+    setResetError(null)
+  }
+
+  const confirmReset = async () => {
+    if (resetInput.trim() !== 'SCHONE LEI') return
+    setResetBusy(true)
+    setResetError(null)
+    try {
+      const res = await fetch('/api/admin/reset-public', {
+        method: 'POST',
+        headers: { 'x-sync-secret': secret },
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        throw new Error(humanizeError(data.error || `HTTP ${res.status}`))
+      }
+      setResetResult({ unverified: data.unverified ?? 0 })
+      setResetOpen(false)
+      setResetInput('')
+    } catch (err) {
+      setResetError(err instanceof Error ? err.message : 'Reset mislukt')
+    } finally {
+      setResetBusy(false)
+    }
   }
 
   const markFeedbackDone = async (id: string) => {
@@ -165,11 +179,78 @@ export default function BeheerSection({ secret }: BeheerSectionProps) {
     }
   }
 
-  const currentRunMode = agentResult?.mode
-
   return (
     <div className="space-y-6">
-      {/* Quality Agent */}
+      {/* Schone Lei — reset everything to not-public */}
+      <div className="p-4 rounded-2xl border-[3px] border-epicRed/40 bg-epicRed/5 shadow-[4px_4px_0px_rgba(216,67,52,0.2)]">
+        <div className="flex items-start gap-2 mb-3">
+          <Mascot type="judge" size={32} />
+          <div className="flex-1">
+            <p className="font-black text-sm text-inkBlack">Schone lei</p>
+            <p className="text-[11px] text-inkBlack/60 mt-0.5">
+              Verwijdert alle restaurants van de publieke lijst. Niets wordt definitief
+              verwijderd — je kunt elk restaurant opnieuw publiceren via de Restaurants tab.
+            </p>
+          </div>
+        </div>
+
+        {!resetOpen && !resetResult && (
+          <button
+            onClick={startReset}
+            className="text-xs font-black px-3 py-2 rounded-full bg-epicRed text-cream border-2 border-inkBlack shadow-brutal-sm active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+          >
+            🔄 Schone lei — verwijder alle restaurants van publieke lijst
+          </button>
+        )}
+
+        {resetOpen && (
+          <div className="p-3 rounded-xl bg-white border-2 border-epicRed/40 space-y-2">
+            <p className="text-xs font-bold text-epicRed">
+              Typ <span className="font-black">SCHONE LEI</span> om te bevestigen.
+            </p>
+            <input
+              type="text"
+              value={resetInput}
+              onChange={(e) => setResetInput(e.target.value)}
+              placeholder="SCHONE LEI"
+              className="w-full px-3 py-2 rounded-xl border-2 border-inkBlack text-sm font-medium bg-cream focus:outline-none shadow-brutal-sm"
+              autoFocus
+            />
+            {resetError && (
+              <p className="text-xs text-epicRed font-bold">{resetError}</p>
+            )}
+            <div className="flex gap-2">
+              <button
+                onClick={confirmReset}
+                disabled={resetInput.trim() !== 'SCHONE LEI' || resetBusy}
+                className="text-xs font-black px-3 py-2 rounded-full border-2 border-inkBlack shadow-brutal-sm bg-epicRed text-cream disabled:opacity-30 disabled:cursor-not-allowed active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+              >
+                {resetBusy ? '⏳ Bezig...' : 'Bevestig schone lei'}
+              </button>
+              <button
+                onClick={cancelReset}
+                disabled={resetBusy}
+                className="text-xs font-black px-3 py-2 rounded-full border-2 border-inkBlack shadow-brutal-sm bg-cream text-inkBlack disabled:opacity-50"
+              >
+                Annuleer
+              </button>
+            </div>
+          </div>
+        )}
+
+        {resetResult && (
+          <div className="p-3 rounded-xl bg-epicGreen/10 border-2 border-epicGreen/40">
+            <p className="text-xs font-black text-epicGreen">
+              ✓ {resetResult.unverified} restaurants van publieke lijst verwijderd.
+            </p>
+            <p className="text-[11px] text-inkBlack/60 mt-1">
+              Ga naar Restaurants om opnieuw te curaten.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Quality Agent — flag-only mode */}
       <div className="p-4 rounded-2xl border-[3px] border-epicPurple/40 bg-epicPurple/5 shadow-[4px_4px_0px_rgba(83,74,183,0.3)]">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -177,13 +258,7 @@ export default function BeheerSection({ secret }: BeheerSectionProps) {
             <div>
               <p className="font-black text-sm">Kwaliteitsagent</p>
               <p className="text-[11px] text-inkBlack/60">
-                Mode (laatste run):{' '}
-                <span className="font-black">
-                  {currentRunMode ? currentRunMode : 'onbekend — run om te zien'}
-                </span>
-              </p>
-              <p className="text-[10px] text-inkBlack/40">
-                Voorkeur: <span className="font-bold">{agentModePref === 'autonomous' ? 'Autonoom' : 'Vlagmodus'}</span>
+                Vlagt alleen — verwijdert nooit. Vlaggen verschijnen in de inbox.
               </p>
             </div>
           </div>
@@ -196,80 +271,10 @@ export default function BeheerSection({ secret }: BeheerSectionProps) {
           </button>
         </div>
 
-        {/* Mode toggle */}
-        <div className="mt-3 p-3 rounded-xl bg-white border-2 border-epicPurple/30 space-y-2">
-          <p className="text-xs font-black text-inkBlack">Modus voorkeur</p>
-          <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
-            <button
-              onClick={() => requestModeChange('flag')}
-              className={`flex-1 text-left p-2.5 rounded-lg border-2 transition-all ${
-                agentModePref === 'flag'
-                  ? 'border-inkBlack bg-epicGreen/10'
-                  : 'border-inkBlack/20 bg-cream hover:border-inkBlack/40'
-              }`}
-            >
-              <p className="text-xs font-black text-inkBlack">🚩 Vlagmodus</p>
-              <p className="text-[10px] text-inkBlack/50 mt-0.5">
-                Agent markeert voor review. Geen auto-verwijderingen.
-              </p>
-            </button>
-            <button
-              onClick={() => requestModeChange('autonomous')}
-              className={`flex-1 text-left p-2.5 rounded-lg border-2 transition-all ${
-                agentModePref === 'autonomous'
-                  ? 'border-inkBlack bg-epicRed/10'
-                  : 'border-inkBlack/20 bg-cream hover:border-inkBlack/40'
-              }`}
-            >
-              <p className="text-xs font-black text-inkBlack">⚠️ Autonome modus</p>
-              <p className="text-[10px] text-inkBlack/50 mt-0.5">
-                Agent past zelf aan zonder review.
-              </p>
-            </button>
-          </div>
-          <p className="text-[10px] text-inkBlack/40 italic">
-            Voorkeur wordt lokaal opgeslagen. De daadwerkelijke server-modus wordt na de volgende run getoond.
-          </p>
-        </div>
-
-        {pendingMode && (
-          <div className="mt-3 p-3 rounded-xl bg-epicGold/10 border-2 border-epicGold space-y-2">
-            <p className="text-xs font-bold text-inkBlack">
-              Weet je zeker dat je naar{' '}
-              <span className="font-black">
-                {pendingMode === 'autonomous' ? 'Autonome modus' : 'Vlagmodus'}
-              </span>{' '}
-              wilt schakelen?
-            </p>
-            {pendingMode === 'autonomous' && (
-              <p className="text-[10px] text-epicRed font-bold">
-                Let op: in autonome modus kan de agent restaurants permanent verwijderen.
-              </p>
-            )}
-            <div className="flex gap-2">
-              <button
-                onClick={confirmModeChange}
-                className="text-xs font-black px-3 py-2 rounded-full border-2 border-inkBlack shadow-brutal-sm bg-epicPurple text-cream active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
-              >
-                Bevestigen
-              </button>
-              <button
-                onClick={cancelModeChange}
-                className="text-xs font-black px-3 py-2 rounded-full border-2 border-inkBlack shadow-brutal-sm bg-cream text-inkBlack active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
-              >
-                Annuleer
-              </button>
-            </div>
-          </div>
-        )}
-
         {agentResult && !agentResult.skipped && (
           <div className="mt-3 space-y-1">
             <p className="text-xs font-bold">
-              Mode: <span className="text-epicPurple">{agentResult.mode}</span>
-              {' · '}Gecheckt: {agentResult.checked}
-              {' · '}Geflagd: {agentResult.flagged}
-              {(agentResult.removed ?? 0) > 0 && ` · Verwijderd: ${agentResult.removed}`}
+              Gecheckt: {agentResult.checked} · Geflagd: {agentResult.flagged}
             </p>
             <div className="max-h-32 overflow-y-auto space-y-1 mt-2">
               {agentResult.results?.map((r, i) => (
@@ -301,7 +306,7 @@ export default function BeheerSection({ secret }: BeheerSectionProps) {
         <div>
           <p className="font-black text-sm text-inkBlack">Scan NL</p>
           <p className="text-[11px] text-inkBlack/50 mt-0.5">
-            Zoekt nieuwe dim-sum spots in alle steden.
+            Zoekt nieuwe dim-sum spots. Nieuwe vondsten verschijnen in de inbox, niet publiek.
           </p>
         </div>
         <button

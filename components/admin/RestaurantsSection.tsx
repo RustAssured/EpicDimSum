@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Restaurant, City, PriceRange, CITY_LIST } from '@/lib/types'
-import { isTrustedForPublicFeed } from '@/lib/db'
 import Mascot from '@/components/Mascot'
 
 interface SyncState {
@@ -24,7 +23,7 @@ function humanizeError(error: string): string {
   return error
 }
 
-type SourceFilter = 'alle' | 'gebruiker' | 'engine' | 'seed'
+type PublishFilter = 'alle' | 'publiek' | 'niet-publiek'
 type CityFilter = City | 'all'
 type SortMode = 'score' | 'name'
 
@@ -42,10 +41,12 @@ export default function RestaurantsSection({
   onAdd,
 }: RestaurantsSectionProps) {
   const [syncStates, setSyncStates] = useState<Record<string, SyncState>>({})
-  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('alle')
+  const [publishFilter, setPublishFilter] = useState<PublishFilter>('alle')
   const [cityFilter, setCityFilter] = useState<CityFilter>('all')
   const [sortBy, setSortBy] = useState<SortMode>('score')
-  const [showAll, setShowAll] = useState(false)
+
+  // Optimistic publish/hide error state per restaurant
+  const [publishError, setPublishError] = useState<Record<string, string>>({})
 
   // Inline delete state
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -104,6 +105,34 @@ export default function RestaurantsSection({
     }
   }
 
+  // Optimistic: flip the UI immediately, then call API. Revert on failure.
+  const handleSetVerified = async (r: Restaurant, verified: boolean) => {
+    setPublishError((s) => ({ ...s, [r.id]: '' }))
+    onUpdate(r.id, { verified }) // optimistic
+
+    try {
+      const res = await fetch(`/api/admin/verify/${r.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-sync-secret': secret,
+        },
+        body: JSON.stringify({ verified }),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(humanizeError(err.error || `HTTP ${res.status}`))
+      }
+    } catch (err) {
+      // Revert optimistic update
+      onUpdate(r.id, { verified: !verified })
+      setPublishError((s) => ({
+        ...s,
+        [r.id]: err instanceof Error ? err.message : 'Wijzigen mislukt',
+      }))
+    }
+  }
+
   const startDelete = (id: string) => {
     setDeletingId(id)
     setDeleteInput('')
@@ -144,26 +173,6 @@ export default function RestaurantsSection({
       setDeleteError(err instanceof Error ? err.message : 'Verwijderen mislukt')
     } finally {
       setDeleteBusy(false)
-    }
-  }
-
-  const handleVerify = async (id: string) => {
-    try {
-      const res = await fetch(`/api/admin/verify/${id}`, {
-        method: 'POST',
-        headers: { 'x-sync-secret': secret },
-      })
-      if (res.ok) {
-        onUpdate(id, { verified: true })
-        setSyncStates((prev) => ({
-          ...prev,
-          [id]: prev[id]
-            ? { ...prev[id], result: prev[id].result ? { ...prev[id].result!, verified: true } : null }
-            : prev[id],
-        }))
-      }
-    } catch {
-      /* skip */
     }
   }
 
@@ -221,44 +230,33 @@ export default function RestaurantsSection({
     }
   }
 
-  // Apply filters
-  const matchesSource = (r: Restaurant): boolean => {
-    if (sourceFilter === 'alle') return true
-    if (sourceFilter === 'gebruiker') {
-      return r.source === 'user' || (r.source === undefined && r.status === 'suggested')
-    }
-    if (sourceFilter === 'engine') return r.source === 'engine'
-    // seed: treat undefined/null as seed (legacy records)
-    return r.source === 'seed' || !r.source
+  // Compute counts on the full list
+  const counts = {
+    alle: restaurants.length,
+    publiek: restaurants.filter((r) => r.verified === true).length,
+    'niet-publiek': restaurants.filter((r) => r.verified !== true).length,
   }
 
-  // After source + showAll filters; city filter and sort are applied on top.
-  const sourceFiltered = restaurants
-    .filter((r) => (showAll ? true : r.verified === true))
-    .filter(matchesSource)
+  // Filter pipeline
+  const publishFiltered = restaurants.filter((r) => {
+    if (publishFilter === 'publiek') return r.verified === true
+    if (publishFilter === 'niet-publiek') return r.verified !== true
+    return true
+  })
 
   const cityCounts: Record<string, number> = {}
-  for (const r of sourceFiltered) {
+  for (const r of publishFiltered) {
     const key = (r.city as string) ?? '—'
     cityCounts[key] = (cityCounts[key] ?? 0) + 1
   }
 
-  const visibleRestaurants = sourceFiltered
+  const visibleRestaurants = publishFiltered
     .filter((r) => (cityFilter === 'all' ? true : r.city === cityFilter))
     .slice()
     .sort((a, b) => {
-      if (sortBy === 'name') {
-        return a.name.localeCompare(b.name, 'nl')
-      }
+      if (sortBy === 'name') return a.name.localeCompare(b.name, 'nl')
       return (b.epicScore ?? 0) - (a.epicScore ?? 0)
     })
-
-  const counts = {
-    alle: restaurants.length,
-    gebruiker: restaurants.filter((r) => r.source === 'user' || (r.source === undefined && r.status === 'suggested')).length,
-    engine: restaurants.filter((r) => r.source === 'engine').length,
-    seed: restaurants.filter((r) => r.source === 'seed' || !r.source).length,
-  }
 
   return (
     <div className="space-y-6">
@@ -268,34 +266,24 @@ export default function RestaurantsSection({
           <div className="flex-1">
             <h2 className="font-black text-lg text-inkBlack">Restaurants</h2>
             <p className="text-xs text-inkBlack/50">
-              {showAll ? 'Alle restaurants' : 'Alleen geverifieerde'} ({visibleRestaurants.length})
+              Curatie-overzicht ({visibleRestaurants.length})
             </p>
           </div>
-          <label className="flex items-center gap-2 text-xs font-bold text-inkBlack/70 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={showAll}
-              onChange={(e) => setShowAll(e.target.checked)}
-              className="w-4 h-4 accent-epicRed"
-            />
-            Toon alles
-          </label>
         </div>
 
-        {/* Source filter */}
+        {/* Publish filter */}
         <div className="flex gap-1 mb-3 flex-wrap">
-          {(['alle', 'gebruiker', 'engine', 'seed'] as const).map((f) => {
+          {(['alle', 'publiek', 'niet-publiek'] as const).map((f) => {
             const label =
               f === 'alle' ? 'Alle'
-              : f === 'gebruiker' ? '🧺 Gebruiker'
-              : f === 'engine' ? '⚙️ Engine'
-              : '🌱 Seed'
+              : f === 'publiek' ? '🟢 Publiek'
+              : 'Niet publiek'
             return (
               <button
                 key={f}
-                onClick={() => setSourceFilter(f)}
+                onClick={() => setPublishFilter(f)}
                 className={`text-xs font-black px-3 py-1 rounded-full border-2 border-inkBlack transition-colors ${
-                  sourceFilter === f ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack/60 hover:text-inkBlack'
+                  publishFilter === f ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack/60 hover:text-inkBlack'
                 }`}
               >
                 {label} ({counts[f]})
@@ -311,7 +299,7 @@ export default function RestaurantsSection({
             onChange={(e) => setCityFilter(e.target.value as CityFilter)}
             className="text-xs font-black px-3 py-1.5 rounded-full border-2 border-inkBlack bg-cream text-inkBlack focus:outline-none"
           >
-            <option value="all">Alle steden ({sourceFiltered.length})</option>
+            <option value="all">Alle steden ({publishFiltered.length})</option>
             {CITY_LIST.map((city) => (
               <option key={city} value={city}>
                 {city} ({cityCounts[city] ?? 0})
@@ -345,16 +333,29 @@ export default function RestaurantsSection({
             const isDeleting = deletingId === restaurant.id
             const canConfirmDelete = deleteInput.trim() === restaurant.name
             const displayed = state?.result ?? restaurant
+            const isPublic = displayed.verified === true
+            const pubErr = publishError[restaurant.id]
 
             return (
               <div
                 key={restaurant.id}
-                className="rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white p-4"
+                className={`rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white p-4 border-l-[6px] ${
+                  isPublic ? 'border-l-epicGreen' : 'border-l-inkBlack/20'
+                }`}
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-black text-inkBlack">{restaurant.name}</h3>
+                      {isPublic ? (
+                        <span className="text-[10px] font-black bg-epicGreen/15 text-epicGreen border border-epicGreen/40 rounded-full px-2 py-0.5">
+                          🟢 Publiek
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-black bg-inkBlack/8 text-inkBlack/50 border border-inkBlack/20 rounded-full px-2 py-0.5">
+                          Niet publiek
+                        </span>
+                      )}
                       {restaurant.source === 'user' && (
                         <span className="text-[10px] font-black bg-epicPurple/15 text-epicPurple border border-epicPurple/30 rounded-full px-2 py-0.5">
                           🧺 Gebruiker
@@ -370,39 +371,41 @@ export default function RestaurantsSection({
                           🌱 Seed
                         </span>
                       )}
-                      {displayed.verified === true && (
-                        <span className="text-[10px] font-black bg-epicGreen/20 text-epicGreen border border-epicGreen/40 rounded-full px-2 py-0.5">
-                          ✓ Geverifieerd
-                        </span>
-                      )}
-                      {displayed.verified === false && (
-                        <span className="text-[10px] font-black bg-epicRed/10 text-epicRed border border-epicRed/30 rounded-full px-2 py-0.5">
-                          🚩 Onverifieerd
+                      {restaurant.agentReason && (
+                        <span
+                          title={restaurant.agentReason}
+                          className="text-[10px] font-black bg-epicRed/10 text-epicRed border border-epicRed/30 rounded-full px-2 py-0.5"
+                        >
+                          🚩 Geflagd
                         </span>
                       )}
                     </div>
                     <p className="text-xs text-inkBlack/50">
                       {restaurant.city} · EpicScore: {displayed.epicScore}
                     </p>
-                    {(() => {
-                      if (isTrustedForPublicFeed(displayed)) return null
-                      const gates: string[] = []
-                      if ((displayed.dumplingMentionScore ?? 0) < 15) gates.push('geen dumpling mentions')
-                      if ((displayed.haGaoIndex ?? 0) < 2.0) gates.push('Ha Gao te laag')
-                      if (displayed.epicScore < 20) gates.push('score te laag')
-                      if (gates.length === 0) return null
-                      return (
-                        <p className="text-[10px] text-inkBlack/30 mt-0.5">{gates.join(' · ')}</p>
-                      )
-                    })()}
                     <p className="text-xs text-inkBlack/30 mt-0.5">Laatste sync: {lastUpdated}</p>
                   </div>
                   <div className="flex flex-col gap-1.5 shrink-0">
+                    {isPublic ? (
+                      <button
+                        onClick={() => handleSetVerified(restaurant, false)}
+                        className="px-3 py-2 rounded-full border-2 border-inkBlack font-black text-xs bg-cream text-inkBlack shadow-brutal-sm hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
+                      >
+                        ✕ Verberg
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleSetVerified(restaurant, true)}
+                        className="px-3 py-2 rounded-full border-2 border-inkBlack font-black text-xs bg-epicGreen text-cream shadow-brutal-sm hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
+                      >
+                        ✓ Publiceer
+                      </button>
+                    )}
                     <div className="flex gap-1.5">
                       <button
                         onClick={() => handleSync(restaurant.id)}
                         disabled={state?.loading || isDeleting}
-                        className={`px-4 py-2 rounded-full border-2 border-inkBlack font-black text-sm shadow-brutal-sm transition-all
+                        className={`px-3 py-1.5 rounded-full border-2 border-inkBlack font-black text-xs shadow-brutal-sm transition-all
                           ${state?.loading
                             ? 'bg-inkBlack/10 text-inkBlack/40 cursor-not-allowed shadow-none'
                             : 'bg-epicRed text-cream hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none'
@@ -418,16 +421,20 @@ export default function RestaurantsSection({
                         ✕
                       </button>
                     </div>
-                    {displayed.verified !== true && (
-                      <button
-                        onClick={() => handleVerify(restaurant.id)}
-                        className="px-3 py-1.5 rounded-full border-2 border-inkBlack font-black text-xs bg-epicGreen text-cream shadow-brutal-sm hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
-                      >
-                        ✓ Verifieer
-                      </button>
-                    )}
                   </div>
                 </div>
+
+                {pubErr && (
+                  <div className="mt-2 p-2 rounded-lg bg-epicRed/10 border border-epicRed/30 text-xs text-epicRed font-medium">
+                    {pubErr}
+                  </div>
+                )}
+
+                {restaurant.agentReason && (
+                  <p className="text-[11px] text-epicRed/80 mt-1.5">
+                    <span className="font-black">Agent:</span> {restaurant.agentReason}
+                  </p>
+                )}
 
                 {isDeleting && (
                   <div className="mt-3 p-3 rounded-xl bg-epicRed/5 border-2 border-epicRed/40 space-y-2">
@@ -496,7 +503,6 @@ export default function RestaurantsSection({
                           haGaoIndex: state.result.haGaoIndex,
                           scores: state.result.scores,
                           mustOrder: state.result.mustOrder,
-                          verified: state.result.verified,
                         },
                         null,
                         2
@@ -515,7 +521,8 @@ export default function RestaurantsSection({
         <div className="p-4 border-b-[2px] border-inkBlack/10 bg-epicGreen/5">
           <h2 className="font-black text-inkBlack">Voeg restaurant toe</h2>
           <p className="text-xs text-inkBlack/50 mt-0.5">
-            Voert automatisch een volledige sync uit na toevoeging
+            Engine doet de sync. Restaurant verschijnt hieronder maar is{' '}
+            <span className="font-black">niet publiek</span> tot je &ldquo;Publiceer&rdquo; klikt.
           </p>
         </div>
         <form onSubmit={handleAddRestaurant} className="p-4 space-y-3">
@@ -613,7 +620,9 @@ export default function RestaurantsSection({
               <p className="text-xs font-black text-epicGreen mb-1">
                 ✓ {addState.result.name} toegevoegd! EpicScore: {addState.result.epicScore}
               </p>
-              <p className="text-xs text-inkBlack/50">{addState.result.mustOrder}</p>
+              <p className="text-[11px] text-inkBlack/60">
+                Niet publiek — gebruik &ldquo;Publiceer&rdquo; hierboven om hem live te zetten.
+              </p>
             </div>
           )}
         </form>

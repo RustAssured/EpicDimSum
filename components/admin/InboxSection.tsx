@@ -33,9 +33,14 @@ function stripBlockedPrefix(note: string | undefined): string {
 }
 
 function isInboxItem(r: Restaurant): boolean {
+  // User suggestions awaiting first review
   if (r.source === 'user') return true
-  if (r.verified === false && r.agentReason) return true
-  if (r.epicScore === 0) return true
+  // Anything the quality agent flagged for the curator
+  if (r.agentReason) return true
+  // New engine discoveries that have not been published yet
+  if (r.source === 'engine' && r.verified !== true) return true
+  // Legacy fallback: zero-score draft entries with no source set
+  if (r.verified !== true && r.epicScore === 0) return true
   return false
 }
 
@@ -140,7 +145,12 @@ export default function InboxSection({ secret, restaurants, onRemove, onUpdate }
       console.log(`[goedkeuren] Done: success`)
 
       // Update parent and remove from inbox — always, regardless of score.
-      onUpdate(r.id, { ...syncedRestaurant, verified: true })
+      // Clear agentReason so the item leaves the inbox even when it was flagged.
+      onUpdate(r.id, {
+        ...syncedRestaurant,
+        verified: true,
+        agentReason: undefined,
+      })
       onRemove(r.id)
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Goedkeuren mislukt'
@@ -323,14 +333,14 @@ export default function InboxSection({ secret, restaurants, onRemove, onUpdate }
                   disabled={action !== null && action !== undefined}
                   className="text-xs font-black px-3 py-2 rounded-full border-2 border-inkBlack shadow-brutal-sm bg-epicGreen text-cream disabled:opacity-50 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
                 >
-                  {action === 'approve' ? '⏳ Bezig...' : '✓ Goedkeuren'}
+                  {action === 'approve' ? '⏳ Bezig...' : '✓ Publiceer'}
                 </button>
                 <button
                   onClick={() => startReject(r.id)}
                   disabled={action !== null && action !== undefined}
                   className="text-xs font-black px-3 py-2 rounded-full border-2 border-inkBlack shadow-brutal-sm bg-epicRed text-cream disabled:opacity-50 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
                 >
-                  ✕ Weigeren
+                  ✕ Negeer
                 </button>
                 <button
                   onClick={() => handleLater(r)}
@@ -377,7 +387,7 @@ export default function InboxSection({ secret, restaurants, onRemove, onUpdate }
                     disabled={!canConfirmReject || action === 'reject'}
                     className="text-xs font-black px-3 py-2 rounded-full border-2 border-inkBlack shadow-brutal-sm bg-epicRed text-cream disabled:opacity-30 disabled:cursor-not-allowed active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
                   >
-                    {action === 'reject' ? '⏳ Bezig...' : 'Definitief weigeren'}
+                    {action === 'reject' ? '⏳ Bezig...' : 'Definitief negeren'}
                   </button>
                   <button
                     onClick={cancelReject}
