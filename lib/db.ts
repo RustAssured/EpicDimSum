@@ -1,4 +1,4 @@
-import { getSupabase, getSupabaseAdmin } from './supabase'
+import { getSupabaseAdmin } from './supabase'
 import { Restaurant, City } from './types'
 import restaurantsSeed from '@/data/restaurants.json'
 
@@ -37,10 +37,11 @@ function normalizeRestaurant(r: Restaurant): Restaurant {
   return { ...r, city: normalizeCity(r.city as string) }
 }
 
-// Read all restaurants — try Supabase first, fall back to JSON seed
+// Read all restaurants — server-side only, uses service-role client to bypass RLS.
+// Falls back to seed JSON only when Supabase truly returns nothing.
 export async function getAllRestaurants(): Promise<Restaurant[]> {
   try {
-    const { data, error } = await getSupabase()
+    const { data, error } = await getSupabaseAdmin()
       .from('restaurants')
       .select('data')
       .order('updated_at', { ascending: false })
@@ -98,18 +99,20 @@ export async function getPublicRestaurants(): Promise<Restaurant[]> {
     getAllRestaurants(),
     getCheckinCounts(),
   ])
-  return all
-    .filter(isTrustedForPublicFeed)
-    .map((r) => ({
-      ...r,
-      communityCheckins: checkinCounts.get(r.id) ?? r.communityCheckins ?? 0,
-    }))
+  const verified = all.filter(isTrustedForPublicFeed)
+  console.log(
+    `[PublicFeed] total=${all.length} verified=${verified.length} (gate: data.verified === true)`
+  )
+  return verified.map((r) => ({
+    ...r,
+    communityCheckins: checkinCounts.get(r.id) ?? r.communityCheckins ?? 0,
+  }))
 }
 
-// Read single restaurant
+// Read single restaurant — server-side only, uses service-role client to bypass RLS.
 export async function getRestaurantById(id: string): Promise<Restaurant | null> {
   try {
-    const { data, error } = await getSupabase()
+    const { data, error } = await getSupabaseAdmin()
       .from('restaurants')
       .select('data')
       .eq('id', id)
@@ -266,7 +269,7 @@ export interface Compliment {
 
 export async function getCompliments(restaurantId: string): Promise<Compliment[]> {
   try {
-    const { data, error } = await getSupabase()
+    const { data, error } = await getSupabaseAdmin()
       .from('compliments')
       .select('id, text, created_at')
       .eq('restaurant_id', restaurantId)

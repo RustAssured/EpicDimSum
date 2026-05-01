@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAllRestaurants } from '@/lib/db'
 import { City } from '@/lib/types'
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)

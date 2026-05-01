@@ -7,7 +7,9 @@ import About from '@/components/About'
 import ReisNavItem from '@/components/ReisNavItem'
 import { DAGBOEK_COUNT } from '@/lib/dagboek'
 
-export const revalidate = 3600
+// Always render fresh — admin publishes must show immediately, no ISR delay.
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export default async function Home() {
   const restaurants = await getPublicRestaurants()
