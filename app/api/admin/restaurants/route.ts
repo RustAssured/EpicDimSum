@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAllRestaurants } from '@/lib/db'
+import { getAllRestaurantsAdmin } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   const secret = request.headers.get('x-sync-secret')
@@ -7,6 +7,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const restaurants = await getAllRestaurants()
+  const restaurants = await getAllRestaurantsAdmin()
   return NextResponse.json(restaurants)
 }

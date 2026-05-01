@@ -265,6 +265,25 @@ export async function seedIfEmpty(): Promise<void> {
   await syncSeedToSupabase()
 }
 
+// Admin-only: fetch ALL restaurants using the service-role client, bypassing RLS.
+// Never falls back to seed data — returns empty array on error so the caller can decide.
+export async function getAllRestaurantsAdmin(): Promise<Restaurant[]> {
+  const { data, error } = await getSupabaseAdmin()
+    .from('restaurants')
+    .select('data')
+    .order('updated_at', { ascending: false })
+
+  if (error) {
+    console.error('[DB Admin] Supabase error fetching all restaurants:', error.message)
+    return []
+  }
+  if (!data || data.length === 0) return []
+
+  return data
+    .map((row) => normalizeRestaurant(row.data as Restaurant))
+    .sort((a, b) => (b.epicScore ?? 0) - (a.epicScore ?? 0))
+}
+
 export interface Compliment {
   id: string
   text: string
