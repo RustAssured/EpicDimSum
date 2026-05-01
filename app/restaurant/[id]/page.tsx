@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { getAllRestaurants, getRestaurantById } from '@/lib/db'
+import { getAllRestaurants, getRestaurantById, getCompliments } from '@/lib/db'
 import StatusBadge from '@/components/StatusBadge'
 import ScoreBar from '@/components/ScoreBar'
 import HaGaoIndex from '@/components/HaGaoIndex'
@@ -27,9 +27,10 @@ const priceLabel: Record<string, string> = {
 }
 
 export default async function RestaurantPage({ params }: PageProps) {
-  const [restaurant, allRestaurants] = await Promise.all([
+  const [restaurant, allRestaurants, compliments] = await Promise.all([
     getRestaurantById(params.id),
     getAllRestaurants(),
+    getCompliments(params.id),
   ])
   if (!restaurant) notFound()
 
@@ -174,6 +175,23 @@ export default async function RestaurantPage({ params }: PageProps) {
           <p className="text-xs font-black uppercase tracking-wide text-epicGold mb-2">🍽️ Must Order</p>
           <p className="text-sm font-bold text-inkBlack leading-snug">{mustOrder}</p>
         </div>
+
+        {/* Wat dim sum liefhebbers zeiden */}
+        {compliments.length > 0 && (
+          <div className="rounded-2xl border-2 border-inkBlack/15 bg-white p-4">
+            <h3 className="text-xs font-black uppercase tracking-wide text-inkBlack/40 mb-3">
+              Wat dim sum liefhebbers zeiden
+            </h3>
+            <ul className="space-y-2">
+              {compliments.map((c) => (
+                <li key={c.id} className="flex gap-2 items-start">
+                  <span className="shrink-0 leading-tight">🥟</span>
+                  <p className="text-[12px] text-inkBlack/60 italic leading-snug">{c.text}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Check-in */}
         <CheckInHint restaurantId={restaurant.id} />

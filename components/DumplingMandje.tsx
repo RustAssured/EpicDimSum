@@ -9,6 +9,7 @@ interface CheckInRecord {
   city: string
   rating: 'fire' | 'solid' | 'meh'
   date: string
+  journalNote?: string
 }
 
 interface Badge {
@@ -165,12 +166,19 @@ export default function DumplingMandje() {
             <p className="font-black text-xs uppercase tracking-wide text-inkBlack/40 mb-2">Recente bezoeken uit jouw mandje</p>
             <div className="space-y-2">
               {checkins.slice(-5).reverse().map((c, i) => (
-                <div key={i} className="flex items-center gap-2 p-2.5 bg-white rounded-xl border border-inkBlack/10">
-                  <span className="text-base">{c.rating === 'fire' ? '🔥' : c.rating === 'solid' ? '👍' : '😐'}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-black truncate">{c.restaurantName}</p>
-                    <p className="text-[10px] text-inkBlack/40">{c.city}</p>
+                <div key={i} className="p-2.5 bg-white rounded-xl border border-inkBlack/10">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">{c.rating === 'fire' ? '🔥' : c.rating === 'solid' ? '👍' : '😐'}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-black truncate">{c.restaurantName}</p>
+                      <p className="text-[10px] text-inkBlack/40">{c.city}</p>
+                    </div>
                   </div>
+                  {c.journalNote && c.journalNote.trim() !== '' && (
+                    <p className="mt-1.5 pl-7 text-[12px] text-inkBlack/50 italic leading-snug">
+                      📝 {c.journalNote}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>

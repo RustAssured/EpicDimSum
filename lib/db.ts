@@ -167,3 +167,29 @@ export async function syncSeedToSupabase(): Promise<void> {
 export async function seedIfEmpty(): Promise<void> {
   await syncSeedToSupabase()
 }
+
+export interface Compliment {
+  id: string
+  text: string
+  createdAt: string
+}
+
+export async function getCompliments(restaurantId: string): Promise<Compliment[]> {
+  try {
+    const { data, error } = await getSupabase()
+      .from('compliments')
+      .select('id, text, created_at')
+      .eq('restaurant_id', restaurantId)
+      .order('created_at', { ascending: false })
+      .limit(5)
+
+    if (error || !data) return []
+    return data.map((row) => ({
+      id: row.id as string,
+      text: row.text as string,
+      createdAt: row.created_at as string,
+    }))
+  } catch {
+    return []
+  }
+}
