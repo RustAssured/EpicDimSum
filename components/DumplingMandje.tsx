@@ -345,7 +345,7 @@ export default function DumplingMandje({ open, onClose }: { open?: boolean; onCl
               const withNotes = checkins.filter(c => c.journalNote && c.journalNote.trim() !== '').reverse()
               if (withNotes.length === 0) return (
                 <p className="text-[13px] text-inkBlack/40 italic mb-4">
-                  Nog geen notities. Schrijf er een na je volgende bezoek!
+                  Nog geen notities. Schrijf er eentje na je volgende dim sum bezoek.
                 </p>
               )
               return (
