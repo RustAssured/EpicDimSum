@@ -129,17 +129,17 @@ export default function InboxSection({ secret, restaurants, onRemove, onUpdate }
         `[goedkeuren] Verify response: ${verifyRes.status}, verified: true`
       )
 
-      // 3. Soft-validate: epicScore must be > 0 to be useful publicly.
+      // Warn if epicScore is still 0 after sync, but do not block removal.
+      // The restaurant is verified — it just may not be public yet until rescored.
       if (!(epicScore > 0)) {
-        console.log(`[goedkeuren] Done: INCOMPLETE`)
-        throw new Error(
-          'Sync gaf epicScore 0 terug — restaurant is geverifieerd maar verschijnt niet publiek tot opnieuw gesynced.'
+        console.log(
+          `[goedkeuren] Warn: epicScore = ${epicScore} — restaurant geverifieerd, verschijnt niet publiek totdat resync > 20`
         )
       }
 
       console.log(`[goedkeuren] Done: success`)
 
-      // Update parent and remove from inbox immediately.
+      // Update parent and remove from inbox — always, regardless of score.
       onUpdate(r.id, { ...syncedRestaurant, verified: true })
       onRemove(r.id)
     } catch (err) {
