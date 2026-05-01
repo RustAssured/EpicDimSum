@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Restaurant, City, PriceRange } from '@/lib/types'
-import { getAllRestaurants, upsertRestaurant } from '@/lib/db'
+import { getAllRestaurants, upsertRestaurant, getBlockedPlaceIds } from '@/lib/db'
 import { discoverNewSpots } from '@/lib/discovery'
 
 export const runtime = 'nodejs'
@@ -27,7 +27,10 @@ export async function POST(request: NextRequest) {
 
     const newSpots = await discoverNewSpots(cityFilter)
 
-    const existing = await getAllRestaurants()
+    const [existing, blockedPlaceIds] = await Promise.all([
+      getAllRestaurants(),
+      getBlockedPlaceIds(),
+    ])
     const existingSlugs = new Set(existing.map((r) => r.id))
 
     let added = 0
@@ -37,6 +40,11 @@ export async function POST(request: NextRequest) {
     for (const spot of newSpots) {
       const id = slugify(spot.name, spot.city)
       if (existingSlugs.has(id)) {
+        skipped++
+        continue
+      }
+      if (blockedPlaceIds.has(spot.googlePlaceId)) {
+        console.log(`[Full-scan] Skipped blocklisted spot: ${spot.name}`)
         skipped++
         continue
       }

@@ -1,4 +1,4 @@
-import { getAllRestaurants } from './db'
+import { getAllRestaurants, getBlockedPlaceIds } from './db'
 
 export interface NewSpot {
   googlePlaceId: string
@@ -356,7 +356,10 @@ export async function fetchPlaceById(placeId: string, cityName: string): Promise
 }
 
 export async function discoverNewSpots(cityFilter?: string): Promise<NewSpot[]> {
-  const existing = await getAllRestaurants()
+  const [existing, blockedPlaceIds] = await Promise.all([
+    getAllRestaurants(),
+    getBlockedPlaceIds(),
+  ])
   const existingPlaceIds = new Set(existing.map((r) => r.googlePlaceId))
 
   const citiesToScan = cityFilter
@@ -413,9 +416,23 @@ export async function discoverNewSpots(cityFilter?: string): Promise<NewSpot[]> 
     console.debug('[Benchmark] Kaa Lun already in database ✓')
   }
 
+  const blockedHits: string[] = []
   const newSpots = allSpots
     .filter((spot) => !existingPlaceIds.has(spot.googlePlaceId))
+    .filter((spot) => {
+      if (blockedPlaceIds.has(spot.googlePlaceId)) {
+        blockedHits.push(spot.name)
+        return false
+      }
+      return true
+    })
     .filter((spot) => isActualRestaurant(spot, spot.city))
+
+  if (blockedHits.length > 0) {
+    console.log(
+      `[Discovery] Skipped ${blockedHits.length} blocklisted spot(s): ${blockedHits.join(', ')}`
+    )
+  }
 
   const dedupSeen = new Set<string>()
   return newSpots.filter((spot) => {

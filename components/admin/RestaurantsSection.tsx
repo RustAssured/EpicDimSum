@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Restaurant, City, PriceRange } from '@/lib/types'
+import { Restaurant, City, PriceRange, CITY_LIST } from '@/lib/types'
 import { isTrustedForPublicFeed } from '@/lib/db'
 import Mascot from '@/components/Mascot'
 
@@ -25,6 +25,8 @@ function humanizeError(error: string): string {
 }
 
 type SourceFilter = 'alle' | 'gebruiker' | 'engine' | 'seed'
+type CityFilter = City | 'all'
+type SortMode = 'score' | 'name'
 
 const CITY_OPTIONS: City[] = [
   'Amsterdam', 'Rotterdam', 'Den Haag', 'Utrecht', 'Arnhem',
@@ -41,11 +43,14 @@ export default function RestaurantsSection({
 }: RestaurantsSectionProps) {
   const [syncStates, setSyncStates] = useState<Record<string, SyncState>>({})
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('alle')
+  const [cityFilter, setCityFilter] = useState<CityFilter>('all')
+  const [sortBy, setSortBy] = useState<SortMode>('score')
   const [showAll, setShowAll] = useState(false)
 
   // Inline delete state
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [deleteInput, setDeleteInput] = useState('')
+  const [deleteReason, setDeleteReason] = useState('')
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [deleteBusy, setDeleteBusy] = useState(false)
 
@@ -102,12 +107,14 @@ export default function RestaurantsSection({
   const startDelete = (id: string) => {
     setDeletingId(id)
     setDeleteInput('')
+    setDeleteReason('')
     setDeleteError(null)
   }
 
   const cancelDelete = () => {
     setDeletingId(null)
     setDeleteInput('')
+    setDeleteReason('')
     setDeleteError(null)
   }
 
@@ -115,10 +122,15 @@ export default function RestaurantsSection({
     if (deleteInput.trim() !== r.name) return
     setDeleteBusy(true)
     setDeleteError(null)
+    const reason = deleteReason.trim()
     try {
       const res = await fetch(`/api/admin/delete/${r.id}`, {
         method: 'DELETE',
-        headers: { 'x-sync-secret': secret },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-sync-secret': secret,
+        },
+        body: JSON.stringify({ reason: reason.length > 0 ? reason : undefined }),
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
@@ -127,6 +139,7 @@ export default function RestaurantsSection({
       onRemove(r.id)
       setDeletingId(null)
       setDeleteInput('')
+      setDeleteReason('')
     } catch (err) {
       setDeleteError(err instanceof Error ? err.message : 'Verwijderen mislukt')
     } finally {
@@ -219,9 +232,26 @@ export default function RestaurantsSection({
     return r.source === 'seed' || !r.source
   }
 
-  const visibleRestaurants = restaurants
+  // After source + showAll filters; city filter and sort are applied on top.
+  const sourceFiltered = restaurants
     .filter((r) => (showAll ? true : r.verified === true))
     .filter(matchesSource)
+
+  const cityCounts: Record<string, number> = {}
+  for (const r of sourceFiltered) {
+    const key = (r.city as string) ?? '—'
+    cityCounts[key] = (cityCounts[key] ?? 0) + 1
+  }
+
+  const visibleRestaurants = sourceFiltered
+    .filter((r) => (cityFilter === 'all' ? true : r.city === cityFilter))
+    .slice()
+    .sort((a, b) => {
+      if (sortBy === 'name') {
+        return a.name.localeCompare(b.name, 'nl')
+      }
+      return (b.epicScore ?? 0) - (a.epicScore ?? 0)
+    })
 
   const counts = {
     alle: restaurants.length,
@@ -253,7 +283,7 @@ export default function RestaurantsSection({
         </div>
 
         {/* Source filter */}
-        <div className="flex gap-1 mb-4 flex-wrap">
+        <div className="flex gap-1 mb-3 flex-wrap">
           {(['alle', 'gebruiker', 'engine', 'seed'] as const).map((f) => {
             const label =
               f === 'alle' ? 'Alle'
@@ -272,6 +302,30 @@ export default function RestaurantsSection({
               </button>
             )
           })}
+        </div>
+
+        {/* City filter + sort */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          <select
+            value={cityFilter}
+            onChange={(e) => setCityFilter(e.target.value as CityFilter)}
+            className="text-xs font-black px-3 py-1.5 rounded-full border-2 border-inkBlack bg-cream text-inkBlack focus:outline-none"
+          >
+            <option value="all">Alle steden ({sourceFiltered.length})</option>
+            {CITY_LIST.map((city) => (
+              <option key={city} value={city}>
+                {city} ({cityCounts[city] ?? 0})
+              </option>
+            ))}
+          </select>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortMode)}
+            className="text-xs font-black px-3 py-1.5 rounded-full border-2 border-inkBlack bg-cream text-inkBlack focus:outline-none"
+          >
+            <option value="score">EpicScore (hoog → laag)</option>
+            <option value="name">Naam (A → Z)</option>
+          </select>
         </div>
 
         <div className="space-y-4">
@@ -380,6 +434,19 @@ export default function RestaurantsSection({
                     <p className="text-xs font-bold text-epicRed">
                       Weet je het zeker? Typ de naam om te bevestigen.
                     </p>
+                    <div>
+                      <label className="text-[10px] font-black uppercase tracking-wide text-inkBlack/50 mb-1 block">
+                        Waarom niet? (optioneel)
+                      </label>
+                      <input
+                        type="text"
+                        value={deleteReason}
+                        onChange={(e) => setDeleteReason(e.target.value)}
+                        placeholder="geen dim sum / kwaliteit te laag"
+                        maxLength={200}
+                        className="w-full px-3 py-2 rounded-xl border-2 border-inkBlack/40 text-sm font-medium bg-white focus:outline-none shadow-brutal-sm"
+                      />
+                    </div>
                     <input
                       type="text"
                       value={deleteInput}

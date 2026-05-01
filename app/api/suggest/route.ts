@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { upsertRestaurant, normalizeCity, isKnownCity } from '@/lib/db'
+import { upsertRestaurant, normalizeCity, isKnownCity, isBlocked } from '@/lib/db'
 import { Restaurant, City, PriceRange, CITY_LIST } from '@/lib/types'
 import { getSupabaseAdmin } from '@/lib/supabase'
 import {
@@ -42,6 +42,15 @@ function isValidCity(city: string): city is City {
 }
 
 const FRIENDLY_SUCCESS = 'Dank je! Gao gaat deze plek bekijken.'
+const PREVIOUSLY_BLOCKED_PREFIX = '[VOORHEEN GEBLOKKEERD]'
+
+function tagNoteAsPreviouslyBlocked(note: string | undefined): string {
+  const trimmed = note?.trim() ?? ''
+  if (trimmed.startsWith(PREVIOUSLY_BLOCKED_PREFIX)) return trimmed
+  return trimmed.length > 0
+    ? `${PREVIOUSLY_BLOCKED_PREFIX} ${trimmed}`
+    : `${PREVIOUSLY_BLOCKED_PREFIX} (geen extra notitie)`
+}
 
 function successResponse() {
   return NextResponse.json({ ok: true, message: FRIENDLY_SUCCESS })
@@ -200,16 +209,18 @@ export async function POST(request: NextRequest) {
   // Branch 2: exactly 1 high-confidence result — create stub with placeId, normal pipeline
   if (highConfidence) {
     const finalCity = resolveCity(top)
+    const blocked = await isBlocked(top.placeId)
+    const finalNote = blocked ? tagNoteAsPreviouslyBlocked(note) : note
     const stub = buildStub({
       name: top.name || rawName,
       city: finalCity,
       placeId: top.placeId,
-      note,
+      note: finalNote,
       submittedBy,
     })
-    // High-confidence stubs go through the normal pending pipeline so the
-    // sync/scoring job picks them up and verifies them.
-    stub.status = 'pending'
+    // Previously-blocked spots stay 'suggested' so admin reviews before scoring;
+    // fresh spots go straight into the pending pipeline.
+    stub.status = blocked ? 'suggested' : 'pending'
     try {
       await upsertRestaurant(stub)
     } catch (err) {
@@ -221,11 +232,13 @@ export async function POST(request: NextRequest) {
   // Branch 3: multiple results OR 1 low-confidence result —
   // save suggestion record marked for admin review with the top candidate's placeId.
   const finalCity = resolveCity(top)
+  const blocked = top.placeId ? await isBlocked(top.placeId) : false
+  const finalNote = blocked ? tagNoteAsPreviouslyBlocked(note) : note
   const stub = buildStub({
     name: rawName,
     city: finalCity,
     placeId: top.placeId ?? '',
-    note,
+    note: finalNote,
     submittedBy,
   })
   try {

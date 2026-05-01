@@ -12,10 +12,24 @@ interface InboxSectionProps {
 }
 
 const DISMISS_KEY_PREFIX = 'inbox_dismissed_'
+const PREVIOUSLY_BLOCKED_PREFIX = '[VOORHEEN GEBLOKKEERD]'
 
 function humanizeError(error: string): string {
   if (error === 'Unauthorized') return 'Verkeerd wachtwoord, check je Sync Secret'
   return error
+}
+
+function isPreviouslyBlocked(r: Restaurant): boolean {
+  return (r.note ?? '').trim().startsWith(PREVIOUSLY_BLOCKED_PREFIX)
+}
+
+function stripBlockedPrefix(note: string | undefined): string {
+  if (!note) return ''
+  const trimmed = note.trim()
+  if (trimmed.startsWith(PREVIOUSLY_BLOCKED_PREFIX)) {
+    return trimmed.slice(PREVIOUSLY_BLOCKED_PREFIX.length).trim()
+  }
+  return trimmed
 }
 
 function isInboxItem(r: Restaurant): boolean {
@@ -54,6 +68,7 @@ export default function InboxSection({ secret, restaurants, onRemove, onUpdate }
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [rejectingId, setRejectingId] = useState<string | null>(null)
   const [rejectInput, setRejectInput] = useState('')
+  const [rejectReason, setRejectReason] = useState('')
 
   useEffect(() => {
     setDismissed(getDismissedIds())
@@ -72,36 +87,65 @@ export default function InboxSection({ secret, restaurants, onRemove, onUpdate }
   const handleApprove = async (r: Restaurant) => {
     setBusy((s) => ({ ...s, [r.id]: 'approve' }))
     setErrors((s) => ({ ...s, [r.id]: '' }))
+    console.log(`[goedkeuren] Starting for ${r.name}`)
     try {
-      // 1. Sync the restaurant
+      // 1. Sync the restaurant (Google + scrapers + Claude scoring).
       const syncRes = await fetch(`/api/sync/${r.id}`, {
         method: 'POST',
         headers: { 'x-sync-secret': secret },
       })
+      const syncJson = await syncRes.json().catch(() => ({}))
       if (!syncRes.ok) {
-        const err = await syncRes.json().catch(() => ({}))
-        throw new Error(humanizeError(err.error || `HTTP ${syncRes.status}`))
+        console.log(
+          `[goedkeuren] Sync response: ${syncRes.status}, epicScore: n/a`
+        )
+        throw new Error(
+          humanizeError(syncJson.error || `Sync mislukt (HTTP ${syncRes.status})`)
+        )
       }
-      const syncJson = await syncRes.json()
       const syncedRestaurant: Restaurant = syncJson.restaurant ?? syncJson
+      const epicScore = syncedRestaurant?.epicScore ?? 0
+      console.log(
+        `[goedkeuren] Sync response: ${syncRes.status}, epicScore: ${epicScore}`
+      )
 
-      // 2. Mark verified
+      // 2. Mark verified (server preserves source).
       const verifyRes = await fetch(`/api/admin/verify/${r.id}`, {
         method: 'POST',
         headers: { 'x-sync-secret': secret },
       })
+      const verifyJson = await verifyRes.json().catch(() => ({}))
       if (!verifyRes.ok) {
-        const err = await verifyRes.json().catch(() => ({}))
-        throw new Error(humanizeError(err.error || `HTTP ${verifyRes.status}`))
+        console.log(
+          `[goedkeuren] Verify response: ${verifyRes.status}, verified: false`
+        )
+        throw new Error(
+          humanizeError(
+            verifyJson.error || `Verifiëren mislukt (HTTP ${verifyRes.status})`
+          )
+        )
+      }
+      console.log(
+        `[goedkeuren] Verify response: ${verifyRes.status}, verified: true`
+      )
+
+      // 3. Soft-validate: epicScore must be > 0 to be useful publicly.
+      if (!(epicScore > 0)) {
+        console.log(`[goedkeuren] Done: INCOMPLETE`)
+        throw new Error(
+          'Sync gaf epicScore 0 terug — restaurant is geverifieerd maar verschijnt niet publiek tot opnieuw gesynced.'
+        )
       }
 
+      console.log(`[goedkeuren] Done: success`)
+
+      // Update parent and remove from inbox immediately.
       onUpdate(r.id, { ...syncedRestaurant, verified: true })
       onRemove(r.id)
     } catch (err) {
-      setErrors((s) => ({
-        ...s,
-        [r.id]: err instanceof Error ? err.message : 'Goedkeuren mislukt',
-      }))
+      const msg = err instanceof Error ? err.message : 'Goedkeuren mislukt'
+      console.log(`[goedkeuren] Error: ${msg}`)
+      setErrors((s) => ({ ...s, [r.id]: msg }))
     } finally {
       setBusy((s) => ({ ...s, [r.id]: null }))
     }
@@ -110,22 +154,29 @@ export default function InboxSection({ secret, restaurants, onRemove, onUpdate }
   const startReject = (id: string) => {
     setRejectingId(id)
     setRejectInput('')
+    setRejectReason('')
     setErrors((s) => ({ ...s, [id]: '' }))
   }
 
   const cancelReject = () => {
     setRejectingId(null)
     setRejectInput('')
+    setRejectReason('')
   }
 
   const confirmReject = async (r: Restaurant) => {
     if (rejectInput.trim() !== r.name) return
     setBusy((s) => ({ ...s, [r.id]: 'reject' }))
     setErrors((s) => ({ ...s, [r.id]: '' }))
+    const reason = rejectReason.trim()
     try {
       const res = await fetch(`/api/admin/delete/${r.id}`, {
         method: 'DELETE',
-        headers: { 'x-sync-secret': secret },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-sync-secret': secret,
+        },
+        body: JSON.stringify({ reason: reason.length > 0 ? reason : undefined }),
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
@@ -134,6 +185,7 @@ export default function InboxSection({ secret, restaurants, onRemove, onUpdate }
       onRemove(r.id)
       setRejectingId(null)
       setRejectInput('')
+      setRejectReason('')
     } catch (err) {
       setErrors((s) => ({
         ...s,
@@ -194,6 +246,14 @@ export default function InboxSection({ secret, restaurants, onRemove, onUpdate }
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap mb-1">
                   <h3 className="font-black text-inkBlack break-words">{r.name}</h3>
+                  {isPreviouslyBlocked(r) && (
+                    <span
+                      title="Dit restaurant stond eerder op de blocklist"
+                      className="text-[10px] font-black bg-epicRed/15 text-epicRed border border-epicRed/40 rounded-full px-2 py-0.5"
+                    >
+                      Voorheen geblokkeerd
+                    </span>
+                  )}
                   {r.source === 'user' && (
                     <span
                       title="Gebruikerssuggestie"
@@ -228,16 +288,20 @@ export default function InboxSection({ secret, restaurants, onRemove, onUpdate }
                   {r.city}
                   {r.sources?.lastUpdated ? ` · Toegevoegd ${formatDate(r.sources.lastUpdated)}` : ''}
                 </p>
-                {r.note && (
-                  <p className="text-[12px] text-inkBlack/70 italic mt-1.5">
-                    &ldquo;{r.note}&rdquo;
-                    {r.submittedBy && (
-                      <span className="not-italic text-[10px] text-inkBlack/40 ml-1">
-                        — {r.submittedBy}
-                      </span>
-                    )}
-                  </p>
-                )}
+                {r.note && (() => {
+                  const cleaned = isPreviouslyBlocked(r) ? stripBlockedPrefix(r.note) : r.note
+                  if (!cleaned) return null
+                  return (
+                    <p className="text-[12px] text-inkBlack/70 italic mt-1.5">
+                      &ldquo;{cleaned}&rdquo;
+                      {r.submittedBy && (
+                        <span className="not-italic text-[10px] text-inkBlack/40 ml-1">
+                          — {r.submittedBy}
+                        </span>
+                      )}
+                    </p>
+                  )
+                })()}
                 {r.agentReason && (
                   <p className="text-[12px] text-epicRed/80 mt-1.5">
                     <span className="font-black">Agent:</span> {r.agentReason}
@@ -283,6 +347,19 @@ export default function InboxSection({ secret, restaurants, onRemove, onUpdate }
                 <p className="text-xs font-bold text-epicRed">
                   Weet je het zeker? Typ de restaurantnaam om te bevestigen.
                 </p>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-wide text-inkBlack/50 mb-1 block">
+                    Waarom niet? (optioneel)
+                  </label>
+                  <input
+                    type="text"
+                    value={rejectReason}
+                    onChange={(e) => setRejectReason(e.target.value)}
+                    placeholder="geen dim sum / kwaliteit te laag"
+                    maxLength={200}
+                    className="w-full px-3 py-2 rounded-xl border-2 border-inkBlack/40 text-sm font-medium bg-white focus:outline-none shadow-brutal-sm"
+                  />
+                </div>
                 <input
                   type="text"
                   value={rejectInput}

@@ -176,6 +176,68 @@ export async function deleteRestaurant(id: string): Promise<void> {
   if (error) throw new Error(`Supabase delete failed: ${error.message}`)
 }
 
+// Add a Google Place ID to the blocklist so it is skipped by future scans.
+export async function addToBlocklist(args: {
+  googlePlaceId: string
+  name: string
+  reason?: string
+}): Promise<void> {
+  const { googlePlaceId, name, reason } = args
+  if (!googlePlaceId) return // nothing to block
+  try {
+    const { error } = await getSupabaseAdmin()
+      .from('blocklist')
+      .upsert(
+        {
+          google_place_id: googlePlaceId,
+          name,
+          reason: reason ?? null,
+        },
+        { onConflict: 'google_place_id', ignoreDuplicates: true }
+      )
+    if (error) {
+      console.error('[Blocklist] upsert failed:', error.message)
+    }
+  } catch (err) {
+    console.error('[Blocklist] upsert threw:', err)
+  }
+}
+
+// Returns true if the given Google Place ID is on the blocklist.
+export async function isBlocked(googlePlaceId: string): Promise<boolean> {
+  if (!googlePlaceId) return false
+  try {
+    const { data, error } = await getSupabaseAdmin()
+      .from('blocklist')
+      .select('google_place_id')
+      .eq('google_place_id', googlePlaceId)
+      .maybeSingle()
+    if (error) {
+      console.error('[Blocklist] check failed:', error.message)
+      return false
+    }
+    return !!data
+  } catch (err) {
+    console.error('[Blocklist] check threw:', err)
+    return false
+  }
+}
+
+// Returns the set of all blocked Google Place IDs (for batch checks).
+export async function getBlockedPlaceIds(): Promise<Set<string>> {
+  try {
+    const { data, error } = await getSupabaseAdmin()
+      .from('blocklist')
+      .select('google_place_id')
+    if (error || !data) return new Set()
+    return new Set(
+      (data as { google_place_id: string }[]).map((row) => row.google_place_id)
+    )
+  } catch {
+    return new Set()
+  }
+}
+
 // Upsert ALL seed entries to Supabase — ensures new seeds appear without wiping existing data
 export async function syncSeedToSupabase(): Promise<void> {
   const seed = restaurantsSeed as Restaurant[]
