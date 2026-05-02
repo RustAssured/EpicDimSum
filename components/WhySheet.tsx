@@ -44,10 +44,11 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
             Wij laten zien wat <em>goed</em> is.
           </p>
           <p className="text-xs text-cream/60 mt-2 leading-snug">
-            Gao analyseert duizenden reviews op dumplingkwaliteit.
-            Jij ziet het resultaat: hoeveel dumplings, wat je moet bestellen,
-            en waarom het de moeite waard is.
-            De rest is Gao&apos;s werk, niet jouw analyse.
+            Elke plek op EpicDimSum is handpicked — door mij, door
+            liefhebbers, of via eigen onderzoek. Daarna analyseert Gao
+            de reviews en voegt hij extra informatie toe: wat je moet
+            bestellen, hoe de dumplings scoren, en waarom deze plek
+            de moeite waard is.
           </p>
         </div>
 

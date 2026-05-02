@@ -36,10 +36,10 @@ function AboutSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
           </p>
 
           <p className="text-xs text-inkBlack/70 leading-relaxed">
-            Gao is de enige echte dumpling judge: eerlijk, halsstarrig en
-            volledig geobsedeerd door de kwaliteit van de dumplings. Hij
-            combineert Google data, Iens, Tripadvisor en online buzz tot
-            één score die je echt kunt vertrouwen.
+            Gao is mijn sous chef. Ik kies de plekken waar ik achter
+            sta. Gao zoekt alles op: reviews, dumplingkwaliteit, wat
+            andere liefhebbers zeggen. Samen maken we een lijst waar
+            je op kunt vertrouwen.
           </p>
         </div>
 

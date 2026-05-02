@@ -62,6 +62,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
   const [cityCount, setCityCount] = useState(0)
   const [journeyMessage, setJourneyMessage] = useState('')
   const [introDismissed, setIntroDismissed] = useState(true)
+  const [showSuggestFAB, setShowSuggestFAB] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -99,6 +100,19 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
     if (localStorage.getItem('gao-intro-dismissed') !== 'true') {
       setIntroDismissed(false)
     }
+  }, [])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const formEl = document.getElementById('suggest-form')
+      if (!formEl) { setShowSuggestFAB(false); return }
+      const formTop = formEl.getBoundingClientRect().top
+      const scrolledPast3Cards = window.scrollY > 500
+      const nearForm = formTop < window.innerHeight + 200
+      setShowSuggestFAB(scrolledPast3Cards && !nearForm)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   const handleSuggest = async () => {
@@ -233,10 +247,8 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
     <div className="space-y-4">
       {/* WHY statement */}
       <div className="text-center pb-1">
-        <p className="text-sm font-black text-inkBlack">
-          Jouw persoonlijke dim sum reis{' '}
-          <span className="text-epicRed">, langs de beste dumplings</span>
-        </p>
+        <p className="text-sm font-black text-inkBlack">De beste dim sum plekken in Nederland</p>
+        <p className="text-xs text-inkBlack/50 mt-0.5">Handpicked door liefhebbers, geanalyseerd door Gao</p>
       </div>
 
       {/* Search */}
@@ -423,26 +435,8 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
           )}
 
 
-          {/* Gao sticker banner */}
-          <div className="mt-8 p-4 rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-[#fff3d6] flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Mascot type="happy" size={48} />
-              <div>
-                <p className="font-black text-sm text-inkBlack">Ontmoet Gao 🥟</p>
-                <p className="text-xs text-inkBlack/60">De officiële EpicDimSum dumpling judge</p>
-              </div>
-            </div>
-            <a
-              href="/mascots/top1.png"
-              download="gao-epicdimsum.png"
-              className="text-xs font-black bg-inkBlack text-cream px-3 py-2 rounded-full border-2 border-inkBlack shadow-brutal-sm hover:bg-epicRed transition-colors whitespace-nowrap"
-            >
-              Download sticker ↓
-            </a>
-          </div>
-
           {/* Suggest a restaurant */}
-          <div id="suggest-form" className="mt-4 rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white p-4">
+          <div id="suggest-form" className="mt-8 rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-white p-4">
             {suggestState === 'success' ? (
               <div className="flex flex-col items-center text-center py-4 gap-3">
                 <Image
@@ -541,6 +535,24 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
               </>
             )}
           </div>
+
+          {/* Gao sticker banner */}
+          <div className="mt-4 p-4 rounded-2xl border-[3px] border-inkBlack shadow-brutal bg-[#fff3d6] flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Mascot type="happy" size={48} />
+              <div>
+                <p className="font-black text-sm text-inkBlack">Ontmoet Gao 🥟</p>
+                <p className="text-xs text-inkBlack/60">De officiële EpicDimSum dumpling judge</p>
+              </div>
+            </div>
+            <a
+              href="/mascots/top1.png"
+              download="gao-epicdimsum.png"
+              className="text-xs font-black bg-inkBlack text-cream px-3 py-2 rounded-full border-2 border-inkBlack shadow-brutal-sm hover:bg-epicRed transition-colors whitespace-nowrap"
+            >
+              Download sticker ↓
+            </a>
+          </div>
         </>
       ) : (
         <div className="text-center py-16 flex flex-col items-center gap-3">
@@ -566,6 +578,16 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
       {/* bottom padding so last card isn't hidden behind floating button */}
       <div className="h-20" />
     </div>
+
+    {/* floating suggest FAB */}
+    {showSuggestFAB && filtered.length > 0 && (
+      <button
+        onClick={() => document.getElementById('suggest-form')?.scrollIntoView({ behavior: 'smooth' })}
+        className="fixed bottom-20 right-4 z-40 bg-epicGreen text-cream font-bold text-[13px] px-4 py-2.5 rounded-full shadow-lg border-2 border-inkBlack"
+      >
+        🥟 Ken jij een goede plek?
+      </button>
+    )}
 
     {/* floating WHY button */}
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
