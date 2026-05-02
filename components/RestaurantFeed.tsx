@@ -9,7 +9,6 @@ import { Restaurant, City, CITY_LIST } from '@/lib/types'
 import RestaurantCard from '@/components/RestaurantCard'
 import CityFilter from '@/components/CityFilter'
 import Mascot from '@/components/Mascot'
-import WhySheet from '@/components/WhySheet'
 import DumplingMandje from '@/components/DumplingMandje'
 import JourneyCard from '@/components/JourneyCard'
 import { createClient } from '@/lib/auth'
@@ -47,7 +46,6 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState<'epic' | 'hagao'>('epic')
-  const [showWhySheet, setShowWhySheet] = useState(false)
   const [suggestName, setSuggestName] = useState('')
   const [suggestCity, setSuggestCity] = useState('')
   const [suggestNote, setSuggestNote] = useState('')
@@ -107,9 +105,9 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
       const formEl = document.getElementById('suggest-form')
       if (!formEl) { setShowSuggestFAB(false); return }
       const formTop = formEl.getBoundingClientRect().top
-      const scrolledPast3Cards = window.scrollY > 500
-      const nearForm = formTop < window.innerHeight + 200
-      setShowSuggestFAB(scrolledPast3Cards && !nearForm)
+      const scrolledPast2Cards = window.scrollY > 400
+      const nearForm = formTop < window.innerHeight + 300
+      setShowSuggestFAB(scrolledPast2Cards && !nearForm)
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
@@ -242,8 +240,6 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
 
   return (
     <>
-    <WhySheet isOpen={showWhySheet} onClose={() => setShowWhySheet(false)} />
-
     <div className="space-y-4">
       {/* WHY statement */}
       <div className="text-center pb-1">
@@ -458,8 +454,8 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
               </div>
             ) : (
               <>
-                <p className="font-black text-sm mb-1">🥟 Ken jij een goede plek?</p>
-                <p className="text-xs text-inkBlack/50 mb-4">Geef Gao een naam en een stad — hij doet de rest.</p>
+                <p className="font-black text-sm mb-1">Ken jij een goede plek? 🥟</p>
+                <p className="text-xs text-inkBlack/50 mb-4">Tip Gao een restaurant — hij duikt erin en ik beslis of het een EpicSpot wordt.</p>
                 <div className="space-y-3">
                   <div>
                     <label htmlFor="suggest-name" className="block text-xs font-black uppercase tracking-wide text-inkBlack/60 mb-1">
@@ -579,26 +575,16 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
       <div className="h-20" />
     </div>
 
-    {/* floating suggest FAB */}
+    {/* floating suggest FAB — centered on mobile, bottom-right on desktop */}
     {showSuggestFAB && filtered.length > 0 && (
       <button
         onClick={() => document.getElementById('suggest-form')?.scrollIntoView({ behavior: 'smooth' })}
-        className="fixed bottom-20 right-4 z-40 bg-epicGreen text-cream font-bold text-[13px] px-4 py-2.5 rounded-full shadow-lg border-2 border-inkBlack"
+        className="fixed bottom-[80px] left-1/2 -translate-x-1/2 md:bottom-6 md:right-6 md:left-auto md:translate-x-0 z-40 bg-epicGreen text-cream font-black text-[14px] min-w-[200px] px-5 py-3 rounded-full border-2 border-inkBlack"
+        style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
       >
         🥟 Ken jij een goede plek?
       </button>
     )}
-
-    {/* floating WHY button */}
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 pointer-events-none">
-      <button
-        onClick={() => setShowWhySheet(true)}
-        className="pointer-events-auto flex items-center gap-1.5 bg-inkBlack/85 backdrop-blur text-cream px-3 py-2 rounded-full text-[11px] font-black border border-white/10 shadow-lg"
-      >
-        <Image src="/mascots/MasterGao.png" alt="" width={16} height={16} className="object-contain shrink-0" />
-        Waarom dit werkt
-      </button>
-    </div>
     </>
   )
 }

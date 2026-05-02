@@ -5,6 +5,7 @@ import { getPublicRestaurants } from '@/lib/db'
 import RestaurantFeed from '@/components/RestaurantFeed'
 import About from '@/components/About'
 import ReisNavItem from '@/components/ReisNavItem'
+import HoeWerktHetButton from '@/components/HoeWerktHetButton'
 import { DAGBOEK_COUNT } from '@/lib/dagboek'
 
 // Always render fresh — admin publishes must show immediately, no ISR delay.
@@ -34,6 +35,7 @@ export default async function Home() {
           </div>
           <nav className="flex items-center gap-3">
             <About />
+            <HoeWerktHetButton />
             <ReisNavItem count={DAGBOEK_COUNT} />
             <a href="/admin/sync" className="text-xs text-inkBlack/30 hover:text-inkBlack/60 transition-colors">
               Admin
