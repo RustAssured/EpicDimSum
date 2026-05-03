@@ -60,6 +60,8 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
   const [cityCount, setCityCount] = useState(0)
   const [journeyMessage, setJourneyMessage] = useState('')
   const [introDismissed, setIntroDismissed] = useState(true)
+  const [showMoreFilters, setShowMoreFilters] = useState(false)
+  const [locationToast, setLocationToast] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -97,6 +99,24 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
     if (localStorage.getItem('gao-intro-dismissed') !== 'true') {
       setIntroDismissed(false)
     }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.innerWidth >= 768) return
+    setLocationLoading(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        setSortByDistance(true)
+        setLocationLoading(false)
+      },
+      () => {
+        setLocationLoading(false)
+        setLocationToast(true)
+        setTimeout(() => setLocationToast(false), 4000)
+      },
+      { timeout: 5000, maximumAge: 60000 }
+    )
   }, [])
 
   const handleSuggest = async () => {
@@ -257,31 +277,78 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
         Alleen geverifieerde dim sum spots, kwaliteit boven kwantiteit
       </p>
 
-      {/* Control bar — horizontally scrollable, never wraps */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 mb-2">
+      {/* Mobile filter pills — 3 max, centered, no scroll */}
+      <div className="md:hidden relative">
+        <div className="flex items-center justify-center gap-2">
+          <button
+            onClick={handleLocation}
+            className={`flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-bold transition-all ${
+              sortByDistance ? 'bg-inkBlack text-cream border-inkBlack' : 'bg-transparent border-inkBlack/20 text-inkBlack'
+            }`}
+          >
+            📍 {locationLoading ? '...' : sortByDistance ? 'Nabij jou' : 'In jouw buurt'}
+          </button>
+          <button
+            onClick={() => { setSortBy('epic'); setSortByDistance(false) }}
+            className={`flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-bold transition-all ${
+              sortBy === 'epic' && !sortByDistance ? 'bg-inkBlack text-cream border-inkBlack' : 'bg-transparent border-inkBlack/20 text-inkBlack'
+            }`}
+          >
+            🔥 Beste overall
+          </button>
+          <button
+            onClick={() => setShowMoreFilters(!showMoreFilters)}
+            className={`flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-bold transition-all ${
+              showMoreFilters || sortBy === 'hagao' ? 'bg-inkBlack text-cream border-inkBlack' : 'bg-transparent border-inkBlack/20 text-inkBlack'
+            }`}
+          >
+            Meer {showMoreFilters ? '▴' : '▾'}
+          </button>
+        </div>
+        {showMoreFilters && (
+          <>
+            <div className="fixed inset-0 z-10" onClick={() => setShowMoreFilters(false)} />
+            <div className="absolute right-0 top-full mt-2 z-20 bg-white border border-inkBlack/10 rounded-2xl shadow-lg p-2 flex flex-col gap-1 min-w-[140px]">
+              <button
+                onClick={() => { setSortBy('hagao'); setSortByDistance(false); setShowMoreFilters(false) }}
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-left transition-colors ${
+                  sortBy === 'hagao' && !sortByDistance ? 'bg-inkBlack text-cream' : 'text-inkBlack hover:bg-inkBlack/5'
+                }`}
+              >
+                <Image src="/mascots/HaGaoIndex.png" alt="" width={14} height={14} className="object-contain" />
+                Ha Gao
+              </button>
+              <button
+                onClick={() => { handleSurpriseMe(); setShowMoreFilters(false) }}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-left text-inkBlack hover:bg-inkBlack/5 transition-colors"
+              >
+                <Image src="/mascots/hilarischgao.png" alt="" width={14} height={14} className="object-contain" />
+                Verras me!
+              </button>
+            </div>
+          </>
+        )}
+      </div>
 
-        {/* Sort: Beste overall */}
+      {/* Desktop control bar — all pills, no Lijst/Kaart */}
+      <div className="hidden md:flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4 mb-2">
         <button
-          onClick={() => setSortBy('epic')}
+          onClick={() => { setSortBy('epic'); setSortByDistance(false) }}
           className={`shrink-0 flex items-center gap-1.5 rounded-full border-[3px] border-inkBlack px-3 py-1.5 text-xs font-black transition-all ${
-            sortBy === 'epic' ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack'
+            sortBy === 'epic' && !sortByDistance ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack'
           }`}
         >
           Beste overall
         </button>
-
-        {/* Sort: Ha Gao */}
         <button
-          onClick={() => setSortBy('hagao')}
+          onClick={() => { setSortBy('hagao'); setSortByDistance(false) }}
           className={`shrink-0 flex items-center gap-1.5 rounded-full border-[3px] border-inkBlack px-3 py-1.5 text-xs font-black transition-all ${
-            sortBy === 'hagao' ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack'
+            sortBy === 'hagao' && !sortByDistance ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack'
           }`}
         >
           <Image src="/mascots/HaGaoIndex.png" alt="" width={14} height={14} className="object-contain" />
           Ha Gao
         </button>
-
-        {/* Location */}
         <button
           onClick={handleLocation}
           className={`shrink-0 flex items-center gap-1.5 rounded-full border-[3px] border-inkBlack px-3 py-1.5 text-xs font-black transition-all ${
@@ -291,34 +358,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
           <Image src="/mascots/dumpling-pin.png" alt="" width={14} height={14} className="object-contain" />
           {locationLoading ? '...' : sortByDistance ? 'Nabij jou' : 'In jouw buurt'}
         </button>
-
-        {/* Divider */}
         <div className="shrink-0 w-px h-5 bg-inkBlack/20" />
-
-        {/* List/Map toggle */}
-        <div className="shrink-0 flex rounded-full border-[3px] border-inkBlack overflow-hidden">
-          <button
-            onClick={() => setViewMode('list')}
-            className={`px-3 py-1.5 text-xs font-black transition-colors ${
-              viewMode === 'list' ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack'
-            }`}
-          >
-            Lijst
-          </button>
-          <button
-            onClick={() => setViewMode('map')}
-            className={`px-3 py-1.5 text-xs font-black transition-colors ${
-              viewMode === 'map' ? 'bg-inkBlack text-cream' : 'bg-cream text-inkBlack'
-            }`}
-          >
-            Kaart
-          </button>
-        </div>
-
-        {/* Divider */}
-        <div className="shrink-0 w-px h-5 bg-inkBlack/20" />
-
-        {/* Surprise Me — with label */}
         <button
           onClick={handleSurpriseMe}
           className="shrink-0 flex items-center gap-1.5 rounded-full border-[3px] border-inkBlack bg-cream px-3 py-1.5 text-xs font-black active:scale-95 transition-transform"
@@ -326,7 +366,33 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
           <Image src="/mascots/hilarischgao.png" alt="Verras me" width={18} height={18} className="object-contain" />
           Verras me!
         </button>
+      </div>
 
+      {/* Segmented Lijst/Kaart toggle — view control, not a filter */}
+      <div className="flex justify-center">
+        <div
+          className="inline-flex border border-inkBlack/10 bg-inkBlack/5 overflow-hidden"
+          style={{ height: 32, borderRadius: 10 }}
+        >
+          <button
+            onClick={() => setViewMode('list')}
+            className={`px-5 text-[13px] font-semibold transition-colors ${
+              viewMode === 'list' ? 'bg-inkBlack text-cream' : 'text-inkBlack/60'
+            }`}
+            style={{ borderRadius: viewMode === 'list' ? 8 : 0 }}
+          >
+            Lijst
+          </button>
+          <button
+            onClick={() => setViewMode('map')}
+            className={`px-5 text-[13px] font-semibold transition-colors ${
+              viewMode === 'map' ? 'bg-inkBlack text-cream' : 'text-inkBlack/60'
+            }`}
+            style={{ borderRadius: viewMode === 'map' ? 8 : 0 }}
+          >
+            Kaart
+          </button>
+        </div>
       </div>
 
       {/* Intro card — first-use guidance */}
@@ -560,6 +626,13 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
       {/* bottom padding so last card isn't hidden behind floating button */}
       <div className="h-20" />
     </div>
+
+    {/* geolocation denied toast — mobile only */}
+    {locationToast && (
+      <div className="md:hidden fixed top-[68px] left-1/2 -translate-x-1/2 z-50 bg-inkBlack text-cream text-xs px-4 py-2 rounded-full shadow-lg whitespace-nowrap">
+        Locatie niet beschikbaar, we tonen de beste plekken
+      </div>
+    )}
 
     {/* floating suggest FAB — mobile only, always visible, subtle outline */}
     {filtered.length > 0 && (
