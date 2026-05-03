@@ -12,6 +12,36 @@ export const metadata = {
 
 const updates = [
   {
+    id: 'klaar-voor-launch',
+    date: '3 mei 2026',
+    title: 'De laatste hand',
+    emoji: '✨',
+    content: [
+      {
+        type: 'paragraph' as const,
+        text: 'Soms is de laatste stap niet iets toevoegen, maar durven zeggen: het is klaar.',
+      },
+      {
+        type: 'bullets' as const,
+        icon: 'dim-journey.png',
+        items: [
+          'De tagline is eerlijker: "De beste dim sum plekken in Nederland. Handpicked door liefhebbers, geanalyseerd door Gao."',
+          'De uitleg over hoe EpicDimSum werkt is herschreven. Geen beloftes over duizenden reviews. Gewoon: ik kies de plekken, Gao zoekt alles op.',
+          '"Ken jij een goede plek?" staat nu altijd in beeld. Niet verstopt onderaan, maar als uitnodiging.',
+          'De filters op mobile zijn opgeruimd. Minder pillen, duidelijkere keuzes, lijst en kaart als eigen toggle.',
+          '"Hoe werkt het?" is verplaatst naar de navigatie. Niet meer een grote knop die schreeuwt om uitleg.',
+        ],
+      },
+      {
+        type: 'paragraph' as const,
+        text: 'EpicDimSum is niet perfect. De lijst is niet compleet. Maar elk restaurant dat erop staat, staat er met reden. En dat is genoeg om de wereld in te gaan.',
+      },
+    ],
+    mistake: 'Te lang gedacht dat het nog niet klaar was.',
+    fixed: true,
+    fixedNote: 'Het is klaar.',
+  },
+  {
     id: 'gao-kiest-zelf',
     date: '2 mei 2026',
     title: 'Gao kiest nu zelf',
