@@ -8,9 +8,10 @@ export default function HoeWerktHetButton() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="text-xs text-inkBlack/30 hover:text-inkBlack/60 transition-colors font-medium"
+        className="text-xs text-inkBlack/25 hover:text-inkBlack/60 transition-colors font-medium"
       >
-        Hoe werkt het?
+        <span className="md:hidden">Uitleg</span>
+        <span className="hidden md:inline">Hoe werkt het?</span>
       </button>
       <WhySheet isOpen={open} onClose={() => setOpen(false)} />
     </>

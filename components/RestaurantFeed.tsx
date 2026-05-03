@@ -60,7 +60,6 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
   const [cityCount, setCityCount] = useState(0)
   const [journeyMessage, setJourneyMessage] = useState('')
   const [introDismissed, setIntroDismissed] = useState(true)
-  const [showSuggestFAB, setShowSuggestFAB] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -98,19 +97,6 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
     if (localStorage.getItem('gao-intro-dismissed') !== 'true') {
       setIntroDismissed(false)
     }
-  }, [])
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const formEl = document.getElementById('suggest-form')
-      if (!formEl) { setShowSuggestFAB(false); return }
-      const formTop = formEl.getBoundingClientRect().top
-      const scrolledPast2Cards = window.scrollY > 400
-      const nearForm = formTop < window.innerHeight + 300
-      setShowSuggestFAB(scrolledPast2Cards && !nearForm)
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   const handleSuggest = async () => {
@@ -455,7 +441,7 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
             ) : (
               <>
                 <p className="font-black text-sm mb-1">Ken jij een goede plek? 🥟</p>
-                <p className="text-xs text-inkBlack/50 mb-4">Tip Gao een restaurant — hij duikt erin en ik beslis of het een EpicSpot wordt.</p>
+                <p className="text-xs text-inkBlack/50 mb-4">Tip Gao een restaurant — hij duikt erin en wie weet wordt het de volgende EpicSpot.</p>
                 <div className="space-y-3">
                   <div>
                     <label htmlFor="suggest-name" className="block text-xs font-black uppercase tracking-wide text-inkBlack/60 mb-1">
@@ -575,12 +561,12 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
       <div className="h-20" />
     </div>
 
-    {/* floating suggest FAB — centered on mobile, bottom-right on desktop */}
-    {showSuggestFAB && filtered.length > 0 && (
+    {/* floating suggest FAB — mobile only, always visible, subtle outline */}
+    {filtered.length > 0 && (
       <button
         onClick={() => document.getElementById('suggest-form')?.scrollIntoView({ behavior: 'smooth' })}
-        className="fixed bottom-[80px] left-1/2 -translate-x-1/2 md:bottom-6 md:right-6 md:left-auto md:translate-x-0 z-40 bg-epicGreen text-cream font-black text-[14px] min-w-[200px] px-5 py-3 rounded-full border-2 border-inkBlack"
-        style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
+        className="md:hidden fixed bottom-20 left-1/2 -translate-x-1/2 z-40 bg-white text-epicGreen font-bold text-[12px] whitespace-nowrap rounded-full border-2 border-epicGreen"
+        style={{ padding: '8px 16px', maxWidth: 220, boxShadow: '0 2px 8px rgba(0,0,0,0.10)' }}
       >
         🥟 Ken jij een goede plek?
       </button>
