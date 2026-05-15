@@ -66,7 +66,7 @@ export default function WhySheet({ isOpen, onClose }: WhySheetProps) {
                 <span className="text-[9px] bg-epicGold/20 text-epicGold font-black px-2 py-0.5 rounded-full">BONUS</span>
               </div>
               <p className="text-xs text-inkBlack/50 leading-snug mt-0.5">
-                Als er voldoende dumpling reviews zijn, berekenen we een Ha Gao Index: hoe goed zijn de dumplings écht? Dit is de icing on the cake bovenop de EpicScore.
+                Als er voldoende dumpling reviews zijn, berekenen we een Ha Gao Index: hoe goed zijn de dumplings écht? Een extra laag bovenop de EpicScore, voor de echte dumplingkenner.
               </p>
               <p className="text-[10px] text-inkBlack/30 leading-snug mt-1">
                 Niet elk restaurant heeft een Ha Gao Index, maar als je hem ziet, zegt hij iets echts.

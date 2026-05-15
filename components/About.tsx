@@ -85,6 +85,13 @@ function AboutSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
             Privacy
           </Link>
         </div>
+
+        <div className="mt-5 pt-4 border-t border-inkBlack/10">
+          <p className="text-[11px] font-black text-inkBlack/40 mb-1">Eerlijk over hoe dit is gemaakt</p>
+          <p className="text-[11px] text-inkBlack/40 leading-relaxed">
+            EpicDimSum is gebouwd met behulp van AI. De code, de analyses, de restaurantinformatie, Claude en ChatGPT hebben meegebouwd. De keuzes, de smaak en de curation zijn van mij en van de liefhebbers die meehelpen.
+          </p>
+        </div>
       </div>
     </div>
   )
