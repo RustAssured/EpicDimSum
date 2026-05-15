@@ -272,6 +272,18 @@ export default function RestaurantFeed({ restaurants }: RestaurantFeedProps) {
       {/* City filter */}
       <CityFilter selected={selectedCity} onChange={setSelectedCity} availableCities={availableCities} />
 
+      {/* City page link — shown for the 4 cities with dedicated pages */}
+      {(['Amsterdam', 'Rotterdam', 'Den Haag', 'Utrecht'] as const).includes(selectedCity as 'Amsterdam' | 'Rotterdam' | 'Den Haag' | 'Utrecht') && (
+        <div className="text-right -mt-1">
+          <Link
+            href={`/stad/${selectedCity === 'Den Haag' ? 'den-haag' : selectedCity.toLowerCase()}`}
+            className="text-[10px] font-black text-inkBlack/30 hover:text-epicGreen transition-colors"
+          >
+            Bekijk stadspagina →
+          </Link>
+        </div>
+      )}
+
       {/* Product promise */}
       <p className="text-xs text-inkBlack/40 font-medium text-center -mt-1">
         Alleen geverifieerde dim sum spots, kwaliteit boven kwantiteit
